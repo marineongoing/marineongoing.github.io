@@ -476,6 +476,93 @@ dialog.notedlg{border-radius:30px!important}
 .login-card #lg1,.login-card #lg2{display:flex;flex-direction:column;gap:10px;width:100%}
 .login-card input{border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.1);color:var(--ink);font:inherit;text-align:center}
 .login-card [hidden]{display:none!important}
+
+/* ===== Mobile ===== */
+@media (max-width:700px){
+  html,body{overflow-x:hidden}
+  body{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+  input,select,textarea,.rte{font-size:16px!important}
+  .wrap{padding:10px 14px 30px}
+  .topbar{margin-bottom:10px}
+  .topbar .status{display:none}
+  .search{order:1!important;margin:0!important;max-width:none;flex:1}
+  nav.views{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:900;display:flex;justify-content:space-around;padding:6px!important;order:3;margin:0!important}
+  nav.views button{flex:1;padding:10px 6px;font-size:14px}
+  nav.views .homebtn{flex:0 0 64px}
+  header.top{margin-bottom:10px;align-items:center}
+  header.top h1{font-size:30px!important}
+  header.top p{font-size:14px}
+  .subtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -14px 14px;padding:0 14px;scroll-snap-type:x proximity}
+  .subtabs::-webkit-scrollbar{display:none}
+  .subtabs button{flex:none;scroll-snap-align:start;padding:9px 14px;font-size:14px}
+  .panel,.upcoming,.study,.cert,.today-col{border-radius:22px;padding:14px}
+  .hero{grid-template-columns:1fr;padding:18px 20px;gap:10px}
+  .h-wd{font-size:38px}.h-d{font-size:22px}
+  .today-grid{grid-template-columns:1fr!important;gap:6px!important}
+  .dash-grid,.alt-grid,.ev-top,.nd-grid{grid-template-columns:1fr!important}
+  .weekbar{gap:8px}
+  .weekbar h2{font-size:19px}
+  .toolbar .btn{padding:8px 12px}
+  .btn{white-space:nowrap}
+  .bdg{white-space:nowrap}
+  .cc-main b{font-size:14px}
+  /* Calendrier du mois : pastilles + agenda du jour */
+  .week-scroll{overflow:visible}
+  .month{min-width:0;gap:4px;grid-template-columns:repeat(5,minmax(0,1fr))}
+  .dash-grid>*,.alt-grid>*,.ev-top>*{min-width:0}
+  .subtabs{margin:0 0 14px!important;padding:0!important}
+  .month .dow{font-size:11px;text-align:center;padding:0}
+  .mcell{min-height:50px;padding:4px!important;align-items:center;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:3px}
+  .mcell .num{width:100%;height:24px;font-size:13px;display:grid;place-items:center}
+  .mcell.today .num{width:26px}
+  .mcell.sel{outline:2px solid rgba(255,255,255,.7);outline-offset:-2px}
+  .mcell .chip{pointer-events:none;font-size:0!important;width:7px!important;height:7px;padding:0!important;border-radius:50%!important;border:0!important;background:var(--c)!important;flex:none}
+  .mcell .chip.devoir{background:#FFBE85!important}.mcell .chip.examen{background:#F59DB8!important}
+  .mcell .more{display:none}
+  .legend{display:none}
+  .dayagenda{margin-top:12px}
+  .da-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  /* Semaine : jours empilés */
+  .week{grid-template-columns:1fr;min-width:0}
+  .day{min-height:0;padding:12px}
+  .day .addday{margin-top:4px}
+  /* Matières */
+  .binder .tabs{margin:0 -14px;padding:0 14px 0;scrollbar-width:none}
+  .binder .tabs::-webkit-scrollbar{display:none}
+  .tab{font-size:13px;padding:9px 12px}
+  .sheet{padding:14px;border-radius:0 0 22px 22px}
+  .sheet-head{flex-direction:column;align-items:stretch}
+  .sheet-head h2{font-size:22px}
+  .cgrid{grid-template-columns:1fr 1fr;gap:8px}
+  .ccard{padding:10px}
+  /* Évaluations : tableau en cartes */
+  .gtable{min-width:0}
+  .gtable thead{display:none}
+  .gtable tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .gtable td{border:0;padding:0}
+  .gtable td:nth-child(1){grid-column:1;font-size:12px;color:var(--muted)}
+  .gtable td:nth-child(2){grid-column:1;font-size:13px}
+  .gtable td:nth-child(3){grid-column:1;font-weight:600}
+  .gtable td:nth-child(4){display:none}
+  .gtable td.sc{grid-column:2;grid-row:1/3;align-self:center;font-size:18px}
+  .gtable td:last-child{grid-column:2;grid-row:3;justify-self:end}
+  .avg-grid{grid-template-columns:1fr 1fr}
+  /* Fenêtres en feuille du bas */
+  dialog:not(.notedlg){margin:auto 0 0;width:100vw!important;max-width:100vw;border-radius:26px 26px 0 0!important;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:88vh;overflow:auto}
+  .row{flex-direction:column;gap:0}
+  .rtebar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .rtebar::-webkit-scrollbar{display:none}
+  .nd-head .title{font-size:20px}
+  .studies .study-body{grid-template-columns:1fr;padding:0 14px 14px}
+  details.study>summary{padding:14px}
+  .scen{grid-template-columns:1fr}
+  .omsg span{max-width:88%}
+  .qres{position:fixed;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 64px)}
+  .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 90px)}
+  .bstats{grid-template-columns:1fr 1fr}
+  .tools{grid-template-columns:1fr 1fr}
+  .tool .tt small{display:none}
+}
 </style>
 </head>
 <body>
@@ -669,6 +756,7 @@ const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).sli
 
 function defaultSemesters(){const n=new Date();const y=n.getMonth()>=7?n.getFullYear():n.getFullYear()-1;
   return {s1:{start:y+"-09-01",end:(y+1)+"-06-30"},s2:{start:(y+1)+"-09-01",end:(y+2)+"-06-30"}}}
+function isMobile(){return window.matchMedia("(max-width:700px)").matches}
 function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return x}
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function parseISO(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
@@ -1069,11 +1157,14 @@ function monthHTML(){
   let d=mondayOf(m);const last=new Date(m.getFullYear(),m.getMonth()+1,0);
   while(d<=last){
     for(let i=0;i<5;i++){const day=addDays(d,i),ds=iso(day),evs=eventsOn(day);
-      html+=`<div class="mcell${day.getMonth()!==m.getMonth()?" out":""}${ds===t?" today":""}" data-add="${ds}" role="button" tabindex="0" aria-label="Ajouter le ${fmtDay(day)}"><span class="num">${day.getDate()}</span>`+
+      html+=`<div class="mcell${day.getMonth()!==m.getMonth()?" out":""}${ds===t?" today":""}${ds===state.selDay?" sel":""}" data-add="${ds}" role="button" tabindex="0" aria-label="Ajouter le ${fmtDay(day)}"><span class="num">${day.getDate()}</span>`+
         evs.slice(0,3).map(e=>{const s=SUBJ[e.subject]||SUBJECTS[0];return `<button class="chip ${e.type}" style="--c:${s.c}" data-ev="${e.id}" data-on="${ds}" title="${esc((e.title||s.name)+(e.start?" · "+e.start:""))}">${e.start?e.start+" ":""}${esc(e.title||s.name)}</button>`}).join("")+
         (evs.length>3?`<span class="more">+${evs.length-3} autre${evs.length>4?"s":""}</span>`:"")+`</div>`;}
     d=addDays(d,7);
   }
+  if(isMobile()){const sd=state.selDay||t;const evs=eventsOn(parseISO(sd));const d=parseISO(sd);
+    html+=`</div></div><div class="dayagenda"><div class="da-head"><b>${(x=>x.charAt(0).toUpperCase()+x.slice(1))(d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}))}</b><button class="btn primary" data-add="${sd}">+ Ajouter</button></div>
+      ${evs.length?`<ul class="uplist">${evs.map(e=>{const sj=SUBJ[e.subject]||GEN;return `<li class="upi" style="--c:${sj.c}"><span class="dtile" style="width:54px"><b style="font-size:15px">${e.start||"—"}</b><small>${e.end||""}</small></span><button class="upt" data-ev="${e.id}" data-on="${sd}">${esc(e.title||sj.name)}<small>${TYPE_LABEL[e.type]}${e.title?" · "+esc(sj.name):""}</small></button></li>`}).join("")}</ul>`:`<p class="hint" style="margin:6px 2px">Rien de prévu ce jour-là.</p>`}</div>`;return html}
   return html+`</div></div><div class="legend"><span><i style="background:linear-gradient(90deg,var(--s1),var(--s2),var(--s3),var(--s4))"></i>Cours</span><span><i style="background:var(--devoir)"></i>Devoir à rendre</span><span><i style="background:var(--examen)"></i>Examen</span></div>`;
 }
 $("#view-dash").addEventListener("click",async e=>{
@@ -1115,7 +1206,7 @@ $("#view-dash").addEventListener("click",async e=>{
   else if(b.dataset.extra)openG("extra",b.dataset.extra);
   else if(b.dataset.study)openStudy(b.dataset.study);
   else if(b.dataset.ev)openEvent(b.dataset.ev,b.dataset.on);
-  else if(b.dataset.add)openEvent(null,b.dataset.add);
+  else if(b.dataset.add){if(isMobile()&&b.classList.contains("mcell")){state.selDay=b.dataset.add;renderDash()}else openEvent(null,b.dataset.add)}
 });
 $("#view-dash").addEventListener("keydown",e=>{if(e.target.id==="oralInput"&&e.key==="Enter"&&!e.shiftKey){e.preventDefault();const b=document.querySelector("[data-act=oralsend]");if(b&&!b.disabled)b.click();return}if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("mcell")){e.preventDefault();openEvent(null,e.target.dataset.add)}});
 const semDlg=$("#semDialog"),semForm=$("#semForm");
@@ -1903,6 +1994,7 @@ document.querySelectorAll("#yeartabs button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#yeartabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
   $("#view-week").hidden=state.view!=="week";$("#view-subjects").hidden=state.view!=="subjects";$("#view-evals").hidden=state.view!=="evals";render();
 });
+let lastMob=null;window.addEventListener("resize",()=>{const m=isMobile();if(m!==lastMob){lastMob=m;render()}});
 function render(fromSync){
   if(state.view==="dash")renderDash();else if(state.view==="week")renderWeek();else if(state.view==="evals")renderEvals();else renderSubjects(fromSync);
 }

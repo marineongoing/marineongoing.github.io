@@ -717,6 +717,210 @@ nav.views .homebtn img{width:26px!important;height:26px!important}
 .revcard .toolbar{margin-top:auto}
 #view-revs .oral{margin-top:14px;background:rgba(255,255,255,.05)!important}
 @media (max-width:900px){.revgrid{grid-template-columns:1fr}}
+#prefBtn{position:relative;z-index:30;cursor:pointer;touch-action:manipulation}
+.mback{display:none}
+@media (max-width:700px){
+  #goalbar{display:none!important}
+  body.m-open .mback{display:flex;align-items:center;gap:6px;margin:0 0 12px}
+  .mback h2{font-size:24px;margin:0}
+  .mback .btn.icon svg{width:24px;height:24px}
+  /* Accueil : menu d'icônes */
+  body.m-menu #view-dash>:not(.aura-wrap):not(.hometabs){display:none!important}
+  body.m-open #view-dash>.aura-wrap,body.m-open #view-dash>.hometabs{display:none!important}
+  /* Pages d'année */
+  body.m-menu #view-week,body.m-menu #view-subjects,body.m-menu #view-evals,body.m-menu #view-revs{display:none!important}
+  body.m-open #yeartabs,body.m-open #pagehead{display:none!important}
+  /* Onglets en icônes seules */
+  body.m-menu .hometabs,body.m-menu #yeartabs{flex-wrap:wrap!important;justify-content:center!important;overflow:visible!important;gap:14px!important;margin:18px 0 10px!important}
+  body.m-menu .hometabs button,body.m-menu #yeartabs button{font-size:0!important;width:62px;height:62px;padding:0!important;justify-content:center;border-radius:50%!important;gap:0!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.06))!important;border:1px solid rgba(255,255,255,.3)!important;
+    box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),inset 0 -3px 6px rgba(0,0,0,.12),0 8px 18px -8px rgba(8,16,12,.45)!important;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  body.m-menu .hometabs button svg,body.m-menu #yeartabs button svg{width:25px!important;height:25px!important;color:var(--ink);filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.4))}
+  body.m-menu .hometabs,body.m-menu #yeartabs{gap:10px!important}
+  body.m-menu .hometabs button,body.m-menu #yeartabs button{width:56px!important;height:56px!important;color:var(--ink)!important}
+  body.m-open #view-dash>.weekbar h2,body.m-open #view-evals>.weekbar h2{display:none}
+  body.m-menu .hometabs button::before,body.m-menu #yeartabs button::before{display:none}
+}
+@media (max-width:700px){nav.views button[data-short]{font-size:0!important}nav.views button[data-short]::after{content:attr(data-short);font-size:16px;font-weight:600}}
+.mtabs,.mprefbtn{display:none}
+@media (max-width:700px){
+  .hometabs,#yeartabs{display:none!important}
+  #prefBtn{display:none!important}
+  .mtabs{display:block;position:relative;order:2;flex:none}
+  #mtabsBtn,.mtabs-menu button{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink);padding:0;
+    background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.32);
+    box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),inset 0 -3px 6px rgba(0,0,0,.12),0 8px 18px -8px rgba(8,16,12,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  #mtabsBtn svg,.mtabs-menu svg{width:22px;height:22px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.4))}
+  #mtabsBtn[aria-expanded="true"]{box-shadow:0 0 0 2px rgba(255,255,255,.6),inset 0 1.5px 1px rgba(255,255,255,.7),0 8px 18px -8px rgba(8,16,12,.45)}
+  .mtabs-menu{position:absolute;right:0;top:52px;display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:30px;z-index:60;
+    background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.05)),rgba(20,28,24,.45);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:0 16px 40px rgba(0,0,0,.3)}
+  .mtabs-menu[hidden]{display:none}
+  .mprefbtn{display:grid;place-items:center;flex:0 0 48px!important;padding:0!important;background:none!important;border:0!important;color:var(--ink)}
+  .mprefbtn svg{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.4))}
+  .mback{display:none!important}
+}
+@media (max-width:700px){
+  .mtabs{width:44px;height:44px}
+  .mtabs-bubble{position:absolute;top:0;right:0;width:44px;display:flex;flex-direction:column;align-items:center;border-radius:22px;z-index:60;
+    background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07)),rgba(20,28,24,.2);border:1px solid rgba(255,255,255,.32);
+    box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),inset 0 -3px 6px rgba(0,0,0,.12),0 8px 18px -8px rgba(8,16,12,.45);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);transition:box-shadow .2s}
+  .mtabs-bubble:has(.mtabs-menu:not([hidden])){background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.06)),rgba(20,28,24,.42);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),0 16px 40px rgba(0,0,0,.3)}
+  #mtabsBtn,.mtabs-menu button{width:42px!important;height:42px!important;background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:50%}
+  #mtabsBtn[aria-expanded="true"]{box-shadow:none!important}
+  .mtabs-menu{position:static!important;background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:0 0 4px!important;gap:2px!important;border-radius:0!important}
+  .mtabs-menu:not([hidden]){border-top:1px solid rgba(255,255,255,.18)!important;padding-top:4px!important;margin-top:0}
+  .mtabs-menu button:active{background:rgba(255,255,255,.15)!important}
+}
+@media (max-width:700px){
+  body:not([data-home="year"]) #view-dash .aura-wrap{display:none!important}
+  #mtabsBtn.is-year svg,.mtabs-menu [data-mt="year"] svg{color:var(--accent);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 70%,transparent)) drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+}
+@media (max-width:700px){
+  body:not(.show-search) .search{display:none!important}
+  .mtabs{margin-left:auto}
+}
+@media (max-width:700px){
+  .aura{margin:10px auto 84px!important}
+  .hello{margin-top:6px!important}
+  .hsub{margin:12px 0 26px!important}
+}
+.fab,.ndtabs,.mcalmore{display:none}
+.netdot{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;width:9px;height:9px;border-radius:50%;background:#FFBE85;box-shadow:0 0 8px #FFBE85;z-index:999}
+.netdot[hidden]{display:none}
+@media (max-width:700px){
+  .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 150px)!important}
+  /* calendrier du mois : une seule ligne */
+  #view-dash .panel>.weekbar{flex-wrap:nowrap;align-items:center}
+  #view-dash .panel>.weekbar h2{font-size:18px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #view-dash .panel>.weekbar .toolbar{flex-wrap:nowrap;gap:0}
+  #view-dash .panel>.weekbar [data-act="mtoday"]:not(.menu *),#view-dash .panel>.weekbar [data-act="add"],#view-dash .panel>.weekbar .toolbar>[data-act="semdates"],#view-dash .panel>.weekbar .toolbar>label.icon{display:none!important}
+  .mcalmore{display:block}
+  #view-week .weekbar [data-act="add"]{display:none!important}
+  /* bouton + flottant */
+  .fab{display:grid;place-items:center;position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:58px;height:58px;border-radius:50%;z-index:850;color:#2F3431;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 85%,#fff),color-mix(in srgb,var(--accent) 70%,transparent));border:1px solid color-mix(in srgb,var(--accent) 70%,rgba(20,30,24,.4));
+    box-shadow:inset 0 2px 1px rgba(255,255,255,.8),inset 0 -3px 6px rgba(0,0,0,.12),0 0 24px -4px color-mix(in srgb,var(--accent) 80%,transparent),0 10px 24px -8px rgba(0,0,0,.45)}
+  .fabdlg{margin:auto 0 0!important;width:100vw!important;max-width:100vw!important;border-radius:26px 26px 0 0!important;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 14px)!important}
+  .fabmenu{display:flex;flex-direction:column;gap:8px}
+  .fabmenu button{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--ink);font:inherit;font-size:17px;font-weight:600;text-align:left}
+  .fabmenu .fi{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--accent) 45%,transparent)}
+  .fabmenu .fi svg{width:21px;height:21px}
+  .fabmenu .fabclose{justify-content:center;background:none;border:0;color:var(--muted)}
+  /* note : onglets Notes / Fichiers / Tâches */
+  .ndtabs{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);margin:4px 0 2px}
+  .ndtabs button{flex:1;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;font-size:14px;padding:8px;border-radius:999px}
+  .ndtabs button[aria-selected="true"]{background:rgba(255,255,255,.2);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+  .nd-grid[data-t="notes"] .nd-side{display:none}
+  .nd-grid[data-t="files"] .nd-main,.nd-grid[data-t="tasks"] .nd-main{display:none}
+  .nd-grid[data-t="files"] .nd-side .sec-tasks,.nd-grid[data-t="tasks"] .nd-side .sec-files{display:none}
+  .nd-main .rte{min-height:58vh!important}
+  .rtebar{position:sticky;top:0;z-index:5}
+  /* aura plus légère */
+  .aura i{animation:none!important;filter:blur(18px)!important}
+  .netdot{left:auto;right:10px}
+}
+.sback{display:none}
+@media (max-width:700px){
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .stile{aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:16px;border-radius:24px;color:var(--ink);font:inherit;
+    background:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,.04) 60%),color-mix(in srgb,var(--c) 55%,transparent);
+    border:1px solid color-mix(in srgb,var(--c) 70%,rgba(255,255,255,.35));-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);
+    box-shadow:inset 0 1.5px 1px rgba(255,255,255,.6),inset 0 -3px 8px rgba(0,0,0,.1),0 10px 24px -10px color-mix(in srgb,var(--c) 70%,transparent);text-shadow:0 1px 2px rgba(0,0,0,.28)}
+  .stile:active{transform:scale(.97)}
+  .st-name{font-family:var(--hfont,"Outfit","Quicksand",sans-serif);font-size:21px;line-height:1.15;font-weight:500}
+  .st-count{font-size:14px;margin-top:auto}
+  .st-count b{font-size:26px;font-weight:600;font-family:var(--hfont,"Outfit","Quicksand",sans-serif)}
+  .st-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:8px}
+  .st-bar i{display:block;height:100%;background:rgba(255,255,255,.9);border-radius:99px}
+  #view-subjects .binder .tabs{display:none!important}
+  #view-subjects .sheet{border-radius:24px!important}
+  .sback{display:inline-flex;align-self:flex-start;padding:4px 0!important;margin:-6px 0 4px;font-size:14px;order:-1}
+  #view-subjects .sheet-head>div{display:flex;flex-direction:column}
+}
+@media (max-width:700px){
+  .stile{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  .st-dot{position:absolute;top:12px;right:12px;width:11px;height:11px;border-radius:50%;background:#FFBE85;box-shadow:0 0 10px #FFBE85,0 0 0 2px rgba(255,255,255,.5)}
+  .st-next{font-size:13px;margin-top:6px;opacity:.9}
+  .sgrid-head{display:flex;justify-content:flex-end;margin:-6px 0 6px}
+  .sgrid-head .btn{font-size:14px;padding:4px 6px}
+  .sgrid-tip{text-align:center;margin-top:12px;font-size:12px}
+  .stile.reo{animation:wig .35s ease-in-out infinite alternate}
+  @keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+  .st-move{position:absolute;left:0;right:0;bottom:-2px;display:flex;justify-content:space-between;padding:0 8px 10px}
+  .st-move button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.25);color:var(--ink);font-size:22px;line-height:1}
+  #view-revs .binder .tabs{display:none!important}
+  #view-revs .sheet{border-radius:24px!important}
+  #view-revs .sheet-head>div{display:flex;flex-direction:column}
+  /* Évaluations : moyennes en carrés colorés */
+  #view-evals .avg-grid{grid-template-columns:1fr 1fr!important;gap:12px}
+  #view-evals .avg-card{aspect-ratio:1;display:flex;flex-direction:column;border-radius:24px!important;padding:14px;border-left:0!important;color:var(--ink);
+    background:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,.04) 60%),color-mix(in srgb,var(--c) 55%,transparent)!important;
+    border:1px solid color-mix(in srgb,var(--c) 70%,rgba(255,255,255,.35))!important;box-shadow:inset 0 1.5px 1px rgba(255,255,255,.6),0 10px 24px -10px color-mix(in srgb,var(--c) 70%,transparent)!important;text-shadow:0 1px 2px rgba(0,0,0,.28)}
+  #view-evals .avg-card b{font-size:32px;order:2;margin-top:auto;font-family:var(--hfont,"Outfit","Quicksand",sans-serif)}
+  #view-evals .avg-card>span:first-of-type{order:1;font-family:var(--hfont,"Outfit","Quicksand",sans-serif);font-size:19px;color:var(--ink)}
+  #view-evals .avg-card br{display:none}
+  #view-evals .avg-card>span{color:var(--ink)}
+  #view-evals .avg-card .goal{order:3}
+}
+@media (max-width:700px){
+  #view-evals .avg-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+  #view-evals .avg-card{aspect-ratio:auto!important;min-height:160px;min-width:0;overflow:hidden}
+  #view-evals .avg-card>span:nth-of-type(1){order:1!important}
+  #view-evals .avg-card>span:nth-of-type(2){order:2!important;font-size:12px;opacity:.85}
+  #view-evals .avg-card b{order:3!important}
+  #view-evals .avg-card .goal{order:4!important}
+}
+@media (max-width:700px){#view-evals .ev-exams{display:none!important}}
+.est{display:flex;flex-direction:column;gap:2px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.est span{font-size:13px;color:var(--muted)}.est b{font-size:26px;font-family:var(--hfont,"Outfit","Quicksand",sans-serif);font-weight:400}.est b small{font-size:14px;color:var(--muted)}
+.avg-card{position:relative;cursor:pointer}
+.avg-card.sel{outline:2px solid rgba(255,255,255,.8);outline-offset:2px}
+.spark{display:block;width:100%;height:26px;margin:6px 0 2px;color:var(--c);filter:drop-shadow(0 0 4px var(--c))}
+.need{display:block;font-size:12px;margin-top:2px}.need.ok{color:#8FD69A}.need.ko{color:#F2A7B8}
+.addg{position:absolute;top:6px;right:6px;font-size:18px!important;line-height:1}
+.rowact{white-space:nowrap}
+@media (max-width:700px){
+  .ev-chart:not(.filtered){display:none}
+  #view-evals .spark{color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+  #view-evals .need{color:var(--ink)!important;opacity:.9}
+  #view-evals .avg-card .addg{top:8px;right:8px;background:rgba(255,255,255,.25)!important;width:32px;height:32px;padding:0!important;display:grid;place-items:center}
+  .gtable tr{position:relative;transition:transform .2s ease;background:transparent}
+  .gtable td.rowact{position:absolute;right:-96px;top:0;bottom:0;width:92px;display:flex!important;align-items:center;justify-content:space-around;grid-column:auto!important;grid-row:auto!important}
+  .gtable tr.sw{transform:translateX(-96px)}
+  .gtable{overflow:hidden}
+  #view-evals .week-scroll{overflow:hidden}
+}
+.avg-card .addg{position:absolute!important;top:6px;right:6px;left:auto}
+@media (max-width:700px){#view-evals .avg-card .spark{order:2}#view-evals .avg-card .addg{top:8px!important;right:8px!important}#view-evals .avg-card>span:nth-of-type(1){padding-right:34px}}
+.mdots{display:none}
+@keyframes slideL{from{opacity:.3;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes slideR{from{opacity:.3;transform:translateX(-24px)}to{opacity:1;transform:none}}
+@media (max-width:700px){
+  nav.views{display:none!important}
+  body{padding-bottom:0!important}
+  .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 100px)!important}
+  .wrap.slide-l>section:not([hidden]){animation:slideL .28s ease}
+  .wrap.slide-r>section:not([hidden]){animation:slideR .28s ease}
+  .topbar{display:flex!important;align-items:center;flex-wrap:wrap;gap:10px}
+  #prefBtn{display:inline-grid!important;order:0;margin:0}
+  .mdots{display:flex;order:1;flex:1;justify-content:center;align-items:center;gap:7px}
+  .mdot{width:7px;height:7px;border-radius:99px;border:0;padding:0;background:rgba(255,255,255,.45);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:width .25s ease,background .25s}
+  .mdot.on{width:22px;background:var(--ink);box-shadow:0 0 8px rgba(255,255,255,.5)}
+  .mtabs{order:2;margin-left:0!important}
+  .search{order:3!important;flex:1 1 100%!important}
+  #mtabsBtn .pgimg,.mtabs-menu .pgimg{width:26px;height:26px;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+  .pgt{font-weight:700;font-size:14px;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .fab{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important}
+  .netdot{top:calc(env(safe-area-inset-top,0px) + 4px)!important;right:50%!important;left:auto!important}
+}
+@media (prefers-reduced-motion:reduce){.wrap.slide-l>section,.wrap.slide-r>section{animation:none!important}}
+@media (max-width:700px){
+  #pagehead p{display:none!important}
+  #pagehead{margin-bottom:10px!important}
+  .wrap>.search{display:block;max-width:none!important;margin:0 0 16px!important}
+  body:not(.show-search) .wrap>.search{display:none!important}
+}
+@media (max-width:700px){.wrap>.search{position:relative;z-index:40}.wrap>.search .qres{position:absolute!important;top:calc(100% + 6px)!important;left:0!important;right:0!important}}
 </style>
 </head>
 <body>
@@ -724,9 +928,12 @@ nav.views .homebtn img{width:26px!important;height:26px!important}
   <div class="topbar">
     <nav class="views" aria-label="Pages">
       <button data-page="dash" aria-pressed="true" class="homebtn" aria-label="Accueil" title="Accueil"><img src="data:image/png;base64,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" alt="" width="34" height="34"></button>
-      <button data-page="s1" aria-pressed="false">1re année</button>
-      <button data-page="s2" aria-pressed="false">2e année</button>
+      <button data-page="s1" aria-pressed="false" data-short="1re" aria-label="1re année">1re année</button>
+      <button data-page="s2" aria-pressed="false" data-short="2e" aria-label="2e année">2e année</button>
+      <button class="mprefbtn" id="prefBtn2" aria-label="Préférences" title="Préférences"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
     </nav>
+    <div class="mdots" id="mdots" role="tablist" aria-label="Onglets"></div>
+    <div class="mtabs" id="mtabs"><div class="mtabs-bubble"><button id="mtabsBtn" aria-haspopup="true" aria-expanded="false" aria-label="Changer d'onglet"></button><div id="mtabsMenu" class="mtabs-menu" hidden></div></div></div>
     <div class="status" id="status" role="status"></div>
     <button class="btn ghost icon prefbtn" id="prefBtn" aria-label="Préférences" title="Préférences"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
     <div class="search"><input id="q" type="search" placeholder="Rechercher dans mes notes…" aria-label="Rechercher dans mes notes" autocomplete="off"><div id="qres" class="qres" hidden></div></div>
@@ -742,6 +949,15 @@ nav.views .homebtn img{width:26px!important;height:26px!important}
   <div id="failbar" class="failbar" role="alert" hidden><span></span><button class="btn" onclick="retryFailed()">Réessayer</button></div>
   <header class="top" id="pagehead"></header>
 
+  <button id="fab" class="fab" aria-label="Ajouter" title="Ajouter"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <dialog id="fabDlg" class="fabdlg"><div class="fabmenu">
+    <button data-fab="note"><span class="fi"></span>Note du cours</button>
+    <button data-fab="devoir"><span class="fi"></span>Devoir ou tâche</button>
+    <button data-fab="event"><span class="fi"></span>Cours ou examen</button>
+    <button data-fab="grade"><span class="fi"></span>Note d'évaluation</button>
+    <button data-fab="close" class="fabclose">Annuler</button></div></dialog>
+  <span id="netdot" class="netdot" hidden title="Modifications pas encore envoyées"></span>
+  <div id="mback" class="mback"><button class="btn ghost icon" id="mbackBtn" aria-label="Retour" title="Retour"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="mbackT"></h2></div>
   <section id="view-dash"></section>
   <div class="subtabs" id="yeartabs" role="tablist" hidden>
     <button role="tab" data-ytab="week" aria-selected="true">Semaine</button>
@@ -901,12 +1117,12 @@ const ICO={edit:SV('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>
   save:SV('<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/>')};
 const IB=(attrs,ico,label)=>`<button class="btn ghost icon" ${attrs} aria-label="${label}" title="${label}">${ICO[ico]}</button>`;
 const SUBJECTS=[
-  {id:"rcnv",name:"Relation client et négociation vente",c:"var(--s1)"},
-  {id:"rcd",name:"Relation client à distance et digitalisation",c:"var(--s2)"},
-  {id:"cejm",name:"Culture économique, juridique et managériale",c:"var(--s3)"},
-  {id:"ang",name:"Anglais",c:"var(--s4)"},
-  {id:"cge",name:"Culture générale et expression",c:"var(--s5)"},
-  {id:"arc",name:"Relation client et animation de réseaux",c:"var(--s6)"}
+  {id:"rcnv",name:"Relation client et négociation vente",full:"Relation client et négociation vente",short:"Négo-vente",c:"var(--s1)"},
+  {id:"rcd",name:"Relation client à distance et digitalisation",full:"Relation client à distance et digitalisation",short:"Digitalisation",c:"var(--s2)"},
+  {id:"cejm",name:"Culture économique, juridique et managériale",full:"Culture économique, juridique et managériale",short:"CEJM",c:"var(--s3)"},
+  {id:"ang",name:"Anglais",full:"Anglais",short:"Anglais",c:"var(--s4)"},
+  {id:"cge",name:"Culture générale et expression",full:"Culture générale et expression",short:"Culture G.",c:"var(--s5)"},
+  {id:"arc",name:"Relation client et animation de réseaux",full:"Relation client et animation de réseaux",short:"Animation réseaux",c:"var(--s6)"}
 ];
 const GEN={id:"gen",name:"INSEEC (toutes matières)",c:"#E4E1DA"};
 const PINNED=[{id:"meth",name:"Méthodologie",c:"#E4E1DA"},{id:"annexes",name:"Annexes",c:"#E4E1DA"}];
@@ -928,7 +1144,7 @@ function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function parseISO(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 const fmtDay=d=>d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
-function setStatus(t){$("#status").textContent=t}
+function setStatus(t){$("#status").textContent=t;if(typeof updateNet==="function")setTimeout(updateNet,0)}
 
 /* ---------- Storage: private per-user db, localStorage fallback ---------- */
 const LS="cahier-bts-v1";
@@ -1338,7 +1554,7 @@ function monthHTML(){
   const title=m.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
   let html=`<div class="weekbar"><h2 style="text-transform:capitalize">${title}</h2><div class="toolbar">
     <button class="btn" data-act="mprev" aria-label="Mois précédent">‹</button><button class="btn" data-act="mtoday">Aujourd'hui</button>
-    <button class="btn" data-act="mnext" aria-label="Mois suivant">›</button><button class="btn primary" data-act="add">Ajouter</button>${IB(`data-act="semdates"`,"cal","Dates des années")}<label class="btn ghost icon" style="cursor:pointer" title="Importer agenda (.ics)" aria-label="Importer agenda (.ics)">${ICO.upload}<input type="file" accept=".ics,text/calendar" id="icsInput" hidden></label></div></div>
+    <button class="btn" data-act="mnext" aria-label="Mois suivant">›</button><button class="btn primary" data-act="add">Ajouter</button><details class="more mcalmore"><summary class="btn ghost icon" aria-label="Plus d'options" title="Plus d'options">${ICO.more}</summary><div class="menu"><button data-act="mtoday">Aujourd'hui</button><button data-act="semdates">Dates des années</button><button data-act="icspick">Importer agenda (.ics)</button></div></details>${IB(`data-act="semdates"`,"cal","Dates des années")}<label class="btn ghost icon" style="cursor:pointer" title="Importer agenda (.ics)" aria-label="Importer agenda (.ics)">${ICO.upload}<input type="file" accept=".ics,text/calendar" id="icsInput" hidden></label></div></div>
     <div class="week-scroll"><div class="month">${DAYS.map(d=>`<div class="dow">${d}</div>`).join("")}`;
   let d=mondayOf(m);const last=new Date(m.getFullYear(),m.getMonth()+1,0);
   while(d<=last){
@@ -1356,13 +1572,14 @@ function monthHTML(){
 $("#view-dash").addEventListener("click",async e=>{
   const b=e.target.closest("button,[data-add]");if(!b)return;
   if(b.dataset.sem){state.sem=b.dataset.sem;state.month=monthStartFor(state.sem);renderDash()}
-  else if(b.dataset.home){state.home=b.dataset.home;renderDash()}
+  else if(b.dataset.home){state.home=b.dataset.home;if(isMobile()){state.mOpen=true;window.scrollTo(0,0)}render()}
   else if(b.dataset.act==="mprev"){state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderDash()}
   else if(b.dataset.act==="mnext"){state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderDash()}
   else if(b.dataset.act==="mtoday"){const n=new Date();state.month=new Date(n.getFullYear(),n.getMonth(),1);renderDash()}
   else if(b.dataset.act==="add")openEvent(null,iso(new Date()));
   else if(b.dataset.act==="semdates")openSem();
   else if(b.dataset.act==="review")startReview();
+  else if(b.dataset.act==="icspick"){const i=$("#icsInput");if(i)i.click();b.closest("details")&&(b.closest("details").open=false)}
   else if(b.dataset.go){const g=b.dataset.go;if(g==="review"){if(dueQueue().length)startReview();else toast("Aucune question à réviser aujourd'hui.")}
     else if(g==="week"||g==="subjects"||g==="evals"){state.ytab=g;openPage(currentSem())}
     else if(g==="year"){document.querySelector(".dash-grid")?.scrollIntoView({behavior:"smooth"})}
@@ -1621,7 +1838,7 @@ async function setBgFile(file){if(!file)return;try{const bmp=await createImageBi
   const cv=document.createElement("canvas");let q=0.78,url="";for(let i=0;i<6;i++){cv.width=w;cv.height=h;cv.getContext("2d").drawImage(bmp,0,0,w,h);url=cv.toDataURL("image/jpeg",q);if(url.length<230000)break;q-=0.1;w=Math.round(w*.85);h=Math.round(h*.85)}
   state.bgImg=url;persist("bg",{img:url});savePrefs({bg:"custom"})}catch(e){toast("Cette image n'a pas pu être utilisée.")}}
 function goToNote(id){const n=state.notes[id];if(!n){toast("La note de ce cours n'existe plus.");return}
-  const sem=n.date?(inSem(n.date,"s2")?"s2":"s1"):currentSem();state.ytab="subjects";state.subject=n.subject;openPage(sem);openNote(id)}
+  const sem=n.date?(inSem(n.date,"s2")?"s2":"s1"):currentSem();state.ytab="subjects";state.subject=n.subject;openPage(sem);state.subjOpen=true;state.mOpen=true;applyMobileMode();openNote(id)}
 function onDone(e){const id=e.target.dataset&&e.target.dataset.done;if(!id)return;
   state.events=state.events.map(x=>x.id===id?{...x,done:e.target.checked}:x);saveCalendar();render()}
 function eventsOn(date){
@@ -1632,6 +1849,7 @@ function eventsOn(date){
 const fmtN=x=>(Math.round(x*100)/100).toString().replace(".",",");
 function avgOf(list){const g=list.filter(x=>x.score!==""&&x.score!=null&&!isNaN(+x.score));let w=0,sum=0;
   for(const x of g){const c=+x.coef||1;sum+=(+x.score/(+x.max||20))*20*c;w+=c}return w?sum/w:null}
+const BTS_COEF={cge:3,ang:3,cejm:3,rcnv:5,rcd:4,arc:3};
 function gradeChart(gs){const pts=gs.filter(g=>g.score!==""&&g.score!=null).map(g=>({...g,v:(+g.score/(+g.max||20))*20})).sort((a,b)=>a.date.localeCompare(b.date));
   if(pts.length<2)return "";
   const W=900,H=240,P=34;const t0=parseISO(pts[0].date).getTime(),t1=parseISO(pts[pts.length-1].date).getTime()||t0+1;
@@ -1645,23 +1863,30 @@ function gradeChart(gs){const pts=gs.filter(g=>g.score!==""&&g.score!=null).map(
 function renderEvals(){
   const k=state.sem,t=iso(new Date());
   const gs=state.grades.filter(g=>g.date&&inSem(g.date,k)).sort((a,b)=>b.date.localeCompare(a.date));
-  const all=avgOf(gs);
+  const all=avgOf(gs);const F=state.evFilter&&SUBJ[state.evFilter]?state.evFilter:null;const gsF=F?gs.filter(g=>g.subject===F):gs;
+  const est=(()=>{let w=0,sm=0,n=0;for(const x of SUBJECTS){const a=avgOf(gs.filter(g=>g.subject===x.id));if(a!=null){w+=BTS_COEF[x.id];sm+=a*BTS_COEF[x.id];n++}}return n?{v:sm/w,n}:null})();
   const exams=state.events.filter(e=>e.type==="examen"&&!e.weekly&&inSem(e.date,k)&&e.date>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
   let h=`<div class="weekbar"><div><h2>Évaluations</h2></div>
     <button class="btn primary" data-act="addgrade">+ Ajouter</button></div>
   <div class="ev-top"><div class="panel"><h2>Moyenne générale</h2><div class="avg-big">${all==null?"–":fmtN(all)}<span style="font-size:20px;color:var(--muted)"> / 20</span></div>
       <p class="hint">${gs.filter(g=>g.score!==""&&g.score!=null).length} note(s) cette année</p>
-      ${exams.length?`<h3 class="nl-sec" style="margin-top:16px">Prochains examens</h3><ul class="uplist">${exams.map(e=>upItem(e,t,false)).join("")}</ul>`:""}</div>
+      ${est?`<div class="est"><span>Estimation BTS</span><b>${fmtN(est.v)}<small> / 20</small></b><small class="hint">Coefficients officiels (E4 = 5, E5 = 4, les autres = 3) · ${est.n}/6 matières notées</small></div>`:""}
+      ${exams.length?`<div class="ev-exams"><h3 class="nl-sec" style="margin-top:16px">Prochains examens</h3><ul class="uplist">${exams.map(e=>upItem(e,t,false)).join("")}</ul></div>`:""}</div>
     <div class="panel"><h2>Moyenne par matière</h2><div class="avg-grid">${SUBJECTS.map(sj=>{const a=avgOf(gs.filter(g=>g.subject===sj.id));const n=gs.filter(g=>g.subject===sj.id).length;
       const g=state.goals[sj.id];const st=g&&a!=null?(a>=g?`<span class="gok">objectif atteint</span>`:`<span class="gko">${fmtN(g-a)} pt sous l'objectif</span>`):"";
-      return `<div class="avg-card" style="--c:${sj.c}"><b>${a==null?"–":fmtN(a)}</b><span>${sj.name}</span><br><span>${n} évaluation${n>1?"s":""}</span>
-        <div class="goal"><button class="btn ghost" data-goal="${sj.id}">${g?"Objectif : "+fmtN(g):"Fixer un objectif"}</button>${st}</div></div>`}).join("")}</div></div></div>
-  ${gradeChart(gs)}
-  <div class="panel"><h2>Toutes mes évaluations</h2>`;
-  h+=gs.length?`<div class="week-scroll"><table class="gtable"><thead><tr><th>Date</th><th>Matière</th><th>Évaluation</th><th>Coef.</th><th>Note</th><th></th></tr></thead><tbody>${gs.map(g=>{const sj=SUBJ[g.subject]||SUBJECTS[0];
+      const sg=gs.filter(x=>x.subject===sj.id&&x.score!==""&&x.score!=null).map(x=>({d:x.date,v:(+x.score/(+x.max||20))*20,c:+x.coef||1})).sort((p,q)=>p.d.localeCompare(q.d));
+      let need="";if(g){let w=0,sm=0;for(const x of sg){w+=x.c;sm+=x.v*x.c}const req=g*(w+1)-sm;
+        need=req<=0?`<span class="need ok">Objectif tenu, même avec 0 au prochain devoir</span>`:req>20?`<span class="need ko">Il faudrait ${fmtN(req)} au prochain devoir : vise sur plusieurs notes</span>`:`<span class="need">Il te faut ${fmtN(Math.ceil(req*4)/4)} au prochain devoir (coef. 1)</span>`}
+      const spark=sg.length>=2?(()=>{const W=100,H=26,xs=sg.map((_,i)=>i/(sg.length-1)*W),ys=sg.map(x=>H-2-(x.v/20)*(H-4));return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${xs.map((x,i)=>x.toFixed(1)+","+ys[i].toFixed(1)).join(" ")}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`})():"";
+      return `<div class="avg-card${F===sj.id?" sel":""}" data-evf="${sj.id}" style="--c:${sj.c}"><b>${a==null?"–":fmtN(a)}</b><span>${sj.name}</span><br><span>${n} évaluation${n>1?"s":""}</span>${spark}
+        <div class="goal"><button class="btn ghost" data-goal="${sj.id}">${g?"Objectif : "+fmtN(g):"Fixer un objectif"}</button>${st}${need}</div>
+        <button class="btn ghost icon addg" data-addg="${sj.id}" aria-label="Ajouter une note en ${esc(sj.name)}" title="Ajouter une note">＋</button></div>`}).join("")}</div></div></div>
+  <div class="ev-chart${F?" filtered":""}">${gradeChart(gsF)}</div>
+  <div class="panel"><div class="weekbar" style="margin-bottom:6px"><h2>${F?"Évaluations · "+esc(SUBJ[F].name):"Toutes mes évaluations"}</h2>${F?`<button class="btn ghost" data-act="evclear">✕ Tout afficher</button>`:""}</div>`;
+  h+=gsF.length?`<div class="week-scroll"><table class="gtable"><thead><tr><th>Date</th><th>Matière</th><th>Évaluation</th><th>Coef.</th><th>Note</th><th></th></tr></thead><tbody>${gsF.map(g=>{const sj=SUBJ[g.subject]||SUBJECTS[0];
     const has=g.score!==""&&g.score!=null;
     return `<tr style="--c:${sj.c}"><td>${fmtDay(parseISO(g.date))}</td><td><span class="sdot"></span>${esc(sj.name)}</td><td>${esc(g.title)}</td><td>${fmtN(+g.coef||1)}</td>
-      <td class="sc">${has?fmtN(+g.score)+" / "+(+g.max||20):"<span class='hint'>À venir</span>"}</td><td>${IB(`data-grade="${g.id}"`,"edit","Modifier")}</td></tr>`}).join("")}</tbody></table></div>`
+      <td class="sc">${has?fmtN(+g.score)+" / "+(+g.max||20):"<span class='hint'>À venir</span>"}</td><td class="rowact">${IB(`data-grade="${g.id}"`,"edit","Modifier")}<button class="btn ghost icon rdel" data-gdel="${g.id}" aria-label="Supprimer" title="Supprimer">${ICO.trash}</button></td></tr>`}).join("")}</tbody></table></div>`
     :`<div class="empty">Aucune évaluation pour cette année. Ajoute tes contrôles, oraux et dossiers au fur et à mesure pour suivre tes moyennes.</div>`;
   $("#view-evals").innerHTML=h+`</div>`;
 }
@@ -1679,12 +1904,21 @@ grForm.addEventListener("submit",ev=>{ev.preventDefault();const f=grForm;
   persist("grades",{items:state.grades,goals:state.goals});grDlg.close();renderEvals()});
 $("#grDelete").onclick=async()=>{if(!editingG||!await uiConfirm("Supprimer cette évaluation ?"))return;state.grades=state.grades.filter(g=>g!==editingG);persist("grades",{items:state.grades,goals:state.goals});grDlg.close();renderEvals()};
 $("#view-evals").addEventListener("change",onDone);
-$("#view-evals").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
+$("#view-evals").addEventListener("click",async e=>{const b=e.target.closest("button");
+  if(!b){const c=e.target.closest("[data-evf]");if(c){state.evFilter=state.evFilter===c.dataset.evf?null:c.dataset.evf;renderEvals();if(isMobile()&&state.evFilter)document.querySelector("#view-evals .ev-chart")?.scrollIntoView({behavior:"smooth",block:"start"})}return}
+  if(b.dataset.act==="evclear"){state.evFilter=null;renderEvals();return}
+  if(b.dataset.addg){openGrade(null);grForm.subject.value=b.dataset.addg;return}
+  if(b.dataset.gdel){const g=state.grades.find(x=>x.id===b.dataset.gdel);if(!g||!await uiConfirm("Supprimer l'évaluation « "+g.title+" » ?"))return;state.grades=state.grades.filter(x=>x!==g);persist("grades",{items:state.grades,goals:state.goals});renderEvals();return}
   if(b.dataset.goal){const cur=state.goals[b.dataset.goal];const v=await uiPrompt("Moyenne visée en "+SUBJ[b.dataset.goal].name+" (sur 20, vide pour retirer)",cur??"","Ex. 14");
     if(v===null)return;const t=v.trim().replace(",",".");if(t===""){const g={...state.goals};delete g[b.dataset.goal];state.goals=g}else{const n=+t;if(isNaN(n)||n<0||n>20){toast("Indique une moyenne entre 0 et 20.");return}state.goals={...state.goals,[b.dataset.goal]:n}}
     persist("grades",{items:state.grades,goals:state.goals});renderEvals()}
   else if(b.dataset.act==="addgrade")openGrade(null);else if(b.dataset.grade)openGrade(b.dataset.grade);else if(b.dataset.ev)openEvent(b.dataset.ev,b.dataset.on)});
-function renderRevs(){const sid=state.rsubject||"rcnv",sj=SUBJ[sid],t=iso(new Date());
+function revMeta(sid){const t=iso(new Date());const tr=Object.entries(state.notes).filter(([,n])=>n.subject===sid).flatMap(([id,n])=>((n.quiz&&n.quiz.missed)||[]));return {tracked:tr.length,due:tr.filter(q=>(q.due||t)<=t).length}}
+function renderRevs(){
+  if(isMobile()&&!state.revOpen){$("#view-revs").innerHTML=tileHead()+`<div class="sgrid">${orderedSubjects().map(x=>{const m=revMeta(x.id);
+    const inner=`${m.due?`<span class="st-dot" title="Questions à revoir"></span>`:""}<span class="st-name">${esc(x.short||x.name)}</span><span class="st-next">${x.id==="rcnv"?"Entraînement oral":m.tracked+" en suivi"}</span><span class="st-count"><b>${m.due}</b> à revoir</span>`;
+    return tileWrap(x,inner,`data-rgrid="${x.id}"`)}).join("")}</div>`;return}
+  const sid=state.rsubject||"rcnv",sj=SUBJ[sid],t=iso(new Date());
   const tracked=Object.entries(state.notes).filter(([,n])=>n.subject===sid).flatMap(([id,n])=>((n.quiz&&n.quiz.missed)||[]));
   const due=tracked.filter(q=>(q.due||t)<=t).length;
   const syn=state.notes["n-pin-"+sid+"-syn"];const nNotes=Object.values(state.notes).filter(n=>n.subject===sid&&!n.pin&&(n.content||"").trim()&&(!n.date||inSem(n.date,state.sem))).length;
@@ -1692,7 +1926,7 @@ function renderRevs(){const sid=state.rsubject||"rcnv",sj=SUBJ[sid],t=iso(new Da
   const avg=tests.length?Math.round(tests.reduce((a,x)=>a+x.score/x.total,0)/tests.length*100):null;
   let html=`<div class="binder" style="--c:${sj.c}"><div class="tabs" role="tablist" aria-label="Matières">`+
     SUBJECTS.map(x=>`<button class="tab" role="tab" style="--c:${x.c}" aria-selected="${x.id===sid}" data-rsubj="${x.id}"><span class="dot"></span>${x.name}</button>`).join("")+
-    `</div><div class="sheet" role="tabpanel"><div class="sheet-head"><div><h2>${sj.name}</h2></div></div>
+    `</div><div class="sheet" role="tabpanel"><div class="sheet-head"><div><button class="btn ghost sback" data-act="revgrid">‹ Toutes les matières</button><h2>${sj.name}</h2></div></div>
     <div class="revgrid">
       <div class="revcard"><h3 class="nl-sec">Questions à revoir</h3><p class="rbig">${due}<small> aujourd'hui</small></p><p class="hint">${tracked.length} question${tracked.length>1?"s":""} en suivi dans cette matière</p>
         <div class="toolbar">${due?`<button class="btn primary" data-rrev="${sid}">Réviser</button>`:""}${tracked.length?`<button class="btn ghost" data-rrevall="${sid}">Tout revoir</button>`:""}</div></div>
@@ -1702,7 +1936,11 @@ function renderRevs(){const sid=state.rsubject||"rcnv",sj=SUBJ[sid],t=iso(new Da
     </div>${sid==="rcnv"?oralHTML():""}</div></div>`;
   $("#view-revs").innerHTML=html;const ol=$("#oralLog");if(ol)ol.scrollTop=ol.scrollHeight}
 $("#view-revs").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b||b.dataset.gonote)return;
-  if(b.dataset.rsubj){state.rsubject=b.dataset.rsubj;renderRevs()}
+  if(b.dataset.act==="reorder"){reorder=!reorder;render()}
+  else if(b.dataset.mv){const [id,d]=b.dataset.mv.split("|");tileMove(id,+d)}
+  else if(b.dataset.rgrid){state.rsubject=b.dataset.rgrid;state.revOpen=true;renderRevs();window.scrollTo(0,0)}
+  else if(b.dataset.act==="revgrid"){state.revOpen=false;renderRevs();window.scrollTo(0,0)}
+  else if(b.dataset.rsubj){state.rsubject=b.dataset.rsubj;renderRevs()}
   else if(b.dataset.rrev)startReview(b.dataset.rrev,false);
   else if(b.dataset.rrevall)startReview(b.dataset.rrevall,true);
   else if(b.dataset.rsyn){state.subject=b.dataset.rsyn;state.ytab="subjects";openPage(state.sem);makeSynthesis()}
@@ -1803,13 +2041,30 @@ function courseSessions(sid){const out=[];if(!state.sem)return out;const S=state
     d=addDays(d,1)}
   return out}
 function notesOf(sid){return Object.entries(state.notes).filter(([,n])=>!n.pin&&!n.evKey&&n.subject===sid&&(!state.sem||!n.date||inSem(n.date,state.sem))).sort((a,b)=>(b[1].date||"").localeCompare(a[1].date||"")||(b[1].updatedAt||0)-(a[1].updatedAt||0))}
+function orderedSubjects(){const o=(P().subjOrder||[]);return [...SUBJECTS].sort((x,y)=>{const i=o.indexOf(x.id),j=o.indexOf(y.id);return (i<0?99:i)-(j<0?99:j)})}
+function subjMeta(sid){const t=iso(new Date()),lim=iso(addDays(new Date(),-14));const ss=courseSessions(sid);
+  const has=c=>{const n=state.notes[c.key];return !!(n&&(n.content||"").trim())};
+  const done=ss.filter(has).length,past=ss.filter(c=>c.date<=t);
+  return {ss,done,next:ss.find(c=>c.date>=t),last:past[past.length-1],missing:past.some(c=>c.date>=lim&&!has(c))}}
+function nextLabel(c){if(!c)return "Aucun cours prévu";const d=parseISO(c.date),t=iso(new Date());if(c.date===t)return "Aujourd'hui";
+  return (x=>x.charAt(0).toUpperCase()+x.slice(1))(d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}).replace(/\./g,""))}
+let reorder=false;
+function tileMove(id,dir){const o=orderedSubjects().map(x=>x.id);const i=o.indexOf(id),j=i+dir;if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];state.prefs={...P(),subjOrder:o};persist("prefs",{...state.prefs});render()}
+function tileHead(){return `<div class="sgrid-head"><button class="btn ghost" data-act="reorder">${reorder?"Terminé":"Réorganiser"}</button></div>`}
+function tileWrap(x,inner,attr){return reorder?`<div class="stile reo" style="--c:${x.c}">${inner}<span class="st-move"><button data-mv="${x.id}|-1" aria-label="Avancer">‹</button><button data-mv="${x.id}|1" aria-label="Reculer">›</button></span></div>`
+  :`<button class="stile" ${attr} style="--c:${x.c}">${inner}</button>`}
+function subjGridHTML(){return tileHead()+`<div class="sgrid">${orderedSubjects().map(x=>{const m=subjMeta(x.id);const pc=m.ss.length?Math.round(m.done/m.ss.length*100):0;
+    const inner=`${m.missing?`<span class="st-dot" title="Note à rattraper"></span>`:""}<span class="st-name">${esc(x.short||x.name)}</span><span class="st-next">${nextLabel(m.next)}</span><span class="st-count"><b>${m.done}</b> / ${m.ss.length} notes</span><span class="st-bar"><i style="width:${pc}%"></i></span>`;
+    return tileWrap(x,inner,`data-sgrid="${x.id}" data-last="${m.last?m.last.date:""}"`)}).join("")}</div><p class="hint sgrid-tip">Appui long sur une matière : ouvrir la note du dernier cours.</p>`}
 function renderSubjects(keepEditor){
+  if(isMobile()&&!state.subjOpen){$("#view-subjects").innerHTML=subjGridHTML();return}
   const s=SUBJ[state.subject];
   if(state.noteId&&!noteVisible(state.notes[state.noteId],state.subject))closeNote();
   const link=state.links[state.subject]||"";
   let html=`<div class="binder" style="--c:${s.c}"><div class="tabs" role="tablist" aria-label="Matières">`+
     SUBJECTS.map(x=>`<button class="tab" role="tab" style="--c:${x.c}" aria-selected="${x.id===state.subject}" data-subject="${x.id}"><span class="dot"></span>${x.name}</button>`).join("")+
     `</div><div class="sheet" role="tabpanel"><div class="sheet-head"><div><h2>${s.name}</h2>
+      <button class="btn ghost sback" data-act="subjgrid">‹ Toutes les matières</button>
       <div class="linkrow">${link?`<a class="btn ghost" href="${esc(link)}" target="_blank" rel="noopener">${ICO.folder} OneDrive</a>`+IB(`data-act="link"`,"edit","Modifier le lien OneDrive"):`<button class="btn ghost" data-act="link">${ICO.folder} Lier OneDrive</button>`}</div></div>
       <div class="toolbar">${sampleFn?`<button class="btn" data-act="synth">Synthèse</button>`:""}<button class="btn primary" data-act="newnote">Nouvelle note</button></div></div>
       <div id="synstat"></div>
@@ -1842,7 +2097,7 @@ function renderNoteList(){
     (free.length?`<h3 class="nl-sec">Autres notes</h3><div class="cgrid">`+free.map(([id,n])=>`<button data-note="${id}" class="ccard has"><span class="cdot"></span><span class="cc-main"><b>${esc(n.title||"Sans titre")}</b><span class="cc-sub">${n.date?fmtDay(parseISO(n.date)):""}</span><span class="cc-b">${badges(n)}</span></span></button>`).join("")+`</div>`:"");
 }
 const noteDlg=$("#noteDlg");
-function openNote(id){const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal()}
+function openNote(id){noteTab="notes";const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal()}
 function closeNote(){flush();state.noteId=null;if(noteDlg.open)noteDlg.close()}
 noteDlg.addEventListener("close",()=>{flush();state.noteId=null;if(state.view==="subjects")renderNoteList()});
 const HL={"rgb(249, 198, 214)":"#F9C6D6","#f9c6d6":"#F9C6D6","rgb(200, 235, 201)":"#C8EBC9","#c8ebc9":"#C8EBC9"};
@@ -1894,7 +2149,7 @@ function renderEditor(){
   el.innerHTML=`<div class="editor big" style="--c:${c}">
     <div class="nd-head"><input class="title" id="nTitle" value="${esc(n.title)}" placeholder="Titre du cours" aria-label="Titre">
       <button class="btn ghost" data-act="closenote" aria-label="Fermer">Fermer</button></div>
-    <div class="nd-grid">
+    <div class="ndtabs" role="tablist">${[["notes","Notes"],["files","Fichiers"],["tasks","Tâches"]].map(([k,l])=>`<button data-ndt="${k}" aria-selected="${(noteTab||"notes")===k}">${l}</button>`).join("")}</div><div class="nd-grid" data-t="${noteTab||"notes"}">
       <div class="nd-main">
         <div class="toolbar">${n.pin?"":`<label class="hint">Date <input type="date" id="nDate" value="${esc(n.date||"")}" style="border:1px solid var(--line);border-radius:8px;padding:3px 6px;background:var(--bg)"></label>`}
           <details class="more" style="margin-left:auto"><summary class="btn ghost icon" aria-label="Plus d'actions" title="Plus d'actions">${ICO.more}</summary><div class="menu">
@@ -1918,20 +2173,20 @@ function renderEditor(){
         <div id="rte" class="rte" contenteditable="true" spellcheck="true" aria-label="Mes notes" data-ph="Tape tes notes ici, ou colle la transcription de ton cours…">${noteHtml(n)}</div>
       </div>
       <aside class="nd-side">
-        <section><h3 class="nd-h">Enregistrement du cours</h3>
+        <section class="sec-files"><h3 class="nd-h">Enregistrement du cours</h3>
           ${n.recording?`<div class="lnk"><a class="btn primary" style="color:var(--accent-ink)" href="${esc(n.recording)}" target="_blank" rel="noopener">Ouvrir l'enregistrement</a><button class="btn ghost" data-act="rmrec">Retirer</button></div>`
             :`<div class="addl"><input id="recUrl" type="url" placeholder="https://… (lien OneNote)"><button class="btn" data-act="setrec">Ajouter</button></div>`}
         </section>
-        <section><h3 class="nd-h">Fichiers OneDrive</h3>
+        <section class="sec-files"><h3 class="nd-h">Fichiers OneDrive</h3>
           ${links.length?`<ul class="lnks">${links.map((l,i)=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label||"Fichier")}</a><button class="btn ghost" data-act="rmlink" data-i="${i}" aria-label="Retirer">×</button></li>`).join("")}</ul>`:""}
           <div class="addl col"><input id="lkLabel" placeholder="Nom du fichier (ex. Support de cours)"><input id="lkUrl" type="url" placeholder="https://… (lien OneDrive)"><button class="btn" data-act="addlink">Ajouter</button></div>
         </section>
-        <section><h3 class="nd-h">Tâches à faire</h3>
+        <section class="sec-tasks"><h3 class="nd-h">Tâches à faire</h3>
           ${(()=>{const ts=state.events.filter(e=>e.noteId===state.noteId).sort((a,b)=>a.date.localeCompare(b.date));
             return ts.length?`<ul class="lnks tasks">${ts.map(e=>`<li class="${e.done?"done":""}"><span class="tt2">${esc(e.title)}${e.done?" <small>(fait)</small>":""}</span><span class="tdate">${fmtDay(parseISO(e.date))}</span><button class="btn ghost" data-act="rmtask" data-id="${e.id}" aria-label="Supprimer la tâche">×</button></li>`).join("")}</ul>`:""})()}
           <div class="addl col"><input id="tkText" placeholder="Ex. Relire le chapitre 2"><input id="tkDate" type="date"><button class="btn" data-act="addtask">Ajouter</button></div>
         </section>
-        <section>${IB(`data-act="delnote"`,"trash","Supprimer cette note")}</section>
+        <section class="sec-tasks">${IB(`data-act="delnote"`,"trash","Supprimer cette note")}</section>
       </aside>
     </div></div>`;
   if(sampleFn){$("#claudeBtn").hidden=false;$("#quizBtn").hidden=false}
@@ -1954,7 +2209,7 @@ function historyHTML(){const id=state.noteId,vs=[...(state.versions[id]||[])].re
   if(!vs.length)return `<div class="claude-box"><p class="hint">Pas encore d'ancienne version. Le site en garde une automatiquement toutes les 20 minutes d'écriture (15 au maximum).</p><button class="btn ghost" data-act="discard">Fermer</button></div>`;
   return `<div class="claude-box"><h3 class="nd-h">Historique de la note</h3><ul class="lnks">${vs.map((v,i)=>{const d=new Date(v.t);return `<li><span>${d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})} à ${d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} <span class="hint">· ${htmlText(v.html).slice(0,60)}…</span></span><span style="display:flex;gap:4px"><button class="btn ghost" data-vprev="${v.t}">Voir</button><button class="btn" data-vres="${v.t}">Restaurer</button></span></li>`}).join("")}</ul>
     <div id="vprev"></div><button class="btn ghost" data-act="discard" style="margin-top:8px">Fermer</button></div>`}
-let tmr=null;
+let tmr=null,noteTab="notes";
 function onNoteInput(e){
   const n=state.notes[state.noteId];if(!n)return;
   if(e.target.id==="nTitle")n.title=e.target.value;
@@ -1969,6 +2224,11 @@ noteDlg.addEventListener("input",onNoteInput);
 const isHttps=u=>/^https:\/\//i.test(u);
 async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("details.more");if(md0&&e.target.closest(".menu button"))md0.open=false;
   const b=e.target.closest("button");if(!b)return;
+  if(window.__lp){window.__lp=false;return}
+  if(b.dataset.act==="reorder"){reorder=!reorder;render();return}
+  if(b.dataset.mv){const [id,d]=b.dataset.mv.split("|");tileMove(id,+d);return}
+  if(b.dataset.sgrid){state.subject=b.dataset.sgrid;state.subjOpen=true;renderSubjects();window.scrollTo(0,0);return}
+  if(b.dataset.act==="subjgrid"){state.subjOpen=false;renderSubjects();window.scrollTo(0,0);return}
   if(b.dataset.subject){state.subject=b.dataset.subject;state.preview=false;renderSubjects()}
   else if(b.dataset.note){flush();openNote(b.dataset.note)}
   else if(b.dataset.pin){flush();const id="n-pin-"+state.subject+"-"+b.dataset.pin;
@@ -1981,6 +2241,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
     flush();const id="n-"+uid();state.notes[id]={subject:state.subject,title:"",content:"",links:[],recording:"",date:(inSem(iso(new Date()),state.sem)?iso(new Date()):state.semesters[state.sem].start),updatedAt:Date.now()};
     persist(id,{...state.notes[id]});openNote(id);renderNoteList();$("#nTitle")?.focus();
   }
+  else if(b.dataset.ndt){noteTab=b.dataset.ndt;const g=document.querySelector(".nd-grid");if(g)g.dataset.t=noteTab;document.querySelectorAll(".ndtabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.ndt===noteTab))}
   else if(b.dataset.act==="closenote")closeNote();
   else if(b.dataset.act==="synth")makeSynthesis();
   else if(b.dataset.act==="history"){flush();$("#claudeZone").innerHTML=historyHTML()}
@@ -2046,7 +2307,7 @@ let quiz=null;
 async function startQuiz(){const n=state.notes[state.noteId];if(!n||busy)return;flush();const zone=$("#claudeZone");
   const txt=(n.content||"").trim();if(txt.length<80){zone.innerHTML=`<p class="hint">Ta note est encore trop courte pour générer un test. Ajoute du contenu puis réessaie.</p>`;return}
   busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">Claude prépare 5 questions sur ton cours…</p></div>`;
-  const prompt=`Tu es un professeur de BTS NDRC. À partir des notes de cours ci-dessous (matière : ${(SUBJ[n.subject]||GEN).name}), crée 5 questions à choix multiples pour vérifier la compréhension, en français.
+  const prompt=`Tu es un professeur de BTS NDRC. À partir des notes de cours ci-dessous (matière : ${((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name)}), crée 5 questions à choix multiples pour vérifier la compréhension, en français.
 Chaque question porte sur une notion réellement présente dans les notes, avec 4 propositions dont une seule correcte, et une courte explication (1 à 2 phrases).
 Réponds uniquement avec du JSON de la forme : {"questions":[{"question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"..."}]} où "answer" est l'indice (0 à 3) de la bonne proposition.
 
@@ -2079,7 +2340,7 @@ function answerQuiz(i){if(!quiz||quiz.answered)return;const q=quiz.list[quiz.i];
   $("#qfb").innerHTML=`<p style="margin:10px 0 6px"><b>${ok?"Bonne réponse.":"Pas tout à fait."}</b> ${esc(q.explanation||"")}</p><button class="btn primary" data-act="qnext">${quiz.i+1<quiz.list.length?"Question suivante":"Voir mon score"}</button>`}
 function renderEditorKeepZone(html){renderEditor();const z=$("#claudeZone");if(z)z.innerHTML=html}
 async function exportNote(){const n=state.notes[state.noteId];if(!n||!dlFn)return;rteSave();
-  const sj=(SUBJ[n.subject]||GEN).name;const body=noteHtml(n);
+  const sj=((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name);const body=noteHtml(n);
   const doc=`<html><head><meta charset="utf-8"><title>${esc(n.title||"Note")}</title><style>body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.5}h1{font-family:'Times New Roman',serif}h2{font-family:'Times New Roman',serif;font-weight:bold}h3{font-family:Georgia,serif;text-decoration:underline;font-weight:normal}
 /* ===== Refresh inspiré des références : verre dépoli lumineux, formes arrondies, typographie aérée ===== */
 body{font-family:"Quicksand","Avenir Next","Segoe UI",system-ui,sans-serif;font-weight:500;letter-spacing:.005em}
@@ -2176,8 +2437,8 @@ async function makeSynthesis(){if(busy||!sampleFn)return;const sid=state.subject
   const missed=notes.flatMap(n=>(n.quiz&&n.quiz.missed)||[]).map(q=>"- "+q.question).slice(0,20).join("\n");
   const all=notes.map(n=>`### ${n.title}${n.date?" ("+n.date+")":""}\n${n.content}`).join("\n\n").slice(0,60000);
   busy=true;st.innerHTML=`<p class="hint">Claude rassemble tes ${notes.length} note${notes.length>1?"s":""}…</p>`;
-  try{const r=await sampleFn(`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.name} ». Voici toutes ses notes de cours de l'année${missed?", puis les questions qu'elle a ratées à ses tests":""}.
-Rédige une synthèse de révision en français, en Markdown simple : « # ${sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max). N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
+  try{const r=await sampleFn(`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.full||sj.name} ». Voici toutes ses notes de cours de l'année${missed?", puis les questions qu'elle a ratées à ses tests":""}.
+Rédige une synthèse de révision en français, en Markdown simple : « # ${sj.full||sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max). N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
 
 ${all}
 ${missed?"\nQuestions ratées :\n"+missed:""}`,{cache:false});
@@ -2192,7 +2453,7 @@ async function organize(){
   if(txt.length<40){zone.innerHTML=`<p class="hint">Ajoute un peu plus de contenu avant de demander une fiche.</p>`;return}
   busy=true;$("#claudeBtn").disabled=true;
   zone.innerHTML=`<div class="claude-box"><p class="hint" id="cState">Claude prépare ta fiche…</p><div class="out preview" style="min-height:0;border:0;padding:0;background:none" id="cOut"></div></div>`;
-  const prompt=`Tu aides une étudiante en BTS NDRC (Négociation et Digitalisation de la Relation Client). Voici ses notes brutes ou la transcription d'un cours de la matière « ${SUBJ[n.subject].name} »${n.title?`, intitulé « ${n.title} »`:""}.
+  const prompt=`Tu aides une étudiante en BTS NDRC (Négociation et Digitalisation de la Relation Client). Voici ses notes brutes ou la transcription d'un cours de la matière « ${(SUBJ[n.subject].full||SUBJ[n.subject].name)} »${n.title?`, intitulé « ${n.title} »`:""}.
 
 Transforme-les en fiche de révision claire, en français, au format Markdown simple :
 - un titre avec « # »,
@@ -2249,9 +2510,9 @@ function renderHead(){
 }
 $("#pagehead").addEventListener("click",e=>{if(e.target.closest("[data-act=semdates]"))openSem()});
 $("#view-dash").addEventListener("change",e=>{if(e.target.id==="icsInput"&&e.target.files[0]){importICS(e.target.files[0]);e.target.value=""}});
-function openPage(p){
+function openPage(p){state.evFilter=null;state.mOpen=false;state.subjOpen=false;state.revOpen=false;reorder=false;
   flush();state.page=p;
-  document.querySelectorAll("nav.views button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.page===p));
+  document.querySelectorAll("nav.views button[data-page]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.page===p));
   if(p==="dash"){state.view="dash"}
   else{
     state.sem=p;state.noteId=null;state.preview=false;
@@ -2261,7 +2522,11 @@ function openPage(p){
   $("#yeartabs").hidden=p==="dash";
   document.querySelectorAll("#yeartabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.ytab===state.ytab));
   $("#view-dash").hidden=state.view!=="dash";$("#view-week").hidden=state.view!=="week";$("#view-subjects").hidden=state.view!=="subjects";$("#view-evals").hidden=state.view!=="evals";$("#view-revs").hidden=state.view!=="revs";
-  $("#prefBtn").onclick=()=>{$("#prefDlg").showModal();drawPrefs()};
+  function openPrefs(){const d=$("#prefDlg");
+  try{if(!d.open){if(typeof d.showModal==="function")d.showModal();else d.setAttribute("open","")}}catch(e){d.setAttribute("open","")}
+  try{drawPrefs()}catch(e){$("#prefZone").innerHTML=`<div class="pref-head"><h2>Préférences</h2><button class="btn ghost" data-pf="close">Fermer</button></div><p class="hint">Le menu n'a pas pu s'afficher (${esc(e&&e.message||String(e))}). Envoie-moi ce message pour que je corrige.</p>`}}
+$("#prefBtn").addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openPrefs()});
+$("#prefBtn").addEventListener("touchend",e=>{e.preventDefault();openPrefs()},{passive:false});
 $("#prefDlg").addEventListener("click",async e=>{const b=e.target.closest("[data-pf]");if(!b)return;const k=b.dataset.pf,v=b.dataset.v;
   if(k==="close")$("#prefDlg").close();else if(k==="bg")savePrefs({bg:v});else if(k==="accent")savePrefs({accent:v});else if(k==="zoom")savePrefs({zoom:+v});else if(k==="hfont")savePrefs({hfont:+v});
   else if(k==="subj"){const sj={...(P().subj||{})};if(v)sj[b.dataset.s]=v;else delete sj[b.dataset.s];savePrefs({subj:sj})}
@@ -2278,14 +2543,31 @@ renderHead();render();window.scrollTo(0,0);
 function switchView(v){ // used from home to open a subject
   if(v==="subjects"){state.ytab="subjects";openPage(currentSem())}
 }
-document.querySelectorAll("nav.views button").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+document.querySelectorAll("nav.views button[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
 document.querySelectorAll("#yeartabs button").forEach(b=>b.onclick=()=>{
-  flush();state.ytab=b.dataset.ytab;state.view=state.ytab;
+  flush();state.ytab=b.dataset.ytab;state.view=state.ytab;state.subjOpen=false;state.revOpen=false;reorder=false;if(isMobile()){state.mOpen=true;window.scrollTo(0,0)}
   document.querySelectorAll("#yeartabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
   $("#view-week").hidden=state.view!=="week";$("#view-subjects").hidden=state.view!=="subjects";$("#view-evals").hidden=state.view!=="evals";$("#view-revs").hidden=state.view!=="revs";render();
 });
 let lastMob=null;window.addEventListener("resize",()=>{const m=isMobile();if(m!==lastMob){lastMob=m;render()}});
+const MTITLES={year:"Mon année",alt:"Mon alternance",studies:"Après le BTS",tools:"Outils",extra:"Certificats",week:"Semaine",subjects:"Matières",evals:"Évaluations",revs:"Révisions"};
+const MT_HOME=[["year","sun"],["alt","brief"],["studies","cap"],["tools","grid"],["extra","star"]],MT_YEAR=[["week","cal"],["subjects","book"],["evals","chart"],["revs","target"]];
+function applyNames(){const m=isMobile();for(const x of SUBJECTS)x.name=m?x.short:x.full}
+function pageBadge(k){if(k==="dash"){const im=document.querySelector("nav.views .homebtn img");return im?`<img src="${im.src}" alt="" class="pgimg">`:"🏠"}return `<span class="pgt">${k==="s1"?"1re":"2e"}</span>`}
+const PG_TITLES={dash:"Accueil",s1:"1re année",s2:"2e année"};
+function tabList(){return state.page==="dash"?MT_HOME:MT_YEAR}
+function curTab(){return state.page==="dash"?state.home:state.ytab}
+function switchTab(k){if(state.page==="dash"){state.home=k;render()}else{const t=document.querySelector(`#yeartabs button[data-ytab="${k}"]`);if(t)t.click()}window.scrollTo(0,0)}
+function placeSearch(){const S=$(".search"),H=$("#pagehead"),T=$(".topbar");if(!S||!H||!T)return;
+  if(isMobile()){if(S.previousElementSibling!==H)H.insertAdjacentElement("afterend",S)}else if(S.parentElement!==T)T.insertBefore(S,$("#mdots"))}
+function applyMobileMode(){applyNames();placeSearch();document.body.classList.remove("m-menu","m-open");document.body.dataset.home=state.home||"year";document.body.classList.toggle("show-search",state.page!=="dash"&&state.ytab==="subjects");
+  const btn=$("#mtabsBtn");if(!btn)return;const pg=state.page||"dash";
+  btn.innerHTML=pageBadge(pg);btn.title=PG_TITLES[pg];btn.setAttribute("aria-label",PG_TITLES[pg]+" – changer de page");btn.classList.remove("is-year");
+  $("#mtabsMenu").innerHTML=["dash","s1","s2"].filter(k=>k!==pg).map(k=>`<button data-mp="${k}" aria-label="${PG_TITLES[k]}" title="${PG_TITLES[k]}">${pageBadge(k)}</button>`).join("");
+  const cur=curTab();$("#mdots").innerHTML=tabList().map(([k])=>`<button class="mdot${k===cur?" on":""}" data-mt="${k}" role="tab" aria-selected="${k===cur}" aria-label="${MTITLES[k]}" title="${MTITLES[k]}"></button>`).join("")}
+function closeMtabs(){$("#mtabsMenu").hidden=true;$("#mtabsBtn").setAttribute("aria-expanded","false")}
 function render(fromSync){
+  applyMobileMode();
   const gb=$("#goalbar");if(gb)gb.innerHTML=goalHTML();
   if(state.view==="dash")renderDash();else if(state.view==="week")renderWeek();else if(state.view==="evals")renderEvals();else if(state.view==="revs")renderRevs();else renderSubjects(fromSync);
 }
@@ -2298,8 +2580,40 @@ $("#uiCancel").onclick=()=>uiDone($("#uiInput").hidden?false:null);
 $("#uiDlg").addEventListener("cancel",e=>{e.preventDefault();uiDone($("#uiInput").hidden?false:null)});
 {const m={week:"cal",subjects:"book",evals:"chart",revs:"target"};document.querySelectorAll("#yeartabs button").forEach(b=>{const k=m[b.dataset.ytab];if(k&&!b.querySelector("svg"))b.insertAdjacentHTML("afterbegin",ICO[k])})}
 $("#goalbar").addEventListener("click",e=>{const b=e.target.closest("[data-act=bilan]");if(!b)return;forceBilan=true;state.home="year";if(state.page!=="dash")openPage("dash");else renderDash();render()});
+$("#mbackBtn").addEventListener("click",()=>{state.mOpen=false;applyMobileMode();render();window.scrollTo(0,0)});
+$("#mtabsBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#mtabsMenu");m.hidden=!m.hidden;$("#mtabsBtn").setAttribute("aria-expanded",String(!m.hidden))});
+$("#mtabsMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();openPage(b.dataset.mp);window.scrollTo(0,0)});
+$("#mdots").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(b)switchTab(b.dataset.mt)});
+{let sx=0,sy=0,ok=false;const EXC=".gtable,input,textarea,select,.rte,.mtabs,.sgrid.reo,.olog,.qres";
+ document.addEventListener("touchstart",e=>{ok=isMobile()&&!document.querySelector("dialog[open]")&&!e.target.closest(EXC);if(!ok)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+ document.addEventListener("touchend",e=>{if(!ok)return;ok=false;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6)return;
+  const L=tabList().map(x=>x[0]);const i=L.indexOf(curTab());const j=i+(dx<0?1:-1);if(j<0||j>=L.length)return;
+  const W=$(".wrap");W.classList.remove("slide-l","slide-r");void W.offsetWidth;W.classList.add(dx<0?"slide-l":"slide-r");switchTab(L[j])},{passive:true})}
+document.addEventListener("click",e=>{if(!e.target.closest("#mtabs"))closeMtabs()});
+$("#prefBtn2").addEventListener("click",e=>{e.preventDefault();openPrefs()});
+function currentCourse(){const now=new Date(),t=iso(now),hm=now.toTimeString().slice(0,5);
+  const today=eventsOn(now).filter(e=>e.type==="cours"&&e.subject!=="gen"&&SUBJ[e.subject]);
+  let cur=today.find(e=>e.start&&e.start<=hm&&(!e.end||e.end>=hm))||today.filter(e=>e.start&&e.start<=hm).pop()||today[0];
+  if(cur)return {sid:cur.subject,ds:t};
+  for(let i=1;i<21;i++){const d=addDays(now,-i);const l=eventsOn(d).filter(e=>e.type==="cours"&&e.subject!=="gen"&&SUBJ[e.subject]);if(l.length)return {sid:l[l.length-1].subject,ds:iso(d)}}return null}
+{const fi=["book","cal","target","chart"];document.querySelectorAll("#fabDlg .fi").forEach((x,i)=>x.innerHTML=ICO[fi[i]]||"")}
+$("#fab").addEventListener("click",()=>$("#fabDlg").showModal());
+$("#fabDlg").addEventListener("click",e=>{const b=e.target.closest("[data-fab]");if(e.target.id==="fabDlg"){$("#fabDlg").close();return}if(!b)return;const k=b.dataset.fab;$("#fabDlg").close();
+  if(k==="note"){const c=currentCourse();if(!c){toast("Aucun cours récent trouvé dans ton calendrier.");return}openCourseNote(c.sid,c.ds)}
+  else if(k==="devoir"){openEvent(null,iso(new Date()));const f=$("#evForm");if(f&&f.type){f.type.value="devoir"}}
+  else if(k==="event"){openEvent(null,iso(new Date()))}
+  else if(k==="grade"){if(!state.sem)state.sem=currentSem();openGrade(null)}});
+function updateNet(){const d=$("#netdot");if(!d)return;const pend=Object.keys(failed||{}).length||Object.values(writing||{}).some(Boolean)||!navigator.onLine;d.hidden=!pend;d.title=!navigator.onLine?"Hors connexion : tes modifications seront envoyées au retour du réseau":"Modifications pas encore envoyées"}
+window.addEventListener("online",updateNet);window.addEventListener("offline",updateNet);
+{let lpT=null;document.addEventListener("pointerdown",e=>{const t=e.target.closest(".stile[data-sgrid]");if(!t||reorder)return;
+  lpT=setTimeout(()=>{window.__lp=true;const sid=t.dataset.sgrid,ds=t.dataset.last;if(ds)openCourseNote(sid,ds);else toast("Pas encore de cours passé dans cette matière.");if(navigator.vibrate)navigator.vibrate(15)},550)});
+ ["pointerup","pointercancel","pointerleave","pointermove"].forEach(ev=>document.addEventListener(ev,e=>{if(ev==="pointermove"&&Math.abs(e.movementX)+Math.abs(e.movementY)<3)return;clearTimeout(lpT)},true))}
+{let sx=0,sy=0,row=null;const V=$("#view-evals");
+ V.addEventListener("touchstart",e=>{row=e.target.closest(".gtable tr");if(!row)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+ V.addEventListener("touchend",e=>{if(!row)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;const r=row;row=null;if(Math.abs(dy)>30||Math.abs(dx)<40)return;
+  V.querySelectorAll(".gtable tr.sw").forEach(x=>{if(x!==r)x.classList.remove("sw")});r.classList.toggle("sw",dx<0)},{passive:true})}
 renderHead();initAuth();
-var APP_VERSION="26";
+var APP_VERSION="42";
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{}));
   let reloaded=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded&&navigator.serviceWorker.controller){reloaded=true;location.reload()}})}
 </script>

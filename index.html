@@ -125,7 +125,7 @@ dialog.notedlg{width:min(1150px,96vw);max-width:96vw;height:min(880px,92vh);max-
 .rte p{margin:0 0 8px}
 .rte ul{margin:0 0 8px;padding-left:24px;list-style:disc}
 .rte span[style*="background"]{color:#2B2A27;border-radius:3px;padding:0 2px}
-.rte hr{border:0;border-top:1px dashed var(--line);margin:16px 0}
+.rte hr{border:0;height:1px;margin:20px 0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c,var(--accent)) 70%,rgba(255,255,255,.6)),transparent);box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 50%,transparent)}
 .ev-top{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-bottom:16px;align-items:start}
 .avg-big{font-size:46px;font-weight:700;line-height:1;margin:8px 0 4px;font-family:var(--hfont,"Outfit","Quicksand",system-ui,sans-serif)}
 .avg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
@@ -2138,6 +2138,9 @@ function highlight(color){const sel=getSelection();if(!sel.rangeCount)return;con
 function rteCmd(k){const el=$("#rte");if(!el)return;el.focus();
   if(k==="h2"||k==="h3"||k==="p"){document.execCommand("formatBlock",false,"<"+k+">")}
   else if(k==="ul"){document.execCommand("insertUnorderedList")}
+  else if(k==="hr"){document.execCommand("insertHorizontalRule");const sel=getSelection();const hrs=el.querySelectorAll("hr");const last=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentNode);
+    let hr=null;hrs.forEach(h=>{if(!hr||h.compareDocumentPosition(last||el)&Node.DOCUMENT_POSITION_FOLLOWING)hr=h});
+    if(hr&&!hr.nextElementSibling){const pp=document.createElement("p");pp.appendChild(document.createElement("br"));hr.after(pp);const r=document.createRange();r.setStart(pp,0);r.collapse(true);sel.removeAllRanges();sel.addRange(r)}}
   else highlight(k==="hp"?"#F9C6D6":k==="hg"?"#C8EBC9":null)
   rteSave();dirty.add(state.noteId);clearTimeout(tmr);tmr=setTimeout(()=>{saveNote();renderNoteList()},900)}
 document.addEventListener("mousedown",e=>{const b=e.target.closest&&e.target.closest("[data-rte]");if(!b)return;e.preventDefault();rteCmd(b.dataset.rte)});
@@ -2164,6 +2167,7 @@ function renderEditor(){
           <button type="button" data-rte="h3" class="rb-s" title="Sous-titre">Sous-titre</button>
           <button type="button" data-rte="p" class="rb-p" title="Texte">Texte</button>
           <span class="rsep"></span>
+          <button type="button" data-rte="hr" title="Ligne de séparation" aria-label="Ligne de séparation"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18"/><path d="M8 7h8M8 17h8" stroke-width="1.4" opacity=".55"/></svg></button>
           <button type="button" data-rte="ul" title="Liste à puces" aria-label="Liste à puces"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="7" r="1.3" fill="currentColor"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="5" cy="17" r="1.3" fill="currentColor"/><path d="M10 7h10M10 12h10M10 17h10"/></svg></button>
           <span class="rsep"></span>
           <button type="button" data-rte="hp" title="Surligner en rose" aria-label="Surligner en rose"><span class="swatch" style="background:#F9C6D6"></span></button>
@@ -2613,7 +2617,7 @@ window.addEventListener("online",updateNet);window.addEventListener("offline",up
  V.addEventListener("touchend",e=>{if(!row)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;const r=row;row=null;if(Math.abs(dy)>30||Math.abs(dx)<40)return;
   V.querySelectorAll(".gtable tr.sw").forEach(x=>{if(x!==r)x.classList.remove("sw")});r.classList.toggle("sw",dx<0)},{passive:true})}
 renderHead();initAuth();
-var APP_VERSION="42";
+var APP_VERSION="43";
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{}));
   let reloaded=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded&&navigator.serviceWorker.controller){reloaded=true;location.reload()}})}
 </script>

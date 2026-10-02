@@ -1200,12 +1200,19 @@ const writing={},pending={},dirty=new Set(),revs={},failed={};
 function showFail(msg){const b=$("#failbar");b.querySelector("span").textContent=msg;b.hidden=false;setStatus("Non enregistré")}
 function hideFail(){$("#failbar").hidden=true}
 function retryFailed(){const f={...failed};for(const k in f){delete failed[k];persist(k,f[k])}}
+const OBK="bts-ndrc-outbox";
+function obRead(){try{return JSON.parse(localStorage.getItem(OBK)||"{}")}catch(e){return {}}}
+function obWrite(o){try{localStorage.setItem(OBK,JSON.stringify(o))}catch(e){}}
+function obPut(id,d){const o=obRead();o[id]=d;obWrite(o)}
+function obDel(id,rev){const o=obRead();if(o[id]&&(!rev||(o[id]._rev||0)<=rev)){delete o[id];obWrite(o)}}
+function replayOutbox(srv){const o=obRead();let n=0;for(const [id,d] of Object.entries(o)){const sv=srv&&srv[id];if(sv&&(sv._rev||0)>=(d._rev||0)){obDel(id);continue}
+  const c=JSON.parse(JSON.stringify(d));if(id.startsWith("n-")){state.notes[id]=c}n++;persist(id,c)}if(n){render();toast(n+" modification"+(n>1?"s":"")+" non envoyée"+(n>1?"s":"")+" récupérée"+(n>1?"s":"")+" et synchronisée"+(n>1?"s":"")+".")}}
 async function persist(id,data){
   if(!store)return;
-  data._rev=Date.now();revs[id]=data._rev;
+  data._rev=Date.now();revs[id]=data._rev;if(!id.startsWith("v-"))obPut(id,data);
   if(writing[id]){pending[id]=data;return}
   writing[id]=true;setStatus("Enregistrement…");
-  try{await store.saveDoc(id,data);delete failed[id];setStatus("Enregistré");if(!Object.keys(failed).length)hideFail()}
+  try{await store.saveDoc(id,data);obDel(id,data._rev);delete failed[id];setStatus("Enregistré");if(!Object.keys(failed).length)hideFail()}
   catch(e){failed[id]=data;showFail(e&&e.code==="quota_exceeded"?"Espace de stockage plein : supprime d'anciennes notes ou fichiers.":"Une modification n'a pas pu être enregistrée.")}
   writing[id]=false;
   if(pending[id]){const p=pending[id];delete pending[id];persist(id,p)}else if(id===state.noteId)dirty.delete(id);
@@ -1230,6 +1237,7 @@ async function initStore(){
   async function loadAll(){const all={};let from=0;for(;;){const {data,error}=await sb.from("docs").select("id,data").range(from,from+999);if(error)throw error;for(const r of data)all[r.id]=r.data;if(data.length<1000)break;from+=1000}
     for(const k of Object.keys(docs))delete docs[k];Object.assign(docs,all);cacheDocs(docs);emit();setStatus("Synchronisé")}
   try{await loadAll()}catch(e){setStatus("Hors connexion : données de cet appareil")}
+  replayOutbox(docs);
   sb.channel("docs-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"docs",filter:"user_id=eq."+uid},p=>{
     if(p.eventType==="DELETE"){if(p.old&&p.old.id)delete docs[p.old.id]}else if(p.new)docs[p.new.id]=p.new.data;cacheDocs(docs);emit()}).subscribe();
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll().catch(()=>{})});
@@ -1687,7 +1695,10 @@ async function importICS(file){let text;try{text=await file.text()}catch(e){toas
   state.events=[...kept,...imported.filter(e=>!ids.has(e.id))];saveCalendar();render();
   const ds=[...dates].sort();toast(`${imported.length} séances importées, du ${fmtDay(parseISO(ds[0]))} au ${fmtDay(parseISO(ds[ds.length-1]))} ${parseISO(ds[ds.length-1]).getFullYear()}. Tes notes sont conservées.`)}
 function dayNoteKey(sid,ds,evs){const keys=(evs||[]).map(e=>"n-ev-"+e.id+(e.weekly?"-"+ds:""));
-  return keys.find(k=>state.notes[k])||Object.keys(state.notes).find(k=>{const n=state.notes[k];return n.evKey&&n.subject===sid&&n.date===ds})||("n-day-"+sid+"-"+ds)}
+  const cand=new Set(keys.filter(k=>state.notes[k]));for(const k of Object.keys(state.notes)){const n=state.notes[k];if(n&&n.subject===sid&&n.date===ds&&(n.evKey||k.startsWith("n-day-")))cand.add(k)}
+  const len=k=>((state.notes[k]&&(state.notes[k].content||""))||"").trim().length;
+  const list=[...cand].sort((a,b)=>len(b)-len(a)||(state.notes[b].updatedAt||0)-(state.notes[a].updatedAt||0));
+  return list[0]||("n-day-"+sid+"-"+ds)}
 function openCourseNote(sid,ds){const evs=eventsOn(parseISO(ds)).filter(e=>e.type==="cours"&&e.subject===sid);const id=dayNoteKey(sid,ds,evs);
   if(!state.notes[id]){const d=parseISO(ds);const titles=[...new Set(evs.map(e=>e.title).filter(Boolean))].join(", ");
     state.notes[id]={subject:sid,evKey:id,title:(titles?titles+" – ":"")+"Cours du "+d.toLocaleDateString("fr-FR",{day:"numeric",month:"long"}),content:"",date:ds,links:[],recording:"",updatedAt:Date.now()};persist(id,{...state.notes[id]})}
@@ -2144,7 +2155,7 @@ function highlight(color){const sel=getSelection();if(!sel.rangeCount)return;con
 function rteCmd(k){const el=$("#rte");if(!el)return;el.focus();
   if(k==="h2"||k==="h3"||k==="p"){document.execCommand("formatBlock",false,"<"+k+">")}
   else if(k==="ul"){document.execCommand("insertUnorderedList")}
-  else if(k==="hr"){document.execCommand("insertHorizontalRule");const sel=getSelection();const hrs=el.querySelectorAll("hr");const last=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentNode);
+  else if(k==="hr"){{const sl=getSelection();if(sl.rangeCount&&!sl.isCollapsed)sl.collapseToEnd()}document.execCommand("insertHorizontalRule");const sel=getSelection();const hrs=el.querySelectorAll("hr");const last=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentNode);
     let hr=null;hrs.forEach(h=>{if(!hr||h.compareDocumentPosition(last||el)&Node.DOCUMENT_POSITION_FOLLOWING)hr=h});
     if(hr&&!hr.nextElementSibling){const pp=document.createElement("p");pp.appendChild(document.createElement("br"));hr.after(pp);const r=document.createRange();r.setStart(pp,0);r.collapse(true);sel.removeAllRanges();sel.addRange(r)}}
   else highlight(k==="hp"?"#F9C6D6":k==="hg"?"#C8EBC9":null)
@@ -2227,7 +2238,7 @@ function onNoteInput(e){
   else if(e.target.id==="nDate")n.date=e.target.value;
   else return;
   dirty.add(state.noteId);clearTimeout(tmr);setStatus("Modifications en cours…");
-  tmr=setTimeout(()=>{saveNote();renderNoteList()},900);
+  tmr=setTimeout(()=>{tmr=null;saveNote();renderNoteList()},500);
 }
 noteDlg.addEventListener("input",onNoteInput);
 
@@ -2622,8 +2633,11 @@ window.addEventListener("online",updateNet);window.addEventListener("offline",up
  V.addEventListener("touchstart",e=>{row=e.target.closest(".gtable tr");if(!row)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
  V.addEventListener("touchend",e=>{if(!row)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;const r=row;row=null;if(Math.abs(dy)>30||Math.abs(dx)<40)return;
   V.querySelectorAll(".gtable tr.sw").forEach(x=>{if(x!==r)x.classList.remove("sw")});r.classList.toggle("sw",dx<0)},{passive:true})}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){try{flush()}catch(e){}}});
+window.addEventListener("pagehide",()=>{try{flush()}catch(e){}});
+document.addEventListener("focusout",e=>{if(e.target&&(e.target.id==="rte"||e.target.id==="nTitle")){try{flush()}catch(_){}}});
 renderHead();initAuth();
-var APP_VERSION="44";
+var APP_VERSION="45";
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{}));
   let reloaded=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded&&navigator.serviceWorker.controller){reloaded=true;location.reload()}})}
 </script>

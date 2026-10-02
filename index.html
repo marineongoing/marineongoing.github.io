@@ -921,6 +921,12 @@ nav.views .homebtn img{width:26px!important;height:26px!important}
   body:not(.show-search) .wrap>.search{display:none!important}
 }
 @media (max-width:700px){.wrap>.search{position:relative;z-index:40}.wrap>.search .qres{position:absolute!important;top:calc(100% + 6px)!important;left:0!important;right:0!important}}
+/* surligneurs translucides */
+.rte span[style*="background"]{color:var(--ink)!important;border-radius:4px;padding:0 3px}
+.rte span[style*="249, 198, 214"],.rte span[style*="F9C6D6" i]{background-color:rgba(249,198,214,.38)!important;box-shadow:0 0 0 1px rgba(249,198,214,.35)}
+.rte span[style*="200, 235, 201"],.rte span[style*="C8EBC9" i]{background-color:rgba(200,235,201,.34)!important;box-shadow:0 0 0 1px rgba(200,235,201,.35)}
+.rtebar .swatch[style*="F9C6D6"]{background:rgba(249,198,214,.55)!important;border-color:rgba(249,198,214,.8)}
+.rtebar .swatch[style*="C8EBC9"]{background:rgba(200,235,201,.5)!important;border-color:rgba(200,235,201,.8)}
 </style>
 </head>
 <body>
@@ -2617,7 +2623,7 @@ window.addEventListener("online",updateNet);window.addEventListener("offline",up
  V.addEventListener("touchend",e=>{if(!row)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;const r=row;row=null;if(Math.abs(dy)>30||Math.abs(dx)<40)return;
   V.querySelectorAll(".gtable tr.sw").forEach(x=>{if(x!==r)x.classList.remove("sw")});r.classList.toggle("sw",dx<0)},{passive:true})}
 renderHead();initAuth();
-var APP_VERSION="43";
+var APP_VERSION="44";
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{}));
   let reloaded=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded&&navigator.serviceWorker.controller){reloaded=true;location.reload()}})}
 </script>

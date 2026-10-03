@@ -1,11 +1,11 @@
 {
-  "name": "BTS NDRC",
-  "short_name": "BTS NDRC",
+  "name": "marineongoing",
+  "short_name": "marineongoing",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#3E5A45",
-  "theme_color": "#3E5A45",
+  "background_color": "#3B3530",
+  "theme_color": "#3B3530",
   "lang": "fr",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

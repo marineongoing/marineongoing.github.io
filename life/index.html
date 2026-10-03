@@ -685,6 +685,8 @@ const ICO={
   wallet:SV('<path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4z"/><path d="M4 7V6a2 2 0 0 1 2-2h10v3"/><circle cx="16" cy="13.5" r="1.2"/>'),
   brief:SV('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>'),
   target:SV('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>'),
+  mic:SV('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>'),
+  book:SV('<path d="M12 6.5C10 5 7.5 4.5 4 4.5v13c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2v-13c-3.5 0-6 .5-8 2z"/><path d="M12 6.5v13"/>'),
   drop:SV('<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>'),
   shoe:SV('<path d="M3 16h14l4 1v2H3z"/><path d="M3 16V9l4 1 3 3 5 1 3 1"/>'),
   run:SV('<circle cx="15" cy="4.5" r="1.8"/><path d="m6 20 4-5 2 2 1 4M9 9l3-2 3 3 3 1M12 7l-1 5-4 1"/>'),
@@ -767,12 +769,12 @@ const items=k=>Object.entries(S.items).filter(([,x])=>x.kind===k).map(([id,x])=>
 const FLOWER="data:image/jpeg;base64,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";
 const LAUNCH_URL="/";
 const flowerBtn=(on)=>`<button class="flowerbtn" data-view="gestion" aria-pressed="${!!on}" aria-label="Gestion" title="Gestion"><img src="${FLOWER}" alt=""></button>`;
-const VIEWS=[["home","Accueil","home"],["health","Health","heart"],["finance","Finance","wallet"],["career","Career","brief"],["goals","Goals","target"]];
+const VIEWS=[["home","Accueil","home"],["health","Health","heart"],["finance","Finance","wallet"],["career","Career","brief"],["goals","Goals","target"],["journal","Journal","book"]];
 
 /* ============ Cache, enregistrement, chargement ============ */
 const CACHE="vie2-cache";
-function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({days:S.days,items:S.items,prefs:S.prefs}))}catch(e){}}
-function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||"{}");S.days=c.days||{};S.items=c.items||{};S.prefs=c.prefs||{}}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({days:S.days,items:S.items,prefs:S.prefs,dead:S.dead||[]}))}catch(e){}}
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||"{}");S.days=c.days||{};S.items=c.items||{};S.prefs=c.prefs||{};S.dead=c.dead||[]}catch(e){}}
 let statusT=null;function setStatus(t){const el=$("#status");if(el)el.textContent=t;S.status=t}
 const queue={};let qTimer=null;
 function patch(day,obj){S.days[day]={...D(day),...obj};queue[day]={...(queue[day]||{}),...obj};cacheSave();setStatus("Enregistrement…");clearTimeout(qTimer);qTimer=setTimeout(flushQueue,600)}
@@ -784,7 +786,7 @@ async function flushQueue(){
 async function saveItem(id,data){S.items[id]=data;cacheSave();setStatus("Enregistrement…");
   const {error}=await sb.from("vie_items").upsert({user_id:S.uid,id,kind:data.kind,data,updated_at:new Date().toISOString()});
   setStatus(error?"Non enregistré : vérifie ta connexion":"Enregistré");if(error)toast("Enregistrement impossible : as-tu lancé le script SQL ?")}
-async function delItem(id){delete S.items[id];cacheSave();const {error}=await sb.from("vie_items").delete().eq("user_id",S.uid).eq("id",id);if(error)toast("Suppression impossible pour le moment.")}
+async function delItem(id){delete S.items[id];S.dead=[...(S.dead||[]).filter(x=>x!==id),id].slice(-500);cacheSave();const {error}=await sb.from("vie_items").delete().eq("user_id",S.uid).eq("id",id);if(error)toast("Suppression impossible pour le moment.")}
 let prefTimer=null;
 function savePrefs(obj){S.prefs={...S.prefs,...obj};cacheSave();clearTimeout(prefTimer);
   prefTimer=setTimeout(async()=>{const {error}=await sb.from("vie_prefs").upsert({user_id:S.uid,data:S.prefs,updated_at:new Date().toISOString()});setStatus(error?"Réglages non enregistrés":"Enregistré")},400)}
@@ -794,9 +796,21 @@ async function loadAll(){
   for(const [d,p] of Object.entries(queue))days[d]={...(days[d]||{}),...p};
   const its={};from=0;
   for(;;){const {data,error}=await sb.from("vie_items").select("id,data").range(from,from+999);if(error)throw error;for(const r of data)its[r.id]=r.data;if(data.length<1000)break;from+=1000}
-  const {data:pr}=await sb.from("vie_prefs").select("data").maybeSingle();
-  S.days=days;S.items=its;if(pr&&pr.data)S.prefs=pr.data;
-  cacheSave();render(true);setStatus("Synchronisé");
+  const {data:pr,error:pe}=await sb.from("vie_prefs").select("data").maybeSingle();if(pe)throw pe;
+  /* Ne jamais perdre ce qui est sur l'appareil : tout ce qui manque dans Supabase est gardé puis renvoyé */
+  const dead=new Set(S.dead||[]),pushItems=[],pushDays={};
+  for(const [id,x] of Object.entries(S.items||{}))if(!its[id]&&!dead.has(id)&&x&&x.kind){its[id]=x;pushItems.push(id)}
+  for(const [d,x] of Object.entries(S.days||{})){if(!x||typeof x!=="object")continue;const r=days[d]||{},miss={};for(const k of Object.keys(x))if(!(k in r)&&x[k]!=null)miss[k]=x[k];if(Object.keys(miss).length){days[d]={...r,...miss};pushDays[d]=miss}}
+  const localPrefs=S.prefs&&Object.keys(S.prefs).length?S.prefs:null;
+  S.days=days;S.items=its;
+  if(pr&&pr.data)S.prefs={...(localPrefs||{}),...pr.data};
+  cacheSave();render(true);
+  let fail=false;
+  if(pushItems.length){const rows=pushItems.map(id=>({user_id:S.uid,id,kind:its[id].kind,data:its[id],updated_at:new Date().toISOString()}));const {error}=await sb.from("vie_items").upsert(rows);if(error)fail=true}
+  for(const [d,p] of Object.entries(pushDays)){const {error}=await sb.rpc("vie_save",{p_day:d,p_patch:p});if(error)fail=true}
+  if((!pr||!pr.data)&&localPrefs){const {error}=await sb.from("vie_prefs").upsert({user_id:S.uid,data:S.prefs,updated_at:new Date().toISOString()});if(error)fail=true}
+  if(pushItems.length||Object.keys(pushDays).length)toast(fail?"Certaines données de cet appareil n'ont pas encore pu être sauvegardées : nouvel essai au prochain chargement.":"Les données gardées sur cet appareil ont été sauvegardées.");
+  setStatus(fail?"Sauvegarde incomplète":"Synchronisé");
 }
 
 /* ============ Claude (fonction "claude" de ton projet Supabase) ============ */
@@ -877,10 +891,11 @@ function careerRecos(){
 function render(soft){
   if(soft){const a=document.activeElement;if(a&&["TEXTAREA","INPUT"].includes(a.tagName)&&a.closest("#main"))return}
   $("#dock").innerHTML=VIEWS.map(([id,l,i])=>`<button data-view="${id}" aria-pressed="${S.view===id}" aria-label="${l}">${ICO[i]}<span>${l}</span></button>`).join("");
+  if(S.dict&&(S.view!=="journal"||S.day!==S.dict.day))dictStop();
   const v=S.view,am=moodOf(D(v==="health"?S.day:today()).mood),rs=document.documentElement.style;
   rs.setProperty("--a1","#FFD3B8");rs.setProperty("--a2","#E4D6FA");rs.setProperty("--a3",am?am.c2:"#FFDDEB");
   document.body.classList.toggle("home",v==="home");
-  $("#main").innerHTML=(v==="home"?"":topHTML())+(v==="health"?healthPage():v==="finance"?financePage():v==="career"?careerPage():v==="goals"?goalsPage():v==="gestion"?gestionPage():homePage());
+  $("#main").innerHTML=(v==="home"?"":topHTML())+(v==="health"?healthPage():v==="finance"?financePage():v==="career"?careerPage():v==="goals"?goalsPage():v==="journal"?journalPage():v==="gestion"?gestionPage():homePage());
   if(S.panel&&$("#sheet").open&&S.panel!=="ask")$("#sheet").innerHTML=panelHTML();
 }
 function topHTML(){const p=P();return `<div class="top"><span class="tleft">${flowerBtn(S.view==="gestion")}<span class="datepill">${cap(fmtLong(today()))}</span></span><nav class="tnav" aria-label="Pages">${VIEWS.map(([id,l,i])=>`<button data-view="${id}" aria-pressed="${S.view===id}" aria-label="${l}" title="${l}">${ICO[i]}<span>${l}</span></button>`).join("")}</nav><span class="row tright" style="gap:10px;justify-content:flex-end"><span class="status" id="status">${esc(S.status||"")}</span><button class="ib" data-act="settings" aria-label="Réglages">${esc((p.name||"M")[0].toUpperCase())}</button></span></div>`}
@@ -1170,6 +1185,65 @@ async function careerClaude(){
 }
 
 /* ============ Goals ============ */
+/* ============ Journal ============ */
+function journalPage(){
+  const d=S.day,t=today(),x=D(d);
+  const nav=`<div class="monthnav"><button class="ib" data-act="dayprev" aria-label="Jour précédent">${ICO.left}</button><b>${d===t?"Aujourd'hui":d===addDays(t,-1)?"Hier":fmtLong(d)}</b><button class="ib" data-act="daynext" aria-label="Jour suivant"${d>=t?" disabled":""}>${ICO.right}</button></div>`;
+  const jr=(x.journalRecos&&x.journalRecos.items)||[];
+  const past=Object.keys(S.days).filter(k=>k!==d&&(S.days[k].journal||"").trim()).sort().reverse();
+  const rows=past.map(k=>`<button class="hrow" data-act="jday" data-d="${k}"><span class="sw" style="background:${moodPaint(k,"180deg")||"rgba(255,255,255,.12)"}"></span><span class="grow"><b>${cap(fmtLong(k))}${k.slice(0,4)!==t.slice(0,4)?" "+k.slice(0,4):""}</b><em>${esc(S.days[k].journal.trim())}</em></span>${ICO.right}</button>`).join("");
+  return `<div class="pagehead"><div><h1>Journal</h1><p>Tes pensées, jour après jour</p></div>${nav}</div>
+  <section class="card" style="margin-bottom:14px"><h2><span>${cap(fmtLong(d))}</span><button class="btn${S.dict?" dark":""}" id="dictBtn" data-act="dictate" aria-pressed="${!!S.dict}">${ICO.mic}<span>${S.dict?"Arrêter":"Dicter"}</span></button></h2>
+    <p class="hint" id="dictHint" aria-live="polite" style="margin:-6px 0 10px"${S.dict?"":" hidden"}>Je t'écoute…</p>
+    <textarea id="journal" data-day="${d}" style="min-height:260px" placeholder="Écris ce que tu as en tête…" aria-label="Journal du ${fmtLong(d)}">${esc(x.journal||"")}</textarea>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-act="jclean"${S.busy.jclean?" disabled":""}>${ICO.edit}${S.busy.jclean?"Claude réécrit…":"Mettre au propre"}</button><button class="btn" data-act="jreco"${S.busy.jreco?" disabled":""}>${ICO.spark}${S.busy.jreco?"Claude réfléchit…":"Recos de Claude"}</button>${x.journalRaw?`<button class="btn ghost" data-act="jundo"${S.busy.jclean?" disabled":""}>Revenir à mon texte</button>`:""}</div></section>
+  ${jr.length?`<section class="card" style="margin-bottom:14px"><h2><span>Ce que Claude te suggère</span></h2>${jr.map(r=>`<div class="reco"><i style="--c:#E59B6B"></i><p>${esc(r)}</p></div>`).join("")}</section>`:""}
+  <section class="card"><h2><span>Pages précédentes</span><small>${past.length}</small></h2>${past.length?`<div class="stack">${rows}</div>`:`<p class="empty">Tes autres pages apparaîtront ici.</p>`}</section>`;
+}
+/* Dictée : la voix est transcrite en texte par le navigateur et ajoutée à la page du jour */
+function dictUI(interim){const b=$("#dictBtn"),h=$("#dictHint"),on=!!S.dict;
+  if(b){b.classList.toggle("dark",on);b.setAttribute("aria-pressed",on);b.lastElementChild.textContent=on?"Arrêter":"Dicter"}
+  if(h){h.hidden=!on;h.textContent=interim||"Je t'écoute…"}}
+function dictStop(){if(S.dict)try{S.dict.rec.stop()}catch(e){}}
+function dictToggle(){
+  if(S.dict){dictStop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast("La dictée n'est pas disponible dans ce navigateur. Essaie avec Safari ou Chrome.");return}
+  const rec=new SR(),day=S.day;rec.lang="fr-FR";rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{
+    const el=$("#journal");if(!el||el.dataset.day!==day){dictStop();return}
+    let fin="",tmp="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)fin+=r[0].transcript;else tmp+=r[0].transcript}
+    fin=fin.trim();
+    if(fin){const cur=el.value,fresh=!cur.trim()||/[.!?…\n]\s*$/.test(cur);el.value=cur+(cur&&!/\s$/.test(cur)?" ":"")+(fresh?cap(fin):fin);patch(day,{journal:el.value});el.scrollTop=el.scrollHeight}
+    dictUI(tmp.trim());
+  };
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed")toast("Autorise le micro pour ce site dans les réglages du navigateur.");else if(e.error==="audio-capture")toast("Aucun micro détecté.");else if(e.error==="network")toast("La dictée a besoin d'une connexion internet.")};
+  rec.onend=()=>{if(S.dict&&S.dict.rec===rec)S.dict=null;dictUI()};
+  try{rec.start();S.dict={rec,day};dictUI()}catch(e){toast("Impossible de démarrer la dictée.")}
+}
+/* Mise au propre et recommandations : le texte du jour n'est envoyé à Claude que sur demande */
+async function journalClean(){
+  dictStop();const day=S.day,src=D(day).journal||"";
+  if(src.trim().length<20){toast("Écris ou dicte d'abord quelques phrases.");return}
+  const prompt=`Voici une page de journal intime, dictée à voix haute puis transcrite automatiquement.\n\nMets-la au propre : corrige les erreurs de transcription, l'orthographe et la grammaire, ajoute la ponctuation et les majuscules, retire les hésitations et les répétitions involontaires, et découpe le texte en paragraphes, un par idée, séparés par une ligne vide.\nGarde la première personne, ses mots, son ton et toutes ses idées : ne résume pas, n'ajoute rien, ne commente pas.\n\nTexte :\n<<<\n${src}\n>>>\n\nFormat : {"texte":"..."}`;
+  S.busy.jclean=true;render();
+  try{const j=await callClaudeJSON(prompt,Math.min(4000,Math.round(src.length/2)+600));const out=typeof j.texte==="string"?j.texte.trim():"";
+    if(!out||out.length<src.trim().length*.5)throw {m:"Réponse incomplète : ton texte n'a pas été modifié. Réessaie."};
+    if((D(day).journal||"")!==src)throw {m:"Tu as modifié le texte entre-temps : relance la mise au propre."};
+    patch(day,{journal:out,journalRaw:src});toast("Texte mis au propre. « Revenir à mon texte » annule.")}
+  catch(e){toast(e.m||"Claude n'a pas pu répondre.")}
+  S.busy.jclean=false;render();
+}
+async function journalRecos(){
+  dictStop();const day=S.day,x=D(day),p=P(),src=(x.journal||"").trim();
+  if(src.length<20){toast("Écris ou dicte d'abord quelques phrases.");return}
+  const prev=Object.keys(S.days).filter(k=>k<day&&(S.days[k].journal||"").trim()).sort().reverse().slice(0,3).reverse().map(k=>`${fmtLong(k)} : ${S.days[k].journal.trim().slice(0,600)}`).join("\n\n");
+  const prompt=`Tu es la coach bienveillante de ${p.name||"une jeune femme"}. Profil : ${p.profile}\n\nSa page de journal du ${fmtLong(day)}${moodNames(day)?" (humeur : "+moodNames(day)+")":""} :\n<<<\n${src}\n>>>${prev?"\n\nSes pages précédentes, pour le contexte :\n"+prev:""}\n\nDonne 3 recommandations concrètes et personnelles qui répondent à ce qu'elle exprime dans cette page : ce qui la préoccupe, ce qu'elle veut, ce qui lui fait du bien. Une phrase ou deux chacune, en français, en la tutoyant, sans jugement ni diagnostic médical. Si elle exprime une grande détresse, encourage-la avec douceur à en parler à une personne de confiance ou à un professionnel. Format : {"recos":["...","...","..."]}`;
+  S.busy.jreco=true;render();
+  try{const j=await callClaudeJSON(prompt,700);const r=(j.recos||[]).filter(k=>typeof k==="string").slice(0,4);if(!r.length)throw {m:"Réponse vide : réessaie."};patch(day,{journalRecos:{items:r,at:new Date().toISOString()}})}
+  catch(e){toast(e.m||"Claude n'a pas pu répondre.")}
+  S.busy.jreco=false;render();
+}
 function goalsPage(){
   const t=today(),gs=items("goal").sort((a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"));
   if(!S.goal||!S.items[S.goal])S.goal=gs[0]?gs[0].id:null;
@@ -1281,6 +1355,11 @@ document.addEventListener("click",e=>{
   else if(a==="dayprev"){S.day=addDays(S.day,-1);render()}
   else if(a==="daynext"){if(S.day<today())S.day=addDays(S.day,1);render()}
   else if(a==="openday"){S.day=b.dataset.d;S.view="health";render();window.scrollTo({top:0})}
+  else if(a==="dictate")dictToggle();
+  else if(a==="jclean")journalClean();
+  else if(a==="jreco")journalRecos();
+  else if(a==="jundo"){const x=D(S.day);if(x.journalRaw){patch(S.day,{journal:x.journalRaw,journalRaw:null});render()}}
+  else if(a==="jday"){S.day=b.dataset.d;render();window.scrollTo({top:0})}
   else if(a==="goday"){S.day=b.dataset.d;render();window.scrollTo({top:0,behavior:"smooth"})}
   else if(a==="hmprev"){S.hmonth=shiftMonth(S.hmonth,-1);render()}
   else if(a==="hmnext"){S.hmonth=shiftMonth(S.hmonth,1);render()}
@@ -1335,6 +1414,7 @@ document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id
 document.addEventListener("input",e=>{
   const el=e.target;
   if(el.id==="note")patch(el.dataset.day,{note:el.value});
+  else if(el.id==="journal")patch(el.dataset.day,{journal:el.value});
   else if(el.id==="steps"){patch(el.dataset.day,{steps:el.value===""?null:Math.max(0,Math.round(+el.value)),src:{...(D(el.dataset.day).src||{}),steps:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().steps*100)+"%"}
   else if(el.id==="sleep"){patch(el.dataset.day,{sleep:el.value===""?null:Math.max(0,Math.min(24,+el.value)),src:{...(D(el.dataset.day).src||{}),sleep:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().sleep*100)+"%"}
   else if(el.dataset.sav){const m=el.dataset.m,sv={...(P().savings||{})},base=sv[m]||savingsAt(m)||{};const {m:_x,...clean}=base;sv[m]={...clean,[el.dataset.sav]:el.value===""?null:+el.value};savePrefs({savings:sv})}

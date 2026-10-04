@@ -54,7 +54,7 @@ Tables (toutes avec RLS : chaque utilisatrice ne voit que ses lignes, `user_id =
 - `docs` (Study) : `user_id`, `id`, `data jsonb`, `updated_at`. Ne pas modifier sa structure.
 - `vie_days` (Life) : une ligne par jour. `data` contient notamment `moods` (liste de 1 à 5), `mood` (compatibilité), `tags`, `note`, `water`, `steps`, `sleep`, `sport` [{type,min,int}], `flow`, `pain` (douleurs : `legere`, `moyenne`, `forte`, `intense`), `sym`, `doneX`, `src` (origine « sante » ou « app »), `journal` (page du Journal), `journalRaw` (texte d'avant la mise au propre), `journalRecos` (recos de Claude sur la page), `habits` (identifiants des habitudes cochées à la main ce jour-là).
 - `vie_items` (Life) : `id`, `kind`, `data`. kinds : `todo` (`text`, `date` = jour d'ajout, `due` = date limite, `done`), `exp` (dépense variable), `fix` (dépense fixe, avec `from`/`to`/`months`), `inc` (revenu, `rec` = « Chaque mois » ou « Ponctuel »), `event`, `cert`, `contact`, `goal` (avec `steps`), `habit` (`name`, `link` = donnée de l'app qui la coche toute seule, « Moi, à la main » ou « Moi, plusieurs jours par semaine » (cochée à la main, faite pour toute la semaine une fois `target` jours cochés), `target` facultatif, `from` = date de création).
-- `vie_prefs` (Life) : réglages (prénom, profil, objectifs, épargne `savings`, ajustements du reste à vivre `rav`, date de pose du stérilet hormonal `iud`, recos de Claude…).
+- `vie_prefs` (Life) : réglages (prénom, profil, objectifs, épargne `savings`, ajustements du reste à vivre `rav`, date de pose du stérilet hormonal `iud`, personnalisation `theme` (fond, teinte, flous, police, teintes des émotions), recos de Claude…).
 - `vie_tokens` (Life) : empreinte SHA-256 de la clé privée du raccourci Santé.
 
 Fonctions :
@@ -77,4 +77,5 @@ Fonctions :
 
 - Le raccourci iPhone « Life » envoie pas, sommeil et règles (Clue via Apple Santé) à `vie_import`.
 - Les réglages de la page de lancement sont propres à chaque appareil (localStorage `mog-launcher`).
+- Life, page Réglages > Personnalisation : les choix sont gardés dans `vie_prefs.theme` et appliqués par `applyTheme()`. La photo de fond choisie reste sur l'appareil (localStorage `vie2-bg`). Les couleurs des émotions ci-dessus sont les valeurs d'origine.
 - Idées en attente : widget iPhone avec Scriptable, migrer Work sur Supabase, importer les séances de sport depuis Forme.

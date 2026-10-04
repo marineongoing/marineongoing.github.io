@@ -480,15 +480,17 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .moodopt[aria-pressed="true"] small{color:rgba(27,27,29,.6)!important}
 
 /* Finance façon appli bancaire */
-.fhero{text-align:center;padding:6px 0 18px;max-width:640px;margin:0 auto}
+.fhero{text-align:center;padding:34px 0 18px;max-width:640px;margin:0 auto}
+.finhead{align-items:center;flex-wrap:nowrap}
+.finhead .fmonth{flex:none}
 .fmonth{display:inline-flex;align-items:center;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
-.fmonth b{font-weight:400;font-size:14px;min-width:120px}
-.fsub{margin:22px 0 0;color:var(--muted);font-size:15px}
-.famount{border:0;background:none;color:#fff;padding:0;margin:4px 0 0;display:inline-flex;align-items:baseline;gap:2px;cursor:pointer}
+.fmonth b{font-weight:400;font-size:14px;min-width:120px;text-align:center}
+.fsub{margin:0;color:var(--muted);font-size:15px}
+.famount{border:0;background:none;color:#fff;padding:0;margin:16px 0 12px;display:inline-flex;align-items:baseline;gap:2px;cursor:pointer}
 .fint{font-size:clamp(64px,13vw,92px);font-weight:400;letter-spacing:-.04em;line-height:1}
 .fdec{font-size:clamp(26px,5vw,34px);font-weight:400;letter-spacing:-.02em}
 .fnote{margin:8px 0 0;font-size:13px;color:var(--muted)}
-.factions{display:flex;align-items:center;gap:18px;margin-top:30px;text-align:left}
+.factions{display:flex;align-items:center;gap:18px;margin-top:40px;text-align:left}
 .fadd{display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;font-size:14px}
 .fround{width:60px;height:60px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
 .fround svg{width:26px;height:26px}
@@ -507,7 +509,7 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .opmore{display:block;width:100%;border:0;background:none;color:#fff;font:inherit;font-size:15px;padding:14px 0 10px}
 @media (min-width:821px){.fhero,.opscard{max-width:720px}}
 @media (max-width:820px){.kpis3{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}.kpis3 .kpi{min-height:0;padding:12px;gap:6px}.kpis3 .kpi .spark,.kpis3 .kpi .ic{display:none}.kpis3 .kpi .t{font-size:12px}.kpis3 .kpi .v b{font-size:20px}}
-@media (max-width:820px){.finhead{display:none}.fhero{padding-top:0}.fsub{margin-top:16px}}
+@media (max-width:820px){.finhead{margin:10px 0 0}.finhead h1{font-size:34px}.finhead .fmonth b{min-width:104px}.fhero{padding-top:30px}}
 
 /* Fleur et page Réglages (ex « Gestion ») */
 .flowerbtn{display:none;border:0;background:none;padding:0;width:44px;height:44px;place-items:center}
@@ -1304,9 +1306,8 @@ function financePage(){
   const ops=monthOps(m),filt=S.opsFilter||"all",shown=ops.filter(o=>filt==="all"||o.kind===filt),lim=S.opsAll?shown:shown.slice(0,5);
   const amt=mm.left,neg=amt<0,abs=Math.abs(amt),ent=Math.floor(abs).toLocaleString("fr-FR"),dec=String(Math.round((abs%1)*100)).padStart(2,"0");
   const opRow=o=>`<li><button class="oprow" data-act="edit" data-kind="${o.kind}" data-id="${o.id}"><span class="opic" style="--c:${o.color}">${o.icon}</span><span class="grow"><span>${esc(o.label)}</span><small>${o.when}${o.tag?" · "+esc(o.tag):""}</small></span><span class="opamt${o.sign>0?" pos":""}">${o.sign>0?"+":"−"}${eur2(o.amount)}</span></button></li>`;
-  return `<div class="pagehead finhead"><div><h1>Finance</h1></div></div>
+  return `<div class="pagehead finhead"><div><h1>Finance</h1></div><div class="fmonth"><button class="ib sm bare" data-act="fprev" aria-label="Mois précédent">${ICO.left}</button><b>${cap(monthLabel(m))}</b><button class="ib sm bare" data-act="fnext" aria-label="Mois suivant">${ICO.right}</button></div></div>
   <section class="fhero">
-    <div class="fmonth"><button class="ib sm bare" data-act="fprev" aria-label="Mois précédent">${ICO.left}</button><b>${cap(monthLabel(m))}</b><button class="ib sm bare" data-act="fnext" aria-label="Mois suivant">${ICO.right}</button></div>
     <p class="fsub">Reste à vivre · EUR</p>
     ${S.ravEdit===m?`<div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0"><input type="number" inputmode="decimal" step="0.01" id="ravIn" data-m="${m}" value="${Math.round(mm.left*100)/100}" class="bigin" style="max-width:200px;text-align:center" aria-label="Reste à vivre ce mois-ci"><button class="btn dark" data-act="ravdone">OK</button>${mm.override!=null?`<button class="btn" data-act="ravreset">Revenir au calcul</button>`:""}</div>`
       :`<button class="famount" data-act="ravedit" aria-label="Modifier le reste à vivre">${mm.I||mm.override!=null?`<span class="fint">${neg?"−":""}${ent}</span><span class="fdec">,${dec} €</span>`:`<span class="fint">–</span>`}</button>`}

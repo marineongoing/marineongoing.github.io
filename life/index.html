@@ -580,6 +580,14 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .todoedit{padding:6px 10px!important;font-size:15px!important}
 .mobreco{display:none}
 @media (max-width:760px){.mobreco{display:inline-flex;margin:0 auto 6px}.hgrid .hright{display:flex;flex-direction:column;align-items:center}}
+/* Accueil sur ordinateur : tâches à gauche, aura en haut à droite, habitudes sous l'aura */
+@media (min-width:761px){
+  .hgrid{align-items:start;grid-template-rows:auto 1fr;row-gap:22px}
+  .hgrid .hleft{display:contents}
+  .hgrid .hleft>.todocard:not(.habcard){grid-column:1;grid-row:1/3}
+  .hgrid .hright{grid-column:2;grid-row:1}
+  .hgrid .hleft>.habcard{grid-column:2;grid-row:2;margin:0}
+  .hgrid .blobwrap{margin-bottom:0}
 }
 
 /* Calendrier de la semaine */

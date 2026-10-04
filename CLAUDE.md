@@ -68,7 +68,7 @@ Fonctions :
 - Panneaux en « verre liquide » : fond blanc translucide léger, bordure blanche fine, `backdrop-filter: blur(16px)`.
 - Texte blanc, police **Sora** (fine : 200-300 pour les titres). Éléments sélectionnés : fond blanc, texte `#1B1B1D`.
 - Navigation : icônes des onglets en haut (icône + nom sur ordinateur, icônes seules sur mobile, juste après l'hibiscus).
-- Life : l'hibiscus rond en haut à gauche ouvre la page Réglages, appelée `gestion` dans le code (page d'accueil du site, historique, Préférences).
+- Life : l'hibiscus détouré en haut à gauche (image `FLOWER`, avec une aura animée et un rebond au clic) ouvre la page Réglages, appelée `gestion` dans le code (page d'accueil du site, historique, Préférences).
 - Couleurs des émotions (Life) : Heureuse `#FD8A22`, Enjouée `#FF6E79`, Fatiguée `#73905C`, Anxieuse `#B83F6C`, Triste `#62A6E0`.
   L'aura de l'accueil mélange les 2 émotions les plus fréquentes des 7 derniers jours (une 3e en cas d'égalité).
 - Style épuré : peu d'éléments, pas de cadres inutiles, pas de grosses pastilles.

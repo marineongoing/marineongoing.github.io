@@ -71,6 +71,7 @@ Fonctions :
 - Life : l'hibiscus détouré en haut à gauche (image `FLOWER`, avec une aura animée et un rebond au clic) ouvre la page Réglages, appelée `gestion` dans le code (page d'accueil du site, historique, Préférences).
 - Couleurs des émotions (Life) : pastels assortis à l'hibiscus : Heureuse `#FFC08F`, Enjouée `#FFA5AE`, Fatiguée `#A8C3D1` (gris-bleu brume), Anxieuse `#DA9BC0`, Triste `#ABB2F0` (pervenche).
   L'aura de l'accueil mélange les 2 émotions les plus fréquentes des 7 derniers jours (une 3e en cas d'égalité).
+- Palette pastel commune à toute l'app Life (accents, catégories, graphiques, conseils) : pêche `#FFC08F`, rose `#FFA5AE`, corail doux `#F98499`, orchidée `#DA9BC0`, lilas `#BDB0EE`, pervenche `#ABB2F0`, bleu ciel `#A9C6EE`, gris-bleu brume `#A8C3D1`, sable `#F3D9A6`. Pas de vert ni de couleur vive.
 - Page Health dans la même palette pastel : règles `#F98499`, phase folliculaire `#A8C3D1`, ovulation `#FFC08F`, phase lutéale `#BDB0EE`, eau `#A9C6EE`, sport `#FFA5AE`, pas `#FFC08F`, sommeil `#BDB0EE`.
 - Style épuré : peu d'éléments, pas de cadres inutiles, pas de grosses pastilles.
 

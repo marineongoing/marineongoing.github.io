@@ -1423,7 +1423,8 @@ function habitState(h,d){
   const ck=(x.habits||[]).includes(h.id);
   /* À cocher à la main, tant de jours par semaine (lundi à dimanche) : une fois le compte atteint, c'est fait pour toute la semaine */
   if(h.link===HWEEK){const o=g||4,m=mondayOf(d),n=sum(Array.from({length:7},(_,i)=>(D(addDays(m,i)).habits||[]).includes(h.id)?1:0));return {auto:false,checked:ck,done:ck||n>=o,info:`${n} / ${o} jour${o>1?"s":""} cette semaine${n>=o?", objectif atteint":""}`}}
-  return {auto:false,checked:ck,done:ck,info:""};
+  /* À cocher à la main, avec un objectif libre : le chiffre suivi de l'unité choisie (20 pages, 30 minutes…) */
+  return {auto:false,checked:ck,done:ck,info:g?`objectif : ${fr(g)}${h.unit?" "+esc(h.unit):""}`:""};
 }
 /* Part des habitudes réalisées un jour donné (null si aucune habitude n'existait ce jour-là) */
 function habitScore(d,hs=habits()){const l=hs.filter(h=>(h.from||"")<=d);if(!l.length)return null;const n=l.filter(h=>habitState(h,d).done).length;return {n,total:l.length,p:n/l.length}}
@@ -1561,7 +1562,7 @@ const FORMS={
   event:{t:"Événement pro",f:[["title","Titre","text"],["type","Type","chips",EVKINDS],["date","Date","date"],["time","Heure","time"],["place","Lieu","text"],["notes","Notes","textarea"]]},
   cert:{t:"Certificat",f:[["name","Nom","text"],["org","Organisme","text"],["progress","Avancement en %","number"],["deadline","Date visée","date"]]},
   contact:{t:"Contact",f:[["name","Nom","text"],["company","Entreprise","text"],["role","Poste","text"],["met","Rencontré(e) où","text"],["next","Prochaine relance","date"],["link","Lien LinkedIn","text"],["notes","Notes","textarea"]]},
-  habit:{t:"Habitude",f:[["name","Nom de l'habitude","text"],["link","Cochée par","chips",[HMANUAL,HWEEK,...Object.keys(HLINKS)]],["target","Objectif chiffré, facultatif (heures, pas, verres, jours ou séances par semaine)","number"]]},
+  habit:{t:"Habitude",f:[["name","Nom de l'habitude","text"],["link","Cochée par","chips",[HMANUAL,HWEEK,...Object.keys(HLINKS)]],["target","Objectif chiffré, facultatif (heures, pas, verres, jours ou séances par semaine)","number"],["unit","Unité de ton objectif, pour une habitude cochée à la main (pages, minutes, km, fois…)","text"]]},
   goal:{t:"Objectif",f:[["title","Objectif","text"],["cat","Domaine","chips",GOALCATS],["deadline","Échéance","date"],["why","Pourquoi c'est important pour toi","textarea"]]}
 };
 const DEFAULTS={exp:()=>({date:today(),cat:"Courses"}),fix:()=>({cat:"Abonnements",day:1}),inc:()=>({rec:"Chaque mois",date:today()}),event:()=>({date:today(),type:"Afterwork"}),cert:()=>({progress:0}),contact:()=>({}),goal:()=>({cat:"Carrière"}),habit:()=>({link:HMANUAL,from:today()})};

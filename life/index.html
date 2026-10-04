@@ -592,6 +592,22 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .todoedit{padding:6px 10px!important;font-size:15px!important}
 .mobreco{display:none}
 @media (max-width:760px){.mobreco{display:inline-flex;margin:0 auto 6px}.hgrid .hright{display:flex;flex-direction:column;align-items:center}}
+/* Halo : chaque élément coloré rayonne doucement dans sa propre couleur */
+.pl,.bar,.catbar div{overflow:visible!important}
+.pl i,.bar i,.catbar div i{box-shadow:0 0 8px color-mix(in srgb,var(--c,#fff) 85%,transparent),0 0 20px color-mix(in srgb,var(--c,#fff) 45%,transparent)}
+.minirow span:not(.off){opacity:1;box-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent)}
+.reco i{box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--orange)) 90%,transparent),0 0 18px color-mix(in srgb,var(--c,var(--orange)) 45%,transparent)}
+.opic{box-shadow:0 0 18px color-mix(in srgb,var(--c) 55%,transparent)}
+.legend i,.cyc-leg i,.sw,.pzsw{box-shadow:0 0 10px color-mix(in srgb,var(--c) 85%,transparent)}
+.wk-ck i{box-shadow:0 0 8px color-mix(in srgb,var(--c) 70%,transparent)}
+.cal:not(.hcal) button.f{box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent)}
+.cal:not(.hcal) button.today.f{box-shadow:inset 0 0 0 1.5px #fff,0 0 16px color-mix(in srgb,var(--c) 45%,transparent)}
+.badge.lime,.dtile.hl{box-shadow:0 0 14px color-mix(in srgb,var(--lime) 60%,transparent)}
+.spark,.cring svg{overflow:visible}
+.wdrop svg{filter:drop-shadow(0 0 14px rgba(169,198,238,.5))}
+.wglasses button[aria-pressed="true"]{filter:drop-shadow(0 0 4px rgba(188,211,245,.8))}
+.hcal button.full{box-shadow:0 0 14px rgba(255,192,143,.45)}
+.hcal button.full.sel{box-shadow:inset 0 0 0 2px #fff,0 0 14px rgba(255,192,143,.45)}
 /* Personnalisation : curseurs */
 .pz h3{font-size:13px;font-weight:400;margin:22px 0 10px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .pzr{display:grid;grid-template-columns:minmax(0,112px) minmax(0,1fr) 34px;align-items:center;gap:10px;margin:0 0 8px;font-size:14px}
@@ -692,7 +708,7 @@ body.home{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)!important}
 @media (max-width:560px){.wtrack,.cyc{gap:16px}.wdrop{width:108px}.cring{width:128px}.cmid small{font-size:10px;max-width:76px}.cmid b{font-size:32px}.wglasses{gap:6px;max-width:166px}.wglasses button{width:26px;height:32px}}
 @media (prefers-reduced-motion:reduce){.wwave{animation:none}.wlevel{transition:none}}
 /* Habits */
-.hcal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;background:rgba(143,214,160,calc(.06 + var(--p) * .6))}
+.hcal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;background:rgba(255,192,143,calc(.06 + var(--p) * .5))}
 .hcal button span{font-size:11px;color:var(--muted)}
 .hcal button b{font-size:12px;font-weight:400;color:#fff}
 .hcal button.full span{color:#fff}
@@ -1079,8 +1095,8 @@ function render(soft){
 }
 function topHTML(){const p=P();return `<div class="top"><span class="tleft">${flowerBtn(S.view==="gestion")}<span class="datepill">${cap(fmtLong(today()))}</span></span><nav class="tnav" aria-label="Pages">${VIEWS.map(([id,l,i])=>`<button data-view="${id}" aria-pressed="${S.view===id}" aria-label="${l}" title="${l}">${ICO[i]}<span>${l}</span></button>`).join("")}</nav><span class="row tright" style="gap:10px;justify-content:flex-end"><span class="status" id="status">${esc(S.status||"")}</span><button class="ib" data-act="settings" aria-label="Préférences">${esc((p.name||"M")[0].toUpperCase())}</button></span></div>`}
 function spark(vals,color,h=28,w=74){const v=vals.map(x=>x||0),mx=Math.max(...v,1);const pts=v.map((x,i)=>`${(i/(v.length-1||1))*(w-4)+2},${h-3-(x/mx)*(h-6)}`).join(" ");
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>${v.map((x,i)=>i===v.length-1?`<circle cx="${(i/(v.length-1||1))*(w-4)+2}" cy="${h-3-(x/mx)*(h-6)}" r="2.6" fill="${color}"/>`:"").join("")}</svg>`}
-function dotbars(vals,color){const mx=Math.max(...vals.map(v=>v||0),1);return `<svg class="spark" viewBox="0 0 74 28" aria-hidden="true">${vals.map((v,i)=>{const h=Math.max(2,(v||0)/mx*24);return `<rect x="${i*(74/vals.length)+2}" y="${26-h}" width="3" height="${h}" rx="1.5" fill="${v?color:"rgba(255,255,255,.25)"}"/>`}).join("")}</svg>`}
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true" style="filter:drop-shadow(0 0 4px ${color})"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>${v.map((x,i)=>i===v.length-1?`<circle cx="${(i/(v.length-1||1))*(w-4)+2}" cy="${h-3-(x/mx)*(h-6)}" r="2.6" fill="${color}"/>`:"").join("")}</svg>`}
+function dotbars(vals,color){const mx=Math.max(...vals.map(v=>v||0),1);return `<svg class="spark" viewBox="0 0 74 28" aria-hidden="true" style="filter:drop-shadow(0 0 4px ${color})">${vals.map((v,i)=>{const h=Math.max(2,(v||0)/mx*24);return `<rect x="${i*(74/vals.length)+2}" y="${26-h}" width="3" height="${h}" rx="1.5" fill="${v?color:"rgba(255,255,255,.25)"}"/>`}).join("")}</svg>`}
 function ringSVG(p,color){const v=Math.round(Math.max(0,Math.min(1,p))*100);return `<span class="prog"><span class="pl" style="--c:${color}"><i style="width:${v}%"></i></span><span>${v} %</span></span>`}
 const dtile=(d,hl)=>`<span class="dtile${hl?" hl":""}"><b>${parseISO(d).getDate()}</b><small>${parseISO(d).toLocaleDateString("fr-FR",{month:"short"}).replace(".","")}</small></span>`;
 const kpi=(ic,t,val,unit,extra)=>`<div class="kpi"><span class="row between"><span class="row"><span class="ic">${ICO[ic]}</span><span class="t">${t}</span></span></span><span class="v"><b>${val}${unit?`<small>${unit}</small>`:""}</b>${extra||""}</span></div>`;
@@ -1252,7 +1268,7 @@ function cycleCard(d){
   const oa=Math.max(pl+1,ovu-1),ob=Math.max(oa,ovu+1);
   const segs=[["regles",1,pl],["folli",pl+1,oa-1],["ovu",oa,ob],["lut",ob+1,cl]].filter(([,a,b])=>a<=b);
   const late=ci.known&&ci.day>cl,cur=ci.known&&!ci.unsure?(late?null:ci.phase):null;
-  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known||ci.unsure?.3:cur===k?1:.45}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}"/>`}).join("");
+  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known||ci.unsure?.3:cur===k?1:.45}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}" style="filter:drop-shadow(0 0 ${cur===k?7:4}px ${PH[k].c})"/>`}).join("");
   let dot="";if(ci.known){const dc=Math.min(cl,Math.max(1,ci.day)),an=(dc-.5)/cl*2*Math.PI-Math.PI/2;dot=`<circle cx="${(70+R*Math.cos(an)).toFixed(1)}" cy="${(70+R*Math.sin(an)).toFixed(1)}" r="7.5" fill="#fff" stroke="rgba(0,0,0,.25)" stroke-width="1"/>`}
   const src=(x.src||{}).flow==="sante"?`<span class="badge">Santé</span>`:"";
   const leg=segs.map(([k,a,b])=>`<span class="${cur===k?"on":""}"><i style="--c:${PH[k].c}"></i>${cap(PH[k].n)}<small>J${a}${b>a?"–"+b:""}</small></span>`).join("");
@@ -1474,7 +1490,7 @@ function habitsPage(){
   const rows=l.map(h=>{const s=habitState(h,d);return `<li class="${s.done?"done":""}">${s.auto?`<span class="check" role="img" aria-pressed="${s.done}" aria-label="${s.done?"Fait":"Pas encore fait"}">${ICO.check}</span>`:`<button class="check" data-act="hbcheck" data-id="${h.id}" aria-pressed="${s.checked}" aria-label="${s.checked?"Décocher":"Cocher"} ${esc(h.name)}">${ICO.check}</button>`}
     <span class="grow"><span>${esc(h.name)}</span>${s.info?`<small>${s.info}</small>`:""}</span>${s.auto?`<span class="badge">auto</span>`:""}<button class="ib sm bare" data-act="edit" data-kind="habit" data-id="${h.id}" aria-label="Modifier ${esc(h.name)}">${ICO.edit}</button></li>`}).join("");
   const have=new Set(hs.map(h=>h.name)),ideas=HPRESETS.map((x,i)=>have.has(x.name)?"":`<button class="chip" data-act="hbpreset" data-v="${i}">${ICO.plus}${x.name}</button>`).join("");
-  const ring=`<span class="hring" role="img" aria-label="${pc} % des habitudes réalisées"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="6"/><circle cx="32" cy="32" r="${R}" fill="none" stroke="#A8C3D1" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*pc/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg><b>${pc}%</b></span>`;
+  const ring=`<span class="hring" role="img" aria-label="${pc} % des habitudes réalisées"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="6"/><circle cx="32" cy="32" r="${R}" fill="none" stroke="#A8C3D1" stroke-width="6" stroke-linecap="round" style="filter:drop-shadow(0 0 5px #A8C3D1)" stroke-dasharray="${(C*pc/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg><b>${pc}%</b></span>`;
   const later=hs.length-l.length;
   return `<div class="pagehead"><div><h1>Habits</h1><p>Tes habitudes, jour après jour</p></div></div>
   <div class="grid g2 m1">

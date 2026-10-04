@@ -18,7 +18,7 @@ index.html              page de lancement : work, life, study (+ réglages icôn
 manifest.webmanifest    manifest de la page de lancement
 sw.js                   « kill switch » : désinstalle l'ancien service worker qui contrôlait tout le site
 icon-*.png              icônes de la page de lancement
-life/                   app Life (ex « Mon quotidien ») : accueil, Health, Habits, Finance, Career, Goals, Journal, Gestion
+life/                   app Life (ex « Mon quotidien ») : accueil, Health, Habits, Finance, Career, Goals, Journal, Réglages (ex « Gestion »)
 study/                  app Study (BTS NDRC à l'INSEEC) : cours, devoirs, évaluations, révisions, alternance
 vie/                    ancienne adresse : redirige vers /life/ et désinstalle son ancien service worker
 supabase/migrations/    scripts SQL de la base (à appliquer dans l'ordre)
@@ -68,7 +68,7 @@ Fonctions :
 - Panneaux en « verre liquide » : fond blanc translucide léger, bordure blanche fine, `backdrop-filter: blur(16px)`.
 - Texte blanc, police **Sora** (fine : 200-300 pour les titres). Éléments sélectionnés : fond blanc, texte `#1B1B1D`.
 - Navigation : icônes des onglets en haut (icône + nom sur ordinateur, icônes seules sur mobile, juste après l'hibiscus).
-- Life : l'hibiscus rond en haut à gauche ouvre la page Gestion (page d'accueil, accueil de Life, historique, réglages).
+- Life : l'hibiscus rond en haut à gauche ouvre la page Réglages, appelée `gestion` dans le code (page d'accueil du site, historique, Préférences).
 - Couleurs des émotions (Life) : Heureuse `#FD8A22`, Enjouée `#FF6E79`, Fatiguée `#73905C`, Anxieuse `#B83F6C`, Triste `#62A6E0`.
   L'aura de l'accueil mélange les 2 émotions les plus fréquentes des 7 derniers jours (une 3e en cas d'égalité).
 - Style épuré : peu d'éléments, pas de cadres inutiles, pas de grosses pastilles.

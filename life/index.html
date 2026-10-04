@@ -814,11 +814,11 @@ const ICO={
 
 /* ============ Référentiels ============ */
 const MOODS=[
-  {v:1,label:"Triste",lvl:"au plus bas",c:"#62A6E0",c2:"#2A5582",c3:"#9CC6EC",warm:false},
-  {v:2,label:"Anxieuse",lvl:"pas très bien",c:"#B83F6C",c2:"#7A1640",c3:"#D47A9B",warm:false},
-  {v:3,label:"Fatiguée",lvl:"bof, la flemme",c:"#73905C",c2:"#2E5130",c3:"#D6DEA8",warm:false},
-  {v:4,label:"Enjouée",lvl:"plutôt bien",c:"#FF6E79",c2:"#FE365A",c3:"#FF9A8A",warm:true},
-  {v:5,label:"Heureuse",lvl:"au top",c:"#FD8A22",c2:"#F93A06",c3:"#FFB25C",warm:true}];
+  {v:1,label:"Triste",lvl:"au plus bas",c:"#ABB2F0",c2:"#838BD6",c3:"#D3D7F8",warm:false},
+  {v:2,label:"Anxieuse",lvl:"pas très bien",c:"#DA9BC0",c2:"#BC739F",c3:"#EEC6DB",warm:false},
+  {v:3,label:"Fatiguée",lvl:"bof, la flemme",c:"#A8C3D1",c2:"#7FA0B2",c3:"#D6E3EA",warm:false},
+  {v:4,label:"Enjouée",lvl:"plutôt bien",c:"#FFA5AE",c2:"#F98499",c3:"#FFCDD0",warm:true},
+  {v:5,label:"Heureuse",lvl:"au top",c:"#FFC08F",c2:"#FF9E78",c3:"#FFDDBE",warm:true}];
 /* Mélange d'humeurs des derniers jours : part de chaque humeur parmi les jours notés */
 const MIX_DAYS=7;
 function moodMix(n=MIX_DAYS){
@@ -840,7 +840,7 @@ function auraBg(mix){
   /* Les 2 émotions qui ressortent le plus, une 3e seulement en cas d'égalité avec la 2e */
   let parts=all.slice(0,2);if(all[2]&&Math.abs(all[2].p-all[1].p)<1e-9)parts=all.slice(0,3);
   const tot=parts.reduce((t,x)=>t+x.p,0)||1;parts=parts.map(x=>({...x,p:x.p/tot}));
-  if(!parts.length)return "radial-gradient(circle at 40% 42%,#FD8A22 0%,#FF6E79 46%,rgba(254,54,90,.45) 70%,transparent 80%)";
+  if(!parts.length)return "radial-gradient(circle at 40% 42%,#FFC08F 0%,#FFA5AE 46%,rgba(249,132,153,.45) 70%,transparent 80%)";
   const pos=parts.length===1?[[48,48]]:parts.length===2?[[40,44],[64,60]]:[[42,40],[66,52],[40,68]];
   return parts.map((x,i)=>{const [px,py]=pos[i],sz=Math.round(48+44*x.p);return `radial-gradient(circle at ${px}% ${py}%,${x.m.c} 0%,${x.m.c} ${Math.round(sz*.42)}%,${x.m.c2}99 ${Math.round(sz*.7)}%,transparent ${sz}%)`}).join(",");
 }
@@ -901,6 +901,7 @@ function persoHTML(){
   ${r("Flou des cartes",'data-pz="glassBlur"',0,40,th.glassBlur," px")}
   <h3>Émotions de l'aura</h3>
   ${MOODS.slice().reverse().map(m=>r(`<i class="pzsw" data-v="${m.v}" style="--c:${m.c}"></i>${m.label}`,`data-pzmood="${m.v}"`,0,360,moodHue(m.v),"°","hue")).join("")}
+  ${Object.keys(th.moods).length?`<button class="btn" data-act="pzmoodreset" style="margin-top:4px">Remettre les couleurs pastel d'origine</button>`:""}
   <h3>Police d'écriture</h3>
   <select data-pz="font" aria-label="Police d'écriture">${FONTS.map(([n])=>`<option value="${n}"${th.font===n?" selected":""}>${n}${n==="Sora"?" (d'origine)":""}</option>`).join("")}</select>
   </div><div class="sheetfoot"><button class="btn ghost" data-act="pzreset">Tout remettre d'origine</button><button class="btn dark" data-sheet="cancel">Fermer</button></div>`;
@@ -1146,7 +1147,7 @@ function homePage(){
   const mm=money(monthOf(t)),ev=items("event").filter(e=>e.date>=t).sort((a,b)=>a.date.localeCompare(b.date))[0],gs=items("goal");
   const tile=(ic,lab,sub,attrs)=>`<button class="tile" ${attrs}><span class="row between">${ICO[ic]}<small>${sub}</small></span><b>${lab}</b></button>`;
   const tiles=`<div class="tiles">${tile("list","À faire",done+" / "+tasks.length,'data-act="panel" data-v="tasks"')}${tile("spark","Pour toi",recs.length+" conseil"+(recs.length>1?"s":""),'data-act="panel" data-v="recos"')}${tile("heart","Health",m?m.label:"",'data-view="health"')}${tile("wallet","Finance",mm.I||mm.override!=null?eur(mm.left)+" restants":"",'data-view="finance"')}${tile("brief","Career",ev?(diff(t,ev.date)===0?"aujourd'hui":"dans "+diff(t,ev.date)+" j"):"",'data-view="career"')}${tile("target","Goals",gs.length?gs.length+" objectif"+(gs.length>1?"s":""):"",'data-view="goals"')}</div>`;
-  const mix=moodMix(),dom=mix.share.slice().sort((a,b)=>b.p-a.p)[0],b2=mix.tot?dom.m.c2:"#FFC37F";
+  const mix=moodMix(),dom=mix.share.slice().sort((a,b)=>b.p-a.p)[0],b2=mix.tot?dom.m.c2:"#FFD2A6";
   const emos=`<div class="emos" role="group" aria-label="Mon humeur du jour et mes ${MIX_DAYS} derniers jours">${MOODS.slice().reverse().map(o=>{const sh=mix.share[o.v-1];return `<button class="mchip" data-act="pickmood" data-v="${o.v}" aria-pressed="${moodsOf(t).includes(o.v)}" style="--c:${o.c}"><i></i><span><b>${o.label}</b><small>${o.lvl}</small></span><em>${mix.tot?Math.round(sh.p*100)+" %":""}</em></button>`}).join("")}</div>
     <div class="mixbar" aria-hidden="true">${mix.share.filter(x=>x.p>0).sort((a,b)=>b.m.v-a.m.v).map(x=>`<i style="background:${x.m.c};flex:${x.p}"></i>`).join("")}</div>
     <p class="mixtxt">${mix.tot?`${MIX_DAYS} derniers jours : ${Math.round(mix.warm*100)} % de couleurs chaudes. `:""}${esc(mix.verdict)}</p>`;
@@ -1713,6 +1714,7 @@ document.addEventListener("click",e=>{
   else if(a==="perso"){S.newKey=null;S.sheet=null;S.panel=null;$("#sheet").innerHTML=persoHTML();$("#sheet").classList.add("pzsheet");$("#sheet").showModal()}
   else if(a==="pzbg"){setTheme({bg:v});$("#sheet").innerHTML=persoHTML()}
   else if(a==="pzpick")pickBg();
+  else if(a==="pzmoodreset"){setTheme({moods:{}});$("#sheet").innerHTML=persoHTML()}
   else if(a==="pzreset"){savePrefs({theme:null});applyTheme();$("#sheet").innerHTML=persoHTML()}
   else if(a==="copykey")navigator.clipboard.writeText(S.newKey).then(()=>toast("Clé copiée."),()=>toast("Sélectionne la clé et copie-la à la main."));
   else if(a==="logout")sb.auth.signOut();

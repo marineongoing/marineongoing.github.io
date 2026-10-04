@@ -1,6 +1,6 @@
 // Garde l'app en mémoire pour qu'elle s'ouvre même sans réseau,
 // tout en allant chercher la dernière version dès qu'il y a du réseau.
-const CACHE = "mon-quotidien-v45";
+const CACHE = "mon-quotidien-v46";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" }))))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("mon-quotidien") && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

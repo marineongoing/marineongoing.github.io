@@ -933,8 +933,8 @@ const VIEWS=[["home","Accueil","home"],["health","Health","heart"],["habits","Ha
 
 /* ============ Cache, enregistrement, chargement ============ */
 const CACHE="vie2-cache";
-function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({days:S.days,items:S.items,prefs:S.prefs,dead:S.dead||[]}))}catch(e){}}
-function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||"{}");S.days=c.days||{};S.items=c.items||{};S.prefs=c.prefs||{};S.dead=c.dead||[]}catch(e){}}
+function cacheSave(){try{localStorage.setItem(CACHE,JSON.stringify({days:S.days,items:S.items,prefs:S.prefs,dead:S.dead||[],sc:S.studyCerts||[]}))}catch(e){}}
+function cacheLoad(){try{const c=JSON.parse(localStorage.getItem(CACHE)||"{}");S.days=c.days||{};S.items=c.items||{};S.prefs=c.prefs||{};S.dead=c.dead||[];S.studyCerts=c.sc||[]}catch(e){}}
 let statusT=null;function setStatus(t){const el=$("#status");if(el)el.textContent=t;S.status=t}
 const queue={};let qTimer=null;
 function patch(day,obj){S.days[day]={...D(day),...obj};queue[day]={...(queue[day]||{}),...obj};cacheSave();setStatus("Enregistrement…");clearTimeout(qTimer);qTimer=setTimeout(flushQueue,600)}
@@ -957,6 +957,8 @@ async function loadAll(){
   const its={};from=0;
   for(;;){const {data,error}=await sb.from("vie_items").select("id,data").range(from,from+999);if(error)throw error;for(const r of data)its[r.id]=r.data;if(data.length<1000)break;from+=1000}
   const {data:pr,error:pe}=await sb.from("vie_prefs").select("data").maybeSingle();if(pe)throw pe;
+  /* Certificats suivis dans Study (table docs, en lecture seule) : Career les affiche sans double saisie */
+  try{const {data:sc}=await sb.from("docs").select("data").eq("id","certs").maybeSingle();if(sc&&sc.data&&Array.isArray(sc.data.items))S.studyCerts=sc.data.items}catch(e){}
   /* Ne jamais perdre ce qui est sur l'appareil : tout ce qui manque dans Supabase est gardé puis renvoyé */
   const dead=new Set(S.dead||[]),pushItems=[],pushDays={};
   for(const [id,x] of Object.entries(S.items||{}))if(!its[id]&&!dead.has(id)&&x&&x.kind){its[id]=x;pushItems.push(id)}
@@ -1041,7 +1043,7 @@ function localRecos(){
   return r;
 }
 function careerRecos(){
-  const t=today(),r=[],ev=items("event").filter(e=>e.date>=t),ct=items("contact"),cr=items("cert");
+  const t=today(),r=[],ev=items("event").filter(e=>e.date>=t),ct=items("contact"),cr=certList();
   if(!ev.some(e=>diff(t,e.date)<=30))r.push("Aucun événement pro prévu ce mois-ci : repère un afterwork ou un meetup (tourisme, tech sales, e-commerce) et inscris-toi.");
   for(const c of ct.filter(c=>c.next&&c.next<=t).slice(0,2))r.push(`Relance ${c.name}${c.company?" ("+c.company+")":""} : un message court suffit, avec une nouvelle de ton alternance.`);
   for(const c of cr.filter(c=>(+c.progress||0)<100&&c.deadline&&diff(t,c.deadline)<=21&&diff(t,c.deadline)>=0))r.push(`Il reste ${diff(t,c.deadline)} jours pour finir ${c.name} (${+c.progress||0} %). Bloque deux créneaux cette semaine.`);
@@ -1352,14 +1354,25 @@ function savingsCard(m){
     <p class="hint">${(P().savings||{})[m]?"Montants de ce mois.":sv?"Repris de "+monthLabel(sv.m)+" : modifie-les si ça a changé.":"Indique tes montants pour suivre ton épargne mois par mois."}</p></section>`}
 
 /* ============ Career ============ */
+/* Certificats : ceux de Study (avancement calculé d'après les cours cochés là-bas) remplacent les fiches du même nom saisies ici */
+const normW=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").split(/[^a-z0-9]+/).filter(w=>w.length>2);
+const sameCert=(a,b)=>{const x=normW(a),y=normW(b);return x.length>0&&y.length>0&&(x.every(w=>y.includes(w))||y.every(w=>x.includes(w)))};
+function certList(){
+  const mine=items("cert"),used=new Set();
+  const st=(S.studyCerts||[]).filter(c=>c&&c.title).map(c=>{const cs=c.courses||[],tot=sum(cs.map(x=>+x.h||0)),dn=sum(cs.filter(x=>x.done).map(x=>+x.h||0)),n=cs.filter(x=>x.done).length;
+    const m=mine.find(x=>!used.has(x.id)&&sameCert(x.name,c.title));if(m)used.add(m.id);
+    const [name,org]=String(c.title).split(/\s+[–-]\s+/);
+    return {study:true,title:c.title,name,org:org||"",progress:tot?Math.round(dn/tot*100):cs.length?Math.round(n/cs.length*100):0,n,total:cs.length,dn,tot,deadline:(m&&m.deadline)||null}});
+  return [...st,...mine.filter(x=>!used.has(x.id))].sort((a,b)=>(+a.progress||0)-(+b.progress||0));
+}
 function careerPage(){
   const t=today(),p=P();
   const ev=items("event").sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||""))),up=ev.filter(e=>e.date>=t),past=ev.filter(e=>e.date<t).reverse().slice(0,4);
   const nx=up[0];
-  const certs=items("cert").sort((a,b)=>(+a.progress||0)-(+b.progress||0));
+  const certs=certList();
   const cts=items("contact").sort((a,b)=>(a.next||"9999").localeCompare(b.next||"9999"));
   const evRow=e=>`<li>${dtile(e.date,e.date===t)}<span class="grow"><span>${esc(e.title)}</span><small>${esc([e.type,e.time,e.place].filter(Boolean).join(", "))}</small></span><button class="ib sm bare" data-act="edit" data-kind="event" data-id="${e.id}" aria-label="Modifier">${ICO.edit}</button></li>`;
-  const sug=["Google Data Analytics","Google Digital Marketing","ESSEC Negotiation"].filter(n=>!certs.some(c=>(c.name||"").toLowerCase()===n.toLowerCase()));
+  const sug=["Google Data Analytics","Google Digital Marketing","ESSEC Negotiation"].filter(n=>!certs.some(c=>sameCert(c.title||c.name,n)));
   const crs=careerRecos(),cc=p.careerRecos;
   return `<div class="pagehead"><div><h1>Career</h1><p>Événements, certificats et réseau</p></div><button class="btn dark" data-act="new" data-kind="event">${ICO.plus}Événement</button></div>
   <div class="grid g3" style="margin-bottom:14px">
@@ -1375,7 +1388,7 @@ function careerPage(){
     <section class="card"><h2>Événements pros</h2>${up.length?`<ul class="list">${up.map(evRow).join("")}</ul>`:`<p class="empty">Rien de prévu.</p>`}
       ${past.length?`<p class="hint" style="margin-top:14px">Passés récemment</p><ul class="list">${past.map(evRow).join("")}</ul>`:""}</section>
     <section class="card"><h2>Certificats <button class="ib sm" data-act="new" data-kind="cert" aria-label="Ajouter un certificat">${ICO.plus}</button></h2>
-      ${certs.length?`<ul class="list">${certs.map(c=>`<li>${ringSVG((+c.progress||0)/100,(+c.progress||0)>=100?"#3FCB98":"#FF7A33")}<span class="grow"><span>${esc(c.name)}</span><small>${esc([c.org,c.deadline?"objectif "+fmtShort(c.deadline):""].filter(Boolean).join(", "))}</small></span><button class="ib sm" data-act="certup" data-id="${c.id}" aria-label="Ajouter 10 %">+10</button><button class="ib sm bare" data-act="edit" data-kind="cert" data-id="${c.id}" aria-label="Modifier">${ICO.edit}</button></li>`).join("")}</ul>`:`<p class="empty">Aucun certificat pour l'instant.</p>`}
+      ${certs.length?`<ul class="list">${certs.map(c=>c.study?`<li>${ringSVG(c.progress/100,c.progress>=100?"#3FCB98":"#FF7A33")}<span class="grow"><span>${esc(c.name)}</span><small>${esc([c.org,`${c.n} cours sur ${c.total}`,c.tot?`${c.dn} h sur ${c.tot} h`:"",c.deadline?"objectif "+fmtShort(c.deadline):""].filter(Boolean).join(", "))}</small></span><span class="badge">Study</span><a class="ib sm bare" href="../study/" aria-label="Ouvrir ${esc(c.name)} dans Study">${ICO.right}</a></li>`:`<li>${ringSVG((+c.progress||0)/100,(+c.progress||0)>=100?"#3FCB98":"#FF7A33")}<span class="grow"><span>${esc(c.name)}</span><small>${esc([c.org,c.deadline?"objectif "+fmtShort(c.deadline):""].filter(Boolean).join(", "))}</small></span><button class="ib sm" data-act="certup" data-id="${c.id}" aria-label="Ajouter 10 %">+10</button><button class="ib sm bare" data-act="edit" data-kind="cert" data-id="${c.id}" aria-label="Modifier">${ICO.edit}</button></li>`).join("")}</ul>${certs.some(c=>c.study)?`<p class="hint" style="margin-top:12px">L'avancement vient des cours cochés dans Study.</p>`:""}`:`<p class="empty">Aucun certificat pour l'instant.</p>`}
       ${sug.length?`<div class="chips" style="margin-top:12px">${sug.map(n=>`<button class="chip" data-act="addcert" data-v="${esc(n)}">+ ${esc(n)}</button>`).join("")}</div>`:""}</section>
   </div>
   <div class="grid g2 m1">
@@ -1389,7 +1402,7 @@ function careerPage(){
 async function careerClaude(){
   const p=P(),t=today();
   const ev=items("event").map(e=>`${e.date} ${e.title} (${e.type||""})`).join(" ; ")||"aucun";
-  const ce=items("cert").map(c=>`${c.name} ${+c.progress||0}%`).join(" ; ")||"aucun";
+  const ce=certList().map(c=>`${c.name} ${+c.progress||0}%`).join(" ; ")||"aucun";
   const ct=items("contact").map(c=>`${c.name}, ${c.role||""} chez ${c.company||"?"}${c.next?", relance prévue "+c.next:""}`).join(" ; ")||"aucun";
   const goals=items("goal").filter(g=>g.cat==="Carrière"||g.cat==="Études").map(g=>g.title).join(" ; ")||"aucun";
   const prompt=`Profil : ${p.profile}\nAujourd'hui : ${fmtLong(t)}.\nÉvénements pros : ${ev}\nCertificats : ${ce}\nRéseau : ${ct}\nObjectifs carrière et études : ${goals}\n\nPropose 4 actions concrètes et réalistes pour faire avancer sa carrière dans les 30 prochains jours (événements à viser, personnes à contacter ou relancer, compétences ou certificats à travailler, préparation de ses candidatures). Écris en français, en la tutoyant, chaque action en une ou deux phrases, séparées par une ligne vide. Pas de titres, pas de listes à puces, pas d'emoji.`;

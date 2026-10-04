@@ -18,7 +18,7 @@ index.html              page de lancement : work, life, study (+ réglages icôn
 manifest.webmanifest    manifest de la page de lancement
 sw.js                   « kill switch » : désinstalle l'ancien service worker qui contrôlait tout le site
 icon-*.png              icônes de la page de lancement
-life/                   app Life (ex « Mon quotidien ») : accueil, Health, Finance, Career, Goals, Journal, Gestion
+life/                   app Life (ex « Mon quotidien ») : accueil, Health, Habits, Finance, Career, Goals, Journal, Gestion
 study/                  app Study (BTS NDRC à l'INSEEC) : cours, devoirs, évaluations, révisions, alternance
 vie/                    ancienne adresse : redirige vers /life/ et désinstalle son ancien service worker
 supabase/migrations/    scripts SQL de la base (à appliquer dans l'ordre)
@@ -52,8 +52,8 @@ Projet : `https://hfspexqbzmomrntlaqpn.supabase.co` (partagé par Life et Study,
 Tables (toutes avec RLS : chaque utilisatrice ne voit que ses lignes, `user_id = auth.uid()`) :
 
 - `docs` (Study) : `user_id`, `id`, `data jsonb`, `updated_at`. Ne pas modifier sa structure.
-- `vie_days` (Life) : une ligne par jour. `data` contient notamment `moods` (liste de 1 à 5), `mood` (compatibilité), `tags`, `note`, `water`, `steps`, `sleep`, `sport` [{type,min,int}], `flow`, `sym`, `doneX`, `src` (origine « sante » ou « app »), `journal` (page du Journal), `journalRaw` (texte d'avant la mise au propre), `journalRecos` (recos de Claude sur la page).
-- `vie_items` (Life) : `id`, `kind`, `data`. kinds : `todo`, `exp` (dépense variable), `fix` (dépense fixe, avec `from`/`to`/`months`), `inc` (revenu, `rec` = « Chaque mois » ou « Ponctuel »), `event`, `cert`, `contact`, `goal` (avec `steps`).
+- `vie_days` (Life) : une ligne par jour. `data` contient notamment `moods` (liste de 1 à 5), `mood` (compatibilité), `tags`, `note`, `water`, `steps`, `sleep`, `sport` [{type,min,int}], `flow`, `sym`, `doneX`, `src` (origine « sante » ou « app »), `journal` (page du Journal), `journalRaw` (texte d'avant la mise au propre), `journalRecos` (recos de Claude sur la page), `habits` (identifiants des habitudes cochées à la main ce jour-là).
+- `vie_items` (Life) : `id`, `kind`, `data`. kinds : `todo`, `exp` (dépense variable), `fix` (dépense fixe, avec `from`/`to`/`months`), `inc` (revenu, `rec` = « Chaque mois » ou « Ponctuel »), `event`, `cert`, `contact`, `goal` (avec `steps`), `habit` (`name`, `link` = donnée de l'app qui la coche toute seule ou « Moi, à la main », `target` facultatif, `from` = date de création).
 - `vie_prefs` (Life) : réglages (prénom, profil, objectifs, épargne `savings`, ajustements du reste à vivre `rav`, recos de Claude…).
 - `vie_tokens` (Life) : empreinte SHA-256 de la clé privée du raccourci Santé.
 

@@ -675,6 +675,15 @@ body.home{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)!important}
 @media (min-width:821px){.tnav{gap:clamp(2px,calc(4.4vw - 38px),34px)!important}}
 @media (min-width:821px) and (max-width:1080px){.tnav button{padding:0 9px!important;gap:6px}}
 @media (max-width:820px){.top .tnav,.htop .tnav{padding:5px 4px!important;gap:0!important;min-width:0}.tnav button,.tnav button[aria-pressed="true"]{padding:0 6px!important;min-width:36px!important}}
+/* Tâches : date limite */
+.duein{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.duein input{flex:1;min-width:0;padding:8px 10px}
+.todoadd{flex-wrap:wrap}
+.todoadd #todoIn{flex:1 1 100%}
+.todoadd .duein{flex:1;min-width:0}
+.todolist .grow .duein{margin-top:6px}
+.todolist small.late{color:#FFB8A1}
+.habcard{margin-top:12px}
 </style>
 </head>
 <body>
@@ -965,9 +974,17 @@ const dtile=(d,hl)=>`<span class="dtile${hl?" hl":""}"><b>${parseISO(d).getDate(
 const kpi=(ic,t,val,unit,extra)=>`<div class="kpi"><span class="row between"><span class="row"><span class="ic">${ICO[ic]}</span><span class="t">${t}</span></span></span><span class="v"><b>${val}${unit?`<small>${unit}</small>`:""}</b>${extra||""}</span></div>`;
 
 /* ============ Accueil ============ */
+/* Date limite d'une tâche, en clair */
+function dueLabel(x,t=today()){
+  if(!x.due)return x.date&&x.date<t&&!x.done?"sans date limite, ajoutée le "+fmtShort(x.date):"sans date limite";
+  if(x.done)return "à faire avant le "+fmtShort(x.due);
+  const n=diff(t,x.due);
+  return n<0?"en retard, c'était pour le "+fmtShort(x.due):n===0?"à faire aujourd'hui au plus tard":n===1?"jusqu'à demain":`jusqu'au ${fmtShort(x.due)}, encore ${n} jours`;
+}
 function todayTasks(){
   const t=today(),out=[];
-  for(const x of items("todo"))if(x.date===t||(x.date<t&&!x.done)||(!x.date&&!x.done))out.push({kind:"todo",id:x.id,text:x.text,done:!!x.done,sub:x.date&&x.date<t?"en retard depuis le "+fmtShort(x.date):""});
+  const todos=items("todo").filter(x=>x.date===t||(x.date<t&&!x.done)||(!x.date&&!x.done)).sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999"));
+  for(const x of todos)out.push({kind:"todo",id:x.id,text:x.text,done:!!x.done,due:x.due||"",late:!x.done&&!!x.due&&x.due<t,sub:dueLabel(x,t)});
   for(const g of items("goal"))(g.steps||[]).forEach(s=>{if(s.date&&s.date<=t&&(!s.done||s.doneOn===t))out.push({kind:"step",id:g.id,sid:s.id,text:s.text,done:!!s.done,sub:"Objectif : "+g.title+(s.date<t?", en retard":"")})});
   const dx=D(t).doneX||[];
   for(const e of items("event"))if(e.date===t)out.push({kind:"event",id:e.id,text:e.title,done:dx.includes("event:"+e.id),sub:(e.time?e.time+" · ":"")+(e.place||e.type||"Événement pro")});
@@ -979,7 +996,7 @@ function todayTasks(){
 function dayAgenda(d){
   const out=[];
   for(const e of items("event"))if(e.date===d)out.push({k:"event",id:e.id,t:e.title,time:e.time||"",sub:e.place||e.type||"",c:"#FFFFFF"});
-  for(const x of items("todo"))if(x.date===d)out.push({k:"todo",id:x.id,t:x.text,done:!!x.done,time:"",c:"rgba(255,255,255,.7)"});
+  for(const x of items("todo"))if((x.due||x.date)===d)out.push({k:"todo",id:x.id,t:x.text,done:!!x.done,time:"",c:"rgba(255,255,255,.7)"});
   for(const g of items("goal"))(g.steps||[]).forEach(st=>{if(st.date===d)out.push({k:"step",id:g.id,sid:st.id,t:st.text,done:!!st.done,time:"",sub:g.title,c:"#FD8A22"})});
   return out.sort((a,b)=>(a.time||"99").localeCompare(b.time||"99"));
 }
@@ -997,10 +1014,10 @@ function weekCard(){
 function todoCard(){
   const all=todayTasks(),tasks=[...all.filter(k=>!k.done),...all.filter(k=>k.done)],done=all.filter(k=>k.done).length,ed=S.todoEdit;
   const row=k=>`<li class="${k.done?"done":""}"><button class="check" data-act="tcheck" data-kind="${k.kind}" data-id="${k.id}"${k.sid?` data-sid="${k.sid}"`:""} aria-pressed="${k.done}" aria-label="${k.done?"Décocher":"Cocher"} ${esc(k.text)}">${ICO.check}</button>
-    <span class="grow">${ed&&k.kind==="todo"?`<input type="text" class="todoedit" data-id="${k.id}" value="${esc(k.text)}" aria-label="Modifier la tâche">`:`<span>${esc(k.text)}</span>`}${k.sub?`<small>${esc(k.sub)}</small>`:""}</span>
+    <span class="grow">${ed&&k.kind==="todo"?`<input type="text" class="todoedit" data-id="${k.id}" value="${esc(k.text)}" aria-label="Modifier la tâche"><label class="duein">Jusqu'au<input type="date" class="tododue" data-id="${k.id}" value="${esc(k.due||"")}" aria-label="Date limite de ${esc(k.text)}"></label>`:`<span>${esc(k.text)}</span>${k.sub?`<small class="${k.late?"late":""}">${esc(k.sub)}</small>`:""}`}</span>
     ${ed&&k.kind==="todo"?`<button class="ib sm bare" data-act="deltodo" data-id="${k.id}" aria-label="Supprimer">${ICO.trash}</button>`:""}</li>`;
   return `<section class="card todocard"><h2><span>À faire aujourd'hui</span><span class="row" style="gap:8px"><small>${done}/${all.length}</small><button class="ib sm${ed?" dark":""}" data-act="todoedit" aria-pressed="${!!ed}" aria-label="${ed?"Terminer la modification":"Modifier les tâches"}">${ed?ICO.check:ICO.edit}</button><button class="ib sm" data-act="todoadd" aria-label="Ajouter une tâche">${ICO.plus}</button></span></h2>
-    ${S.todoAdd?`<div class="addline" style="margin:0 0 6px"><input type="text" id="todoIn" placeholder="Nouvelle tâche" aria-label="Nouvelle tâche"><button class="ib dark" data-act="addtodo" aria-label="Ajouter">${ICO.check}</button></div>`:""}
+    ${S.todoAdd?`<div class="addline todoadd" style="margin:0 0 6px"><input type="text" id="todoIn" placeholder="Nouvelle tâche" aria-label="Nouvelle tâche"><label class="duein">Jusqu'au<input type="date" id="todoDue" value="${today()}" min="${today()}" aria-label="Date limite"></label><button class="ib dark" data-act="addtodo" aria-label="Ajouter">${ICO.check}</button></div>`:""}
     ${tasks.length?`<ul class="list todolist">${tasks.map(row).join("")}</ul>`:`<p class="empty">Rien de prévu aujourd'hui. Touche + pour ajouter une tâche.</p>`}</section>`;
 }
 function homePage(){
@@ -1023,7 +1040,7 @@ function homePage(){
     <div class="mixbar" aria-hidden="true">${mix.share.filter(x=>x.p>0).sort((a,b)=>b.m.v-a.m.v).map(x=>`<i style="background:${x.m.c};flex:${x.p}"></i>`).join("")}</div>
     <p class="mixtxt">${mix.tot?`${MIX_DAYS} derniers jours : ${Math.round(mix.warm*100)} % de couleurs chaudes. `:""}${esc(mix.verdict)}</p>`;
   return tabs+`<div class="hgrid"><div class="hright"><div class="blobwrap"><button class="blob" data-act="moodsheet" aria-label="Choisir mon humeur du jour" style="--m2:${b2}"><i style="background:${auraBg(mix)}"></i><i></i></button></div>
-    <h1 class="greet">${hello}</h1><p class="gsub">${esc(sub)}</p><button class="recobtn mobreco" data-act="panel" data-v="recos" aria-label="Pour toi : les recos de Claude">${ICO.spark}<span>Pour toi</span><em>${recs.length}</em></button></div><div class="hleft">${todoCard()}</div></div>${weekCard()}`;
+    <h1 class="greet">${hello}</h1><p class="gsub">${esc(sub)}</p><button class="recobtn mobreco" data-act="panel" data-v="recos" aria-label="Pour toi : les recos de Claude">${ICO.spark}<span>Pour toi</span><em>${recs.length}</em></button></div><div class="hleft">${todoCard()}${habitHomeCard()}</div></div>${weekCard()}`;
 }
 function gestionPage(){
   const p=P();
@@ -1282,14 +1299,14 @@ async function careerClaude(){
 /* ============ Goals ============ */
 /* ============ Habits ============ */
 /* Une habitude est soit cochée à la main (liste `habits` du jour), soit reliée à une donnée de l'app et cochée toute seule */
-const HMANUAL="Moi, à la main";
+const HMANUAL="Moi, à la main",HWEEK="Moi, plusieurs jours par semaine";
 const HLINKS={"Sommeil":"sleep","Pas":"steps","Eau":"water","Journal":"journal","Sport":"sport","Aucune dépense":"nospend"};
 const HPRESETS=[
   {name:"Dormir 8 h",link:"Sommeil",target:8},
   {name:"Marcher 10 000 pas",link:"Pas",target:10000},
   {name:"Écrire dans mon journal",link:"Journal"},
   {name:"Ne rien dépenser",link:"Aucune dépense"},
-  {name:"Sport 4 fois par semaine",link:"Sport",target:4},
+  {name:"Sport",link:HWEEK,target:4},
   {name:"Boire assez d'eau",link:"Eau"}];
 const habits=()=>items("habit").sort((a,b)=>(a.from||"").localeCompare(b.from||"")||String(a.name).localeCompare(String(b.name)));
 const weekSport=d=>{const m=mondayOf(d);return sum(Array.from({length:7},(_,i)=>(D(addDays(m,i)).sport||[]).length))};
@@ -1301,7 +1318,10 @@ function habitState(h,d){
   if(k==="journal"){const ok=!!(x.journal||"").trim();return {auto:true,done:ok,info:ok?"page du journal écrite":"journal pas encore écrit"}}
   if(k==="sport"){const o=g||4,n=weekSport(d);return {auto:true,done:n>=o,info:`${n} / ${o} séance${o>1?"s":""} cette semaine`}}
   if(k==="nospend"){const n=items("exp").filter(e=>e.date===d).length;return {auto:true,done:n===0,info:n?`${n} dépense${n>1?"s":""} notée${n>1?"s":""}`:"aucune dépense notée"}}
-  return {auto:false,done:(x.habits||[]).includes(h.id),info:""};
+  const ck=(x.habits||[]).includes(h.id);
+  /* À cocher à la main, tant de jours par semaine (lundi à dimanche) : une fois le compte atteint, c'est fait pour toute la semaine */
+  if(h.link===HWEEK){const o=g||4,m=mondayOf(d),n=sum(Array.from({length:7},(_,i)=>(D(addDays(m,i)).habits||[]).includes(h.id)?1:0));return {auto:false,checked:ck,done:ck||n>=o,info:`${n} / ${o} jour${o>1?"s":""} cette semaine${n>=o?", objectif atteint":""}`}}
+  return {auto:false,checked:ck,done:ck,info:""};
 }
 /* Part des habitudes réalisées un jour donné (null si aucune habitude n'existait ce jour-là) */
 function habitScore(d,hs=habits()){const l=hs.filter(h=>(h.from||"")<=d);if(!l.length)return null;const n=l.filter(h=>habitState(h,d).done).length;return {n,total:l.length,p:n/l.length}}
@@ -1313,9 +1333,17 @@ function habitCal(sel){
     h+=`<button class="${d===t?"today":""}${d===sel?" sel":""}${pc===100?" full":""}" style="--p:${sc?sc.p:0}" data-act="hbday" data-d="${d}"${d>t?" disabled":""} aria-label="${fmtLong(d)}${sc?`, ${pc} % des habitudes`:""}"><span>${i}</span>${sc?`<b>${pc}%</b>`:""}</button>`}
   return `<div class="cal hcal">${h}</div>`;
 }
+/* Récap de l'accueil : les habitudes du jour qui restent à faire, à cocher sans quitter la page */
+function habitHomeCard(){
+  const t=today(),hs=habits().filter(h=>(h.from||"")<=t),sc=habitScore(t,hs);
+  const rows=hs.map(h=>[h,habitState(h,t)]).filter(([,s])=>!s.done).map(([h,s])=>`<li>${s.auto?`<span class="check" role="img" aria-pressed="false" aria-label="Pas encore fait">${ICO.check}</span>`:`<button class="check" data-act="hbcheck" data-id="${h.id}" aria-pressed="false" aria-label="Cocher ${esc(h.name)}">${ICO.check}</button>`}
+    <span class="grow"><span>${esc(h.name)}</span>${s.info?`<small>${s.info}</small>`:""}</span>${s.auto?`<span class="badge">auto</span>`:""}</li>`).join("");
+  return `<section class="card todocard habcard"><h2><span>Habitudes du jour</span><span class="row" style="gap:8px">${sc?`<small>${sc.n}/${sc.total}, ${Math.round(sc.p*100)} %</small>`:""}<button class="ib sm" data-view="habits" aria-label="Ouvrir Habits">${ICO.right}</button></span></h2>
+    ${!hs.length?`<p class="empty">Aucune habitude pour l'instant. Touche la flèche pour en créer.</p>`:rows?`<ul class="list todolist hlist">${rows}</ul>`:`<p class="empty">Toutes tes habitudes du jour sont faites, bravo !</p>`}</section>`;
+}
 function habitsPage(){
   const t=today(),d=S.hbday&&S.hbday<=t?S.hbday:t,hs=habits(),l=hs.filter(h=>(h.from||"")<=d),sc=habitScore(d,hs),pc=sc?Math.round(sc.p*100):0,R=26,C=2*Math.PI*R;
-  const rows=l.map(h=>{const s=habitState(h,d);return `<li class="${s.done?"done":""}">${s.auto?`<span class="check" role="img" aria-pressed="${s.done}" aria-label="${s.done?"Fait":"Pas encore fait"}">${ICO.check}</span>`:`<button class="check" data-act="hbcheck" data-id="${h.id}" aria-pressed="${s.done}" aria-label="${s.done?"Décocher":"Cocher"} ${esc(h.name)}">${ICO.check}</button>`}
+  const rows=l.map(h=>{const s=habitState(h,d);return `<li class="${s.done?"done":""}">${s.auto?`<span class="check" role="img" aria-pressed="${s.done}" aria-label="${s.done?"Fait":"Pas encore fait"}">${ICO.check}</span>`:`<button class="check" data-act="hbcheck" data-id="${h.id}" aria-pressed="${s.checked}" aria-label="${s.checked?"Décocher":"Cocher"} ${esc(h.name)}">${ICO.check}</button>`}
     <span class="grow"><span>${esc(h.name)}</span>${s.info?`<small>${s.info}</small>`:""}</span>${s.auto?`<span class="badge">auto</span>`:""}<button class="ib sm bare" data-act="edit" data-kind="habit" data-id="${h.id}" aria-label="Modifier ${esc(h.name)}">${ICO.edit}</button></li>`}).join("");
   const have=new Set(hs.map(h=>h.name)),ideas=HPRESETS.map((x,i)=>have.has(x.name)?"":`<button class="chip" data-act="hbpreset" data-v="${i}">${ICO.plus}${x.name}</button>`).join("");
   const ring=`<span class="hring" role="img" aria-label="${pc} % des habitudes réalisées"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${R}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="6"/><circle cx="32" cy="32" r="${R}" fill="none" stroke="#8FD6A0" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*pc/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/></svg><b>${pc}%</b></span>`;
@@ -1431,7 +1459,7 @@ const FORMS={
   event:{t:"Événement pro",f:[["title","Titre","text"],["type","Type","chips",EVKINDS],["date","Date","date"],["time","Heure","time"],["place","Lieu","text"],["notes","Notes","textarea"]]},
   cert:{t:"Certificat",f:[["name","Nom","text"],["org","Organisme","text"],["progress","Avancement en %","number"],["deadline","Date visée","date"]]},
   contact:{t:"Contact",f:[["name","Nom","text"],["company","Entreprise","text"],["role","Poste","text"],["met","Rencontré(e) où","text"],["next","Prochaine relance","date"],["link","Lien LinkedIn","text"],["notes","Notes","textarea"]]},
-  habit:{t:"Habitude",f:[["name","Nom de l'habitude","text"],["link","Cochée par","chips",[HMANUAL,...Object.keys(HLINKS)]],["target","Objectif chiffré, facultatif (heures, pas, verres ou séances par semaine)","number"]]},
+  habit:{t:"Habitude",f:[["name","Nom de l'habitude","text"],["link","Cochée par","chips",[HMANUAL,HWEEK,...Object.keys(HLINKS)]],["target","Objectif chiffré, facultatif (heures, pas, verres, jours ou séances par semaine)","number"]]},
   goal:{t:"Objectif",f:[["title","Objectif","text"],["cat","Domaine","chips",GOALCATS],["deadline","Échéance","date"],["why","Pourquoi c'est important pour toi","textarea"]]}
 };
 const DEFAULTS={exp:()=>({date:today(),cat:"Courses"}),fix:()=>({cat:"Abonnements",day:1}),inc:()=>({rec:"Chaque mois",date:today()}),event:()=>({date:today(),type:"Afterwork"}),cert:()=>({progress:0}),contact:()=>({}),goal:()=>({cat:"Carrière"}),habit:()=>({link:HMANUAL,from:today()})};
@@ -1479,7 +1507,7 @@ async function newKey(){
 
 /* ============ Interactions ============ */
 let toastT=null;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4200)}
-function addTodo(){const el=$("#todoIn");const v=el&&el.value.trim();if(!v)return;saveItem(uid(),{kind:"todo",text:v,date:today(),done:false});el.value="";render();setTimeout(()=>{const i=$("#todoIn");if(i)i.focus()},30)}
+function addTodo(){const el=$("#todoIn");const v=el&&el.value.trim();if(!v)return;const du=$("#todoDue");saveItem(uid(),{kind:"todo",text:v,date:today(),due:(du&&du.value)||today(),done:false});el.value="";render();setTimeout(()=>{const i=$("#todoIn");if(i)i.focus()},30)}
 function addSport(){const min=+($("#sportMin").value||0),ty=$("#sportType").value,it=$("#sportInt").value;if(!(min>0)){toast("Indique la durée en minutes.");return}
   S.stype=ty;S.sint=it;S.sportAdd=false;patch(S.day,{sport:[...(D(S.day).sport||[]),{type:ty,min:Math.round(min),int:it}]});render()}
 function addStep(id){const tx=$("#stepIn").value.trim(),dt=$("#stepDate").value;if(!tx)return;const g=S.items[id];saveItem(id,{...g,steps:[...(g.steps||[]),{id:uid(),text:tx,date:dt,done:false}]});render()}
@@ -1558,7 +1586,7 @@ document.addEventListener("click",e=>{
   else if(a==="copykey")navigator.clipboard.writeText(S.newKey).then(()=>toast("Clé copiée."),()=>toast("Sélectionne la clé et copie-la à la main."));
   else if(a==="logout")sb.auth.signOut();
 });
-document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="ravIn"){S.ravEdit=null;render()}else if(e.target.id==="todoIn")addTodo();else if(e.target.id==="askIn"){const q=e.target.value.trim();if(q){e.target.value="";askClaude(q)}}else if(e.target.id==="sportMin")addSport();else if(e.target.id==="stepIn")addStep(S.goal)});
+document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="ravIn"){S.ravEdit=null;render()}else if(e.target.id==="todoIn"||e.target.id==="todoDue")addTodo();else if(e.target.id==="askIn"){const q=e.target.value.trim();if(q){e.target.value="";askClaude(q)}}else if(e.target.id==="sportMin")addSport();else if(e.target.id==="stepIn")addStep(S.goal)});
 document.addEventListener("input",e=>{
   const el=e.target;
   if(el.id==="journal")patch(el.dataset.day,{journal:el.value});
@@ -1568,7 +1596,9 @@ document.addEventListener("input",e=>{
   else if(el.id==="ravIn"){savePrefs({rav:{...(P().rav||{}),[el.dataset.m]:el.value===""?null:+el.value}})}
   else if(el.dataset.pref){const k=el.dataset.pref;if(k==="name"||k==="profile")savePrefs({[k]:el.value.trim()});else if(el.value!==""&&+el.value>0)savePrefs({[k]:+el.value})}
 });
-document.addEventListener("change",e=>{const el=e.target;if(el.classList&&el.classList.contains("todoedit")){const x=S.items[el.dataset.id],v=el.value.trim();if(x&&v&&v!==x.text)saveItem(el.dataset.id,{...x,text:v})}});
+document.addEventListener("change",e=>{const el=e.target;if(!el.classList)return;
+  if(el.classList.contains("todoedit")){const x=S.items[el.dataset.id],v=el.value.trim();if(x&&v&&v!==x.text)saveItem(el.dataset.id,{...x,text:v})}
+  else if(el.classList.contains("tododue")){const x=S.items[el.dataset.id];if(x&&(x.due||"")!==el.value)saveItem(el.dataset.id,{...x,due:el.value||null})}});
 $("#sheet").addEventListener("close",()=>{S.newKey=null;S.panel=null;render()});
 
 /* ============ Démarrage ============ */

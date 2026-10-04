@@ -668,7 +668,7 @@ body.home{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)!important}
 .wglasses{display:flex;flex-wrap:wrap;gap:3px}
 .wglasses button{width:21px;height:27px;border:0;background:none;padding:0;color:rgba(255,255,255,.4)}
 .wglasses path{fill-opacity:0;transition:fill-opacity .25s}
-.wglasses button[aria-pressed="true"]{color:#8CC4FA}
+.wglasses button[aria-pressed="true"]{color:#BCD3F5}
 .wglasses button[aria-pressed="true"] path{fill-opacity:.55}
 .wglasses svg{display:block;width:100%;height:100%}
 .wfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
@@ -929,7 +929,7 @@ const EVKINDS=["Salon","Afterwork","Conférence","Entretien","Webinar","Formatio
 const GOALCATS=["Études","Carrière","Finances","Santé","Perso"];
 const CATC=["#FF7A33","#FF5E9C","#4F6BFF","#3FCB98","#9B7BF4","#E5B81C","#2BB5D8","#FF9E80","#8BC34A","#B0A89C"];
 const catColor=(cat,list)=>CATC[Math.max(0,list.indexOf(cat))%CATC.length];
-const PH={regles:{n:"règles",c:"#FF5E7E"},folli:{n:"phase folliculaire",c:"#3FCB98"},ovu:{n:"ovulation estimée",c:"#E5B81C"},lut:{n:"phase lutéale",c:"#9B7BF4"}};
+const PH={regles:{n:"règles",c:"#F98499"},folli:{n:"phase folliculaire",c:"#A8C3D1"},ovu:{n:"ovulation estimée",c:"#FFC08F"},lut:{n:"phase lutéale",c:"#BDB0EE"}};
 
 /* ============ État ============ */
 const S={days:{},items:{},prefs:{},view:"home",day:today(),month:monthOf(today()),hmonth:monthOf(today()),hbmonth:monthOf(today()),hbday:null,goal:null,uid:null,sheet:null,opened:today(),busy:{},htab:"today",panel:null,ask:null};
@@ -1050,7 +1050,7 @@ function localRecos(){
   if(late.length)r.push({c:"#FF7A33",t:late.length===1?`Étape en retard dans tes objectifs : ${late[0]}.`:`${late.length} étapes de tes objectifs sont en retard. Choisis-en une à faire aujourd'hui.`});
   const fol=items("contact").filter(c=>c.next&&c.next<=t);
   if(fol.length)r.push({c:"#2BB5D8",t:fol.length===1?`Pense à relancer ${fol[0].name}.`:`${fol.length} contacts attendent une relance, dont ${fol[0].name}.`});
-  const ci=cycleAt(t);if(ci.known&&ci.phase==="regles")r.push({c:"#FF5E7E",t:"Tu es en période de règles : privilégie un sport doux si tu as des douleurs, et garde de l'eau à portée de main."});
+  const ci=cycleAt(t);if(ci.known&&ci.phase==="regles")r.push({c:"#F98499",t:"Tu es en période de règles : privilégie un sport doux si tu as des douleurs, et garde de l'eau à portée de main."});
   return r;
 }
 function careerRecos(){
@@ -1226,7 +1226,7 @@ function waterCard(d){
     <div class="wtrack">
       <button class="wdrop" data-act="water" data-v="1" aria-label="Ajouter un verre d'eau, ${w} sur ${p.water}">
         <svg viewBox="0 0 120 150" aria-hidden="true"><defs><clipPath id="wclip"><path d="${DROP}"/></clipPath></defs>
-          <g clip-path="url(#wclip)"><rect width="120" height="150" fill="rgba(255,255,255,.1)"/><g class="wlevel" style="transform:translateY(${wY(S.wFrom??w)}px)"><path class="wwave" d="M-120 0q15-7 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0V160H-120z" fill="#6FB1F2"/></g></g>
+          <g clip-path="url(#wclip)"><rect width="120" height="150" fill="rgba(255,255,255,.1)"/><g class="wlevel" style="transform:translateY(${wY(S.wFrom??w)}px)"><path class="wwave" d="M-120 0q15-7 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0V160H-120z" fill="#A9C6EE"/></g></g>
           <path d="${DROP}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/></svg>
         <span class="wnum"><b>${w}</b><small>verre${w>1?"s":""}</small></span></button>
       <div class="wside">
@@ -1241,11 +1241,11 @@ function sportCard(d){
   const sess=(x.sport||[]).map((s,i)=>`<span class="sp-it"><span>${esc(s.type)} <small>${s.min} min${s.int?", "+esc(s.int.toLowerCase()):""}</small></span><button class="ib sm bare" data-act="delsport" data-i="${i}" aria-label="Supprimer la séance ${esc(s.type)}">${ICO.trash}</button></span>`).join("");
   return `<section class="card"><h2>Sport <small>${wkMin} / ${p.sportWeek} min sur 7 jours</small></h2>
     <div class="counter"><span><span class="dotnum" style="font-size:40px">${dayMin}</span><span class="muted"> min ${d===t?"aujourd'hui":"ce jour-là"}</span></span><button class="ib${S.sportAdd?"":" dark"}" data-act="sportadd" aria-pressed="${!!S.sportAdd}" aria-label="${S.sportAdd?"Fermer":"Ajouter une séance"}">${S.sportAdd?ICO.minus:ICO.plus}</button></div>
-    <div class="bar" style="--c:var(--pink)"><i style="width:${Math.min(100,wkMin/p.sportWeek*100)}%"></i></div>
+    <div class="bar" style="--c:#FFA5AE"><i style="width:${Math.min(100,wkMin/p.sportWeek*100)}%"></i></div>
     ${S.sportAdd?`<div class="sp-form"><select id="sportType" aria-label="Type de sport">${SPORTS.map(s=>`<option${(S.stype||SPORTS[0])===s?" selected":""}>${s}</option>`).join("")}</select><select id="sportInt" aria-label="Intensité">${INTENS.map(s=>`<option${(S.sint||"Modérée")===s?" selected":""}>${s}</option>`).join("")}</select>
       <div class="addline"><input type="number" inputmode="numeric" min="5" step="5" id="sportMin" placeholder="Durée en minutes" aria-label="Durée en minutes"><button class="btn dark" data-act="addsport">${ICO.check}Ajouter</button></div></div>`:""}
     ${sess?`<div class="sp-list">${sess}</div>`:(S.sportAdd?"":`<p class="hint">Aucune séance ${d===t?"aujourd'hui":"ce jour-là"}.</p>`)}
-    <div class="minirow" style="--c:#FF5E9C">${days7.map(dd=>{const v=sportMin(dd);return `<span class="${v?"":"off"}" style="height:${v?Math.max(6,Math.min(100,v/60*100)):6}%" title="${fmtShort(dd)} : ${v} min"></span>`}).join("")}</div><div class="mlabels">${days7.map(k=>`<span>${WD[parseISO(k).getDay()]}</span>`).join("")}</div></section>`;
+    <div class="minirow" style="--c:#FFA5AE">${days7.map(dd=>{const v=sportMin(dd);return `<span class="${v?"":"off"}" style="height:${v?Math.max(6,Math.min(100,v/60*100)):6}%" title="${fmtShort(dd)} : ${v} min"></span>`}).join("")}</div><div class="mlabels">${days7.map(k=>`<span>${WD[parseISO(k).getDay()]}</span>`).join("")}</div></section>`;
 }
 function cycleCard(d){
   const t=today(),x=D(d),ci=cycleAt(d),cl=ci.cl,pl=Math.max(1,Math.min(ci.pl,cl-3)),ovu=cl-14,R=52,C=2*Math.PI*R,GAP=4;
@@ -1291,10 +1291,10 @@ function healthPage(){
   <div class="grid g2 m1">
     <section class="card"><h2>Pas ${src("steps")}</h2>
       <input class="bigin" type="number" inputmode="numeric" min="0" step="100" id="steps" data-day="${d}" value="${x.steps??""}" placeholder="0" aria-label="Nombre de pas">
-      <div class="bar" style="--c:var(--orange)"><i style="width:${Math.min(100,(x.steps||0)/p.steps*100)}%"></i></div><p class="hint">Objectif ${p.steps.toLocaleString("fr-FR")} pas</p>${bars("steps","#FF7A33",p.steps)}</section>
+      <div class="bar" style="--c:#FFC08F"><i style="width:${Math.min(100,(x.steps||0)/p.steps*100)}%"></i></div><p class="hint">Objectif ${p.steps.toLocaleString("fr-FR")} pas</p>${bars("steps","#FFC08F",p.steps)}</section>
     <section class="card"><h2>Sommeil ${src("sleep")}</h2>
       <input class="bigin" type="number" inputmode="decimal" min="0" max="24" step="0.25" id="sleep" data-day="${d}" value="${x.sleep??""}" placeholder="0" aria-label="Heures de sommeil">
-      <div class="bar" style="--c:var(--violet)"><i style="width:${Math.min(100,(x.sleep||0)/p.sleep*100)}%"></i></div><p class="hint">Objectif ${num(p.sleep)} h</p>${bars("sleep","#9B7BF4",p.sleep)}</section>
+      <div class="bar" style="--c:#BDB0EE"><i style="width:${Math.min(100,(x.sleep||0)/p.sleep*100)}%"></i></div><p class="hint">Objectif ${num(p.sleep)} h</p>${bars("sleep","#BDB0EE",p.sleep)}</section>
   </div>`;
 }
 function moodCal(){

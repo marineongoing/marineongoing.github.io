@@ -69,10 +69,10 @@ Fonctions :
 - Texte blanc, police **Sora** (fine : 200-300 pour les titres). Éléments sélectionnés : fond blanc, texte `#1B1B1D`.
 - Navigation : icônes des onglets en haut (icône + nom sur ordinateur, icônes seules sur mobile, juste après l'hibiscus).
 - Life : l'hibiscus détouré en haut à gauche (image `FLOWER`, avec une aura animée et un rebond au clic) ouvre la page Réglages, appelée `gestion` dans le code (page d'accueil du site, historique, Préférences).
-- Couleurs des émotions (Life) : pastels assortis à l'hibiscus : Heureuse `#FFC08F`, Enjouée `#FFA5AE`, Fatiguée `#A8C3D1` (gris-bleu brume), Anxieuse `#DA9BC0`, Triste `#ABB2F0` (pervenche).
+- Couleurs des émotions (Life) : pastels assortis à l'hibiscus : Heureuse `#FFB070`, Enjouée `#FF8C9E`, Fatiguée `#8CCBE3` (gris-bleu brume), Anxieuse `#E77FBF`, Triste `#94A0FF` (pervenche).
   L'aura de l'accueil mélange les 2 émotions les plus fréquentes des 7 derniers jours (une 3e en cas d'égalité).
-- Palette pastel commune à toute l'app Life (accents, catégories, graphiques, conseils) : pêche `#FFC08F`, rose `#FFA5AE`, corail doux `#F98499`, orchidée `#DA9BC0`, lilas `#BDB0EE`, pervenche `#ABB2F0`, bleu ciel `#A9C6EE`, gris-bleu brume `#A8C3D1`, sable `#F3D9A6`. Pas de vert ni de couleur vive.
-- Page Health dans la même palette pastel : règles `#F98499`, phase folliculaire `#A8C3D1`, ovulation `#FFC08F`, phase lutéale `#BDB0EE`, eau `#A9C6EE`, sport `#FFA5AE`, pas `#FFC08F`, sommeil `#BDB0EE`.
+- Palette pastel vive commune à toute l'app Life (accents, catégories, graphiques, conseils) : pêche `#FFB070`, rose `#FF8C9E`, corail doux `#FF6F8A`, orchidée `#E77FBF`, lilas `#B49CFA`, pervenche `#94A0FF`, bleu ciel `#8FBEFA`, gris-bleu brume `#8CCBE3`, sable `#FFD98A`. Pas de vert ni de couleur criarde.
+- Page Health dans la même palette pastel : règles `#FF6F8A`, phase folliculaire `#8CCBE3`, ovulation `#FFB070`, phase lutéale `#B49CFA`, eau `#8FBEFA`, sport `#FF8C9E`, pas `#FFB070`, sommeil `#B49CFA`.
 - Style épuré : peu d'éléments, pas de cadres inutiles, pas de grosses pastilles.
 
 ## Points connus

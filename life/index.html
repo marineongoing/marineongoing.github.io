@@ -606,6 +606,19 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .spark,.cring svg{overflow:visible}
 .wdrop svg{filter:drop-shadow(0 0 14px rgba(143,190,250,.55))}
 .wglasses button[aria-pressed="true"]{filter:drop-shadow(0 0 4px rgba(169,203,250,.85))}
+/* Couleurs translucides : on devine le fond à travers */
+.pl i,.bar i,.catbar div i{background:color-mix(in srgb,var(--c,#fff) 62%,transparent)}
+.reco i{background:color-mix(in srgb,var(--c,var(--orange)) 65%,transparent)}
+.minirow span:not(.off){background:color-mix(in srgb,var(--c) 58%,transparent)}
+.cal:not(.hcal) button.f{background:color-mix(in srgb,var(--c) 55%,transparent)}
+.legend i,.cyc-leg i,.sw,.pzsw,.mchip i{background:color-mix(in srgb,var(--c) 68%,transparent)}
+.opic{background:color-mix(in srgb,var(--c) 38%,transparent)}
+.wk-it.done .wk-ck i{background:color-mix(in srgb,var(--c) 62%,transparent)}
+.badge.lime,.dtile.hl{background:color-mix(in srgb,var(--lime) 70%,transparent)!important}
+.spark,.hring svg{opacity:.75}
+.wwave{fill-opacity:.6}
+.mixbar i{opacity:.7}
+.blob i:first-child{opacity:.68}
 .hcal button.full{box-shadow:0 0 14px rgba(255,176,112,.45)}
 .hcal button.full.sel{box-shadow:inset 0 0 0 2px #fff,0 0 14px rgba(255,176,112,.45)}
 /* Personnalisation : curseurs */
@@ -933,7 +946,7 @@ function pickBg(){const i=document.createElement("input");i.type="file";i.accept
 const moodsOf=d=>{const x=D(d);return Array.isArray(x.moods)?x.moods.filter(v=>moodOf(v)):(x.mood?[x.mood]:[])};
 const moodObjs=d=>moodsOf(d).slice().sort((a,b)=>b-a).map(moodOf);
 const moodNames=d=>moodObjs(d).map(o=>o.label).join(" et ");
-const moodPaint=(d,dir="135deg")=>{const o=moodObjs(d);if(!o.length)return "";if(o.length===1)return o[0].c;const st=100/o.length;return `linear-gradient(${dir},${o.map((m,i)=>`${m.c} ${Math.round(i*st)}% ${Math.round((i+1)*st)}%`).join(",")})`};
+const moodPaint=(d,dir="135deg",al="")=>{const o=moodObjs(d);if(!o.length)return "";if(o.length===1)return o[0].c+al;const st=100/o.length;return `linear-gradient(${dir},${o.map((m,i)=>`${m.c}${al} ${Math.round(i*st)}% ${Math.round((i+1)*st)}%`).join(",")})`};
 function toggleMood(d,v){const a=moodsOf(d).slice(),i=a.indexOf(v);i>=0?a.splice(i,1):a.push(v);patch(d,{moods:a,mood:a.length?Math.max(...a):null})}
 const SPORTS=["Pilates","Yoga","Course","Muscu","Swiss ball","Marche","Vélo","Natation","Danse","Autre"];
 const INTENS=["Douce","Modérée","Intense"];
@@ -1268,7 +1281,7 @@ function cycleCard(d){
   const oa=Math.max(pl+1,ovu-1),ob=Math.max(oa,ovu+1);
   const segs=[["regles",1,pl],["folli",pl+1,oa-1],["ovu",oa,ob],["lut",ob+1,cl]].filter(([,a,b])=>a<=b);
   const late=ci.known&&ci.day>cl,cur=ci.known&&!ci.unsure?(late?null:ci.phase):null;
-  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known||ci.unsure?.3:cur===k?1:.45}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}" style="filter:drop-shadow(0 0 ${cur===k?7:4}px ${PH[k].c})"/>`}).join("");
+  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known||ci.unsure?.25:cur===k?.72:.35}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}" style="filter:drop-shadow(0 0 ${cur===k?7:4}px ${PH[k].c})"/>`}).join("");
   let dot="";if(ci.known){const dc=Math.min(cl,Math.max(1,ci.day)),an=(dc-.5)/cl*2*Math.PI-Math.PI/2;dot=`<circle cx="${(70+R*Math.cos(an)).toFixed(1)}" cy="${(70+R*Math.sin(an)).toFixed(1)}" r="7.5" fill="#fff" stroke="rgba(0,0,0,.25)" stroke-width="1"/>`}
   const src=(x.src||{}).flow==="sante"?`<span class="badge">Santé</span>`:"";
   const leg=segs.map(([k,a,b])=>`<span class="${cur===k?"on":""}"><i style="--c:${PH[k].c}"></i>${cap(PH[k].n)}<small>J${a}${b>a?"–"+b:""}</small></span>`).join("");
@@ -1317,7 +1330,7 @@ function moodCal(){
   const m=S.hmonth,f=parseISO(m+"-01"),lead=(f.getDay()+6)%7,n=daysIn(m),t=today();
   let h=["L","M","M","J","V","S","D"].map(w=>`<span class="wd">${w}</span>`).join("");
   for(let i=0;i<lead;i++)h+=`<span class="out"></span>`;
-  for(let i=1;i<=n;i++){const d=m+"-"+pad(i),o=moodObjs(d)[0],multi=moodsOf(d).length>1;h+=`<button class="${o?"f":""}${d===t?" today":""}" style="--c:${o?o.c:"transparent"}${multi?";background:"+moodPaint(d):""}" data-act="goday" data-d="${d}"${d>t?" disabled":""} aria-label="${fmtLong(d)}${o?", "+moodNames(d):""}">${i}</button>`}
+  for(let i=1;i<=n;i++){const d=m+"-"+pad(i),o=moodObjs(d)[0],multi=moodsOf(d).length>1;h+=`<button class="${o?"f":""}${d===t?" today":""}" style="--c:${o?o.c:"transparent"}${multi?";background:"+moodPaint(d,"135deg","8C"):""}" data-act="goday" data-d="${d}"${d>t?" disabled":""} aria-label="${fmtLong(d)}${o?", "+moodNames(d):""}">${i}</button>`}
   return `<div class="cal">${h}</div>`;
 }
 

@@ -580,6 +580,7 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .todoedit{padding:6px 10px!important;font-size:15px!important}
 .mobreco{display:none}
 @media (max-width:760px){.mobreco{display:inline-flex;margin:0 auto 6px}.hgrid .hright{display:flex;flex-direction:column;align-items:center}}
+}
 
 /* Calendrier de la semaine */
 .weekcard{margin-top:16px;padding:18px 20px}
@@ -819,6 +820,7 @@ function toggleMood(d,v){const a=moodsOf(d).slice(),i=a.indexOf(v);i>=0?a.splice
 const SPORTS=["Pilates","Yoga","Course","Muscu","Swiss ball","Marche","Vélo","Natation","Danse","Autre"];
 const INTENS=["Douce","Modérée","Intense"];
 const FLOWS=[["","Aucunes"],["spotting","Spotting"],["leger","Légères"],["moyen","Moyennes"],["abondant","Abondantes"]];
+const PAINS=[["","Aucune"],["legere","Légères"],["moyenne","Modérées"],["forte","Fortes"],["intense","Très fortes"]];
 const EXPCATS=["Paiement en 4x","Courses","Restaurants","Transports","Shopping","Sorties","Beauté","Santé","Cadeaux","Voyages","Autre"];
 const FIXCATS=["Loyer","Courses","Abonnements","Téléphone","Assurance","Transport","Mutuelle","Épargne","Autre"];
 const EVKINDS=["Salon","Afterwork","Conférence","Entretien","Webinar","Formation","Autre"];
@@ -896,12 +898,16 @@ const isFlow=f=>f&&f!=="spotting";
 function cycleAt(ref){
   const p=P(),fd=Object.keys(S.days).filter(d=>isFlow(S.days[d].flow)).sort(),starts=[],lens=[];let prev=null,rs=null;
   for(const d of fd){if(!prev||diff(prev,d)>3){if(rs)lens.push(diff(rs,prev)+1);starts.push(d);rs=d}prev=d}
-  const cyc=[];for(let i=1;i<starts.length;i++){const l=diff(starts[i-1],starts[i]);if(l>=15&&l<=60)cyc.push(l)}
-  const cl=cyc.length?Math.round(avg(cyc.slice(-6))):p.cycleLen,pl=lens.length?Math.round(avg(lens.slice(-6))):p.periodLen;
-  const st=starts.filter(d=>d<=ref);if(!st.length)return {known:false,cl,pl};
+  /* Stérilet hormonal : seuls les cycles commencés depuis la pose servent aux estimations */
+  const iud=p.iud||null,since=d=>!iud||d>=iud;
+  const cyc=[];for(let i=1;i<starts.length;i++){const l=diff(starts[i-1],starts[i]);if(l>=15&&l<=60&&since(starts[i-1]))cyc.push(l)}
+  const pls=lens.filter((_,i)=>since(starts[i]));
+  const cl=cyc.length?Math.round(avg(cyc.slice(-6))):p.cycleLen,pl=pls.length?Math.round(avg(pls.slice(-6))):p.periodLen;
+  const unsure=!!iud&&cyc.length<2;
+  const st=starts.filter(d=>d<=ref);if(!st.length)return {known:false,cl,pl,iud,unsure};
   const last=st[st.length-1],day=diff(last,ref)+1,ovu=cl-14;
   let ph=isFlow(D(ref).flow)||day<=pl?"regles":day>cl+7?null:Math.abs(day-ovu)<=1?"ovu":day<ovu?"folli":"lut";
-  return {known:true,last,day,phase:ph,next:addDays(last,cl),cl,pl};
+  return {known:true,last,day,phase:ph,next:addDays(last,cl),cl,pl,iud,unsure};
 }
 const sportMin=d=>sum((D(d).sport||[]).map(s=>s.min));
 /* Montant d'une ligne récurrente pour un mois : montant propre au mois, sinon montant habituel dans la période */
@@ -1139,24 +1145,29 @@ function cycleCard(d){
   const t=today(),x=D(d),ci=cycleAt(d),cl=ci.cl,pl=Math.max(1,Math.min(ci.pl,cl-3)),ovu=cl-14,R=52,C=2*Math.PI*R,GAP=4;
   const oa=Math.max(pl+1,ovu-1),ob=Math.max(oa,ovu+1);
   const segs=[["regles",1,pl],["folli",pl+1,oa-1],["ovu",oa,ob],["lut",ob+1,cl]].filter(([,a,b])=>a<=b);
-  const late=ci.known&&ci.day>cl,cur=ci.known?(late?null:ci.phase):null;
-  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known?.3:cur===k?1:.45}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}"/>`}).join("");
+  const late=ci.known&&ci.day>cl,cur=ci.known&&!ci.unsure?(late?null:ci.phase):null;
+  const arcs=segs.map(([k,a,b])=>{const len=Math.max(1,(b-a+1)/cl*C-GAP);return `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${PH[k].c}" stroke-width="${cur===k?12:8}" stroke-opacity="${!ci.known||ci.unsure?.3:cur===k?1:.45}" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-((a-1)/cl*C+GAP/2)).toFixed(1)}"/>`}).join("");
   let dot="";if(ci.known){const dc=Math.min(cl,Math.max(1,ci.day)),an=(dc-.5)/cl*2*Math.PI-Math.PI/2;dot=`<circle cx="${(70+R*Math.cos(an)).toFixed(1)}" cy="${(70+R*Math.sin(an)).toFixed(1)}" r="7.5" fill="#fff" stroke="rgba(0,0,0,.25)" stroke-width="1"/>`}
   const src=(x.src||{}).flow==="sante"?`<span class="badge">Santé</span>`:"";
   const leg=segs.map(([k,a,b])=>`<span class="${cur===k?"on":""}"><i style="--c:${PH[k].c}"></i>${cap(PH[k].n)}<small>J${a}${b>a?"–"+b:""}</small></span>`).join("");
   const nx=ci.known?diff(t,ci.next):null;
-  return `<section class="card"><h2>Cycle ${src}<small>${cl} jours en moyenne</small></h2>
+  const sel=(k,list,lab)=>`<label class="fld" style="margin:0">${lab}<select class="daysel" data-k="${k}" data-day="${d}">${list.map(([v,l])=>`<option value="${v}"${(x[k]||"")===v?" selected":""}>${l}</option>`).join("")}</select></label>`;
+  const when=d===t?"aujourd'hui":"ce jour-là";
+  const est=ci.known?(nx>0?`Prochaines règles estimées vers le ${fmtShort(ci.next)}, dans ${nx} jour${nx>1?"s":""}.`:nx===0?"Tes règles sont attendues aujourd'hui.":`Tes règles étaient attendues vers le ${fmtShort(ci.next)}.`):"Note le premier jour de tes règles, ou laisse le raccourci les importer depuis Clue via Santé.";
+  const iudTxt=ci.iud?`<p style="margin:16px 0 0">Stérilet hormonal posé le ${parseISO(ci.iud).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"}).replace(/^1 /,"1er ")}. ${diff(ci.iud,t)<183?"Les premiers mois, des saignements irréguliers et du spotting sont fréquents.":"Avec le temps, les règles deviennent souvent plus légères, plus espacées, ou s'arrêtent."}</p>`:"";
+  const estTxt=ci.unsure?"Pas encore assez de cycles depuis la pose pour estimer tes prochaines règles. Note tes saignements et tes douleurs : l'estimation s'affinera.":ci.iud&&ci.known?est+" Estimation peu fiable avec un stérilet hormonal.":est;
+  return `<section class="card"><h2>Cycle ${src}<small>${ci.unsure?"cycle en évolution":cl+" jours en moyenne"}</small></h2>
     <div class="cyc">
       <div class="cring" role="img" aria-label="${ci.known?`Jour ${ci.day} du cycle${late?", règles attendues":ci.phase?", "+PH[ci.phase].n:""}`:"Cycle : pas encore de données"}">
         <svg viewBox="0 0 140 140" aria-hidden="true"><g transform="rotate(-90 70 70)">${arcs}</g>${dot}</svg>
-        <div class="cmid">${ci.known?`<small>jour</small><b>${ci.day}</b><small>${late?"règles attendues":ci.phase?PH[ci.phase].n:""}</small>`:`<b>–</b><small>pas encore de données</small>`}</div>
+        <div class="cmid">${ci.known?`<small>jour</small><b>${ci.day}</b><small>${ci.unsure?"depuis tes règles":late?"règles attendues":ci.phase?PH[ci.phase].n:""}</small>`:`<b>–</b><small>pas encore de données</small>`}</div>
       </div>
       <div class="cyc-leg">${leg}</div>
     </div>
-    <p style="margin:16px 0 10px">${ci.known?(nx>0?`Prochaines règles estimées vers le ${fmtShort(ci.next)}, dans ${nx} jour${nx>1?"s":""}.`:nx===0?"Tes règles sont attendues aujourd'hui.":`Tes règles étaient attendues vers le ${fmtShort(ci.next)}.`):"Note le premier jour de tes règles, ou laisse le raccourci les importer depuis Clue via Santé."}</p>
-    <p class="hint" style="margin:0 0 8px">Règles ${d===t?"aujourd'hui":"ce jour-là"}</p>
-    <div class="chips">${FLOWS.map(([v,l])=>`<button class="chip" data-act="flow" data-v="${v}" aria-pressed="${(x.flow||"")===v}">${l}</button>`).join("")}</div>
-    <p class="hint" style="margin-top:12px">Estimations à partir de tes cycles passés, sans valeur médicale ni contraceptive.</p></section>`;
+    ${iudTxt}
+    <p style="margin:${ci.iud?8:16}px 0 12px">${estTxt}</p>
+    <div class="grid g2" style="gap:10px">${sel("flow",FLOWS,"Règles "+when)}${sel("pain",PAINS,"Douleurs "+when)}</div>
+    <p class="hint" style="margin-top:12px">Estimations à partir de tes cycles passés, sans valeur médicale ni contraceptive.${ci.iud?" Si des douleurs fortes ou des saignements abondants durent, parles-en à ta sage-femme ou à ton médecin.":""}</p></section>`;
 }
 function healthPage(){
   const d=S.day,t=today(),x=D(d),p=P();
@@ -1493,6 +1504,7 @@ function settingsHTML(){const p=P();
     <label class="fld">Heures de sommeil<input data-pref="sleep" type="number" min="4" step="0.5" value="${p.sleep}"></label>
     <label class="fld">Minutes de sport par semaine<input data-pref="sportWeek" type="number" min="10" step="10" value="${p.sportWeek}"></label>
     <label class="fld">Durée du cycle (jours)<input data-pref="cycleLen" type="number" min="15" max="60" value="${p.cycleLen}"></label></div>
+  <label class="fld">Stérilet hormonal posé le (laisse vide si tu n'en as pas)<input data-pref="iud" type="date" max="${today()}" value="${esc(p.iud||"")}"></label>
   <div class="fld" style="margin-top:6px">Raccourci Santé
     ${S.newKey?`<span>Copie ta clé maintenant, elle ne sera plus affichée :</span><div class="keybox">${esc(S.newKey)}</div><button class="btn" data-act="copykey">Copier la clé</button>`:`<span>Crée une clé privée pour que ton raccourci iPhone envoie tes pas, ton sommeil et tes règles. Une nouvelle clé remplace l'ancienne.</span><button class="btn" data-act="newkey" style="align-self:flex-start">Créer ma clé</button>`}
     <span>Adresse du raccourci :</span><div class="keybox">${SUPA_URL}/rest/v1/rpc/vie_import</div></div>
@@ -1520,7 +1532,6 @@ document.addEventListener("click",e=>{
   if(a==="water")setWater(d,(D(d).water||0)+(+v));
   else if(a==="waterset"){const w=D(d).water||0;setWater(d,w===+v?+v-1:+v)}
   else if(a==="sportadd"){S.sportAdd=!S.sportAdd;render();if(S.sportAdd)setTimeout(()=>{const i=$("#sportMin");if(i)i.focus()},30)}
-  else if(a==="flow"){patch(d,{flow:v||null,src:{...(D(d).src||{}),flow:"app"}});render()}
   else if(a==="addsport")addSport();
   else if(a==="delsport"){const s=[...(D(d).sport||[])];s.splice(+b.dataset.i,1);patch(d,{sport:s});render()}
   else if(a==="dayprev"){S.day=addDays(S.day,-1);render()}
@@ -1594,11 +1605,12 @@ document.addEventListener("input",e=>{
   else if(el.id==="sleep"){patch(el.dataset.day,{sleep:el.value===""?null:Math.max(0,Math.min(24,+el.value)),src:{...(D(el.dataset.day).src||{}),sleep:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().sleep*100)+"%"}
   else if(el.dataset.sav){const m=el.dataset.m,sv={...(P().savings||{})},base=sv[m]||savingsAt(m)||{};const {m:_x,...clean}=base;sv[m]={...clean,[el.dataset.sav]:el.value===""?null:+el.value};savePrefs({savings:sv})}
   else if(el.id==="ravIn"){savePrefs({rav:{...(P().rav||{}),[el.dataset.m]:el.value===""?null:+el.value}})}
-  else if(el.dataset.pref){const k=el.dataset.pref;if(k==="name"||k==="profile")savePrefs({[k]:el.value.trim()});else if(el.value!==""&&+el.value>0)savePrefs({[k]:+el.value})}
+  else if(el.dataset.pref){const k=el.dataset.pref;if(k==="name"||k==="profile")savePrefs({[k]:el.value.trim()});else if(k==="iud")savePrefs({iud:el.value||null});else if(el.value!==""&&+el.value>0)savePrefs({[k]:+el.value})}
 });
 document.addEventListener("change",e=>{const el=e.target;if(!el.classList)return;
   if(el.classList.contains("todoedit")){const x=S.items[el.dataset.id],v=el.value.trim();if(x&&v&&v!==x.text)saveItem(el.dataset.id,{...x,text:v})}
-  else if(el.classList.contains("tododue")){const x=S.items[el.dataset.id];if(x&&(x.due||"")!==el.value)saveItem(el.dataset.id,{...x,due:el.value||null})}});
+  else if(el.classList.contains("tododue")){const x=S.items[el.dataset.id];if(x&&(x.due||"")!==el.value)saveItem(el.dataset.id,{...x,due:el.value||null})}
+  else if(el.classList.contains("daysel")){const k=el.dataset.k,d=el.dataset.day;patch(d,k==="flow"?{flow:el.value||null,src:{...(D(d).src||{}),flow:"app"}}:{[k]:el.value||null});render()}});
 $("#sheet").addEventListener("close",()=>{S.newKey=null;S.panel=null;render()});
 
 /* ============ Démarrage ============ */

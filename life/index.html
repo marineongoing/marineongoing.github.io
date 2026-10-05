@@ -620,6 +620,7 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .blob i:first-child{opacity:.68}
 .hcal button.full{box-shadow:0 0 14px rgba(255,176,112,.45)}
 .hcal button.full.sel{box-shadow:inset 0 0 0 2px #fff,0 0 14px rgba(255,176,112,.45)}
+.hrow b .jtime{display:inline;margin-left:8px;font-size:12px;font-weight:300;color:var(--muted)}
 /* Personnalisation : curseurs */
 .pz h3{font-size:13px;font-weight:400;margin:22px 0 10px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .pzr{display:grid;grid-template-columns:minmax(0,112px) minmax(0,1fr) 34px;align-items:center;gap:10px;margin:0 0 8px;font-size:14px}
@@ -1475,7 +1476,7 @@ function habitState(h,d){
   if(k==="sleep"){const o=g||p.sleep;return {auto:true,done:(x.sleep||0)>=o,info:`${x.sleep!=null?num(x.sleep,2):"–"} / ${num(o,2)} h de sommeil`}}
   if(k==="steps"){const o=g||p.steps;return {auto:true,done:(x.steps||0)>=o,info:`${x.steps!=null?fr(x.steps):"–"} / ${fr(o)} pas`}}
   if(k==="water"){const o=g||p.water;return {auto:true,done:(x.water||0)>=o,info:`${x.water||0} / ${o} verres`}}
-  if(k==="journal"){const ok=!!(x.journal||"").trim();return {auto:true,done:ok,info:ok?"page du journal écrite":"journal pas encore écrit"}}
+  if(k==="journal"){const pg=!!(x.journal||"").trim(),idn=items("idea").filter(i=>i.date===d).length,ok=pg||idn>0;return {auto:true,done:ok,info:pg?"page du journal écrite":idn?`${idn} idée${idn>1?"s":""} notée${idn>1?"s":""} dans le journal`:"journal pas encore écrit"}}
   if(k==="sport"){const o=g||4,n=weekSport(d);return {auto:true,done:n>=o,info:`${n} / ${o} séance${o>1?"s":""} cette semaine`}}
   if(k==="nospend"){const n=items("exp").filter(e=>e.date===d).length;return {auto:true,done:n===0,info:n?`${n} dépense${n>1?"s":""} notée${n>1?"s":""}`:"aucune dépense notée"}}
   const ck=(x.habits||[]).includes(h.id);
@@ -1525,35 +1526,61 @@ function journalPage(){
   const nav=`<div class="monthnav"><button class="ib" data-act="dayprev" aria-label="Jour précédent">${ICO.left}</button><b>${d===t?"Aujourd'hui":d===addDays(t,-1)?"Hier":fmtLong(d)}</b><button class="ib" data-act="daynext" aria-label="Jour suivant"${d>=t?" disabled":""}>${ICO.right}</button></div>`;
   const jr=(x.journalRecos&&x.journalRecos.items)||[];
   const past=Object.keys(S.days).filter(k=>k!==d&&(S.days[k].journal||"").trim()).sort().reverse();
-  const rows=past.map(k=>`<button class="hrow" data-act="jday" data-d="${k}"><span class="sw" style="background:${moodPaint(k,"180deg")||"rgba(255,255,255,.12)"}"></span><span class="grow"><b>${cap(fmtLong(k))}${k.slice(0,4)!==t.slice(0,4)?" "+k.slice(0,4):""}</b><em>${esc(S.days[k].journal.trim())}</em></span>${ICO.right}</button>`).join("");
+  const rows=past.map(k=>`<button class="hrow" data-act="jday" data-d="${k}"><span class="sw" style="background:${moodPaint(k,"180deg")||"rgba(255,255,255,.12)"}"></span><span class="grow"><b>${cap(fmtLong(k))}${k.slice(0,4)!==t.slice(0,4)?" "+k.slice(0,4):""}${S.days[k].journalAt?`<small class="jtime">écrit à ${fmtTime(S.days[k].journalAt)}</small>`:""}</b><em>${esc(S.days[k].journal.trim())}</em></span>${ICO.right}</button>`).join("");
   return `<div class="pagehead"><div><h1>Journal</h1><p>Tes pensées, jour après jour</p></div>${nav}</div>
   <section class="card" style="margin-bottom:14px"><h2><span>${cap(fmtLong(d))}</span><button class="btn${S.dict?" dark":""}" id="dictBtn" data-act="dictate" aria-pressed="${!!S.dict}">${ICO.mic}<span>${S.dict?"Arrêter":"Dicter"}</span></button></h2>
     <p class="hint" id="dictHint" aria-live="polite" style="margin:-6px 0 10px"${S.dict?"":" hidden"}>Je t'écoute…</p>
     <textarea id="journal" data-day="${d}" style="min-height:260px" placeholder="Écris ce que tu as en tête…" aria-label="Journal du ${fmtLong(d)}">${esc(x.journal||"")}</textarea>
+    <p class="hint" id="journalStamp" style="margin:8px 0 0">${journalStamp(x)}</p>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-act="jclean"${S.busy.jclean?" disabled":""}>${ICO.edit}${S.busy.jclean?"Claude réécrit…":"Mettre au propre"}</button><button class="btn" data-act="jreco"${S.busy.jreco?" disabled":""}>${ICO.spark}${S.busy.jreco?"Claude réfléchit…":"Recos de Claude"}</button>${x.journalRaw?`<button class="btn ghost" data-act="jundo"${S.busy.jclean?" disabled":""}>Revenir à mon texte</button>`:""}</div></section>
+  ${ideaCard()}
   ${jr.length?`<section class="card" style="margin-bottom:14px"><h2><span>Ce que Claude te suggère</span></h2>${jr.map(r=>`<div class="reco"><i style="--c:#FFB070"></i><p>${esc(r)}</p></div>`).join("")}</section>`:""}
   <section class="card"><h2><span>Pages précédentes</span><small>${past.length}</small></h2>${past.length?`<div class="stack">${rows}</div>`:`<p class="empty">Tes autres pages apparaîtront ici.</p>`}</section>`;
 }
-/* Dictée : la voix est transcrite en texte par le navigateur et ajoutée à la page du jour */
-function dictUI(interim){const b=$("#dictBtn"),h=$("#dictHint"),on=!!S.dict;
+/* Dates du journal : chaque page garde l'heure de sa dernière écriture, chaque idée son heure d'ajout */
+const fmtTime=iso=>{const x=new Date(iso);return isNaN(x)?"":x.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}).replace(":","h")};
+const fmtStamp=iso=>{const x=new Date(iso||"");if(isNaN(x))return "";const k=x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate()),t=today();
+  return (k===t?"aujourd'hui":k===addDays(t,-1)?"hier":"le "+fmtLong(k)+(k.slice(0,4)!==t.slice(0,4)?" "+k.slice(0,4):""))+" à "+fmtTime(iso)};
+const journalStamp=x=>(x.journal||"").trim()?(x.journalAt?"Dernière écriture "+fmtStamp(x.journalAt)+".":""):"";
+/* Boîte à idées : chaque idée est une fiche `idea` datée, notée au clavier ou à la voix */
+const ideas=()=>items("idea").sort((a,b)=>String(b.at||b.date||"").localeCompare(String(a.at||a.date||"")));
+function addIdea(text){text=String(text||"").trim();if(!text)return false;saveItem(uid(),{kind:"idea",text,date:today(),at:new Date().toISOString()});S.ideaDraft="";S.ideaArm=null;return true}
+function ideaCard(){
+  const list=ideas(),on=!!S.dict&&S.dict.target==="idea";
+  return `<section class="card" style="margin-bottom:14px"><h2><span>Boîte à idées</span><button class="btn${on?" dark":""}" id="ideaDictBtn" data-act="ideadict" aria-pressed="${on}">${ICO.mic}<span>${on?"Arrêter":"Dicter une idée"}</span></button></h2>
+    <p class="hint" id="ideaDictHint" aria-live="polite" style="margin:-6px 0 10px"${on?"":" hidden"}>Je t'écoute… Touche « Arrêter » pour enregistrer l'idée.</p>
+    <div class="addline" style="margin-top:0"><input type="text" id="ideaIn" value="${esc(S.ideaDraft||"")}" placeholder="Note une idée…" aria-label="Nouvelle idée"><button class="ib dark" data-act="ideaadd" aria-label="Enregistrer l'idée">${ICO.plus}</button></div>
+    ${list.length?`<ul class="list" style="margin-top:6px">${list.map(i=>`<li><span class="grow"><span>${esc(i.text)}</span><small>${esc(cap(fmtStamp(i.at)||fmtLong(i.date||today())))}</small></span>${S.ideaArm===i.id?`<button class="btn ghost" data-act="ideadel" data-id="${i.id}" style="font-size:13px;padding:6px 10px">Supprimer ?</button>`:`<button class="ib sm bare" data-act="ideadel" data-id="${i.id}" aria-label="Supprimer cette idée">${ICO.trash}</button>`}</li>`).join("")}</ul>`:`<p class="empty" style="margin-top:12px">Tes idées apparaîtront ici, chacune avec sa date.</p>`}</section>`;
+}
+/* Dictée : la voix est transcrite en texte par le navigateur, vers la page du jour ou vers la boîte à idées */
+function dictUI(interim){const idea=!!S.dict&&S.dict.target==="idea",b=$("#dictBtn"),h=$("#dictHint"),on=!!S.dict&&!idea,b2=$("#ideaDictBtn"),h2=$("#ideaDictHint");
   if(b){b.classList.toggle("dark",on);b.setAttribute("aria-pressed",on);b.lastElementChild.textContent=on?"Arrêter":"Dicter"}
-  if(h){h.hidden=!on;h.textContent=interim||"Je t'écoute…"}}
+  if(h){h.hidden=!on;h.textContent=interim||"Je t'écoute…"}
+  if(b2){b2.classList.toggle("dark",idea);b2.setAttribute("aria-pressed",idea);b2.lastElementChild.textContent=idea?"Arrêter":"Dicter une idée"}
+  if(h2){h2.hidden=!idea;h2.textContent=interim||"Je t'écoute… Touche « Arrêter » pour enregistrer l'idée."}}
 function dictStop(){if(S.dict)try{S.dict.rec.stop()}catch(e){}}
-function dictToggle(){
+function dictToggle(target="journal"){
   if(S.dict){dictStop();return}
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast("La dictée n'est pas disponible dans ce navigateur. Essaie avec Safari ou Chrome.");return}
   const rec=new SR(),day=S.day;rec.lang="fr-FR";rec.continuous=true;rec.interimResults=true;
   rec.onresult=e=>{
+    if(target==="idea"){const box=$("#ideaIn");if(!box){dictStop();return}
+      let f="",tm="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)f+=r[0].transcript;else tm+=r[0].transcript}
+      f=f.trim();if(f){const cur=S.ideaDraft||"";S.ideaDraft=cur+(cur&&!/\s$/.test(cur)?" ":"")+(!cur.trim()||/[.!?…]\s*$/.test(cur)?cap(f):f);box.value=S.ideaDraft}
+      dictUI(tm.trim());return}
     const el=$("#journal");if(!el||el.dataset.day!==day){dictStop();return}
     let fin="",tmp="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)fin+=r[0].transcript;else tmp+=r[0].transcript}
     fin=fin.trim();
-    if(fin){const cur=el.value,fresh=!cur.trim()||/[.!?…\n]\s*$/.test(cur);el.value=cur+(cur&&!/\s$/.test(cur)?" ":"")+(fresh?cap(fin):fin);patch(day,{journal:el.value});el.scrollTop=el.scrollHeight}
+    if(fin){const cur=el.value,fresh=!cur.trim()||/[.!?…\n]\s*$/.test(cur);el.value=cur+(cur&&!/\s$/.test(cur)?" ":"")+(fresh?cap(fin):fin);patch(day,{journal:el.value,journalAt:new Date().toISOString()});el.scrollTop=el.scrollHeight;const js=$("#journalStamp");if(js)js.textContent=journalStamp(D(day))}
     dictUI(tmp.trim());
   };
   rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed")toast("Autorise le micro pour ce site dans les réglages du navigateur.");else if(e.error==="audio-capture")toast("Aucun micro détecté.");else if(e.error==="network")toast("La dictée a besoin d'une connexion internet.")};
-  rec.onend=()=>{if(S.dict&&S.dict.rec===rec)S.dict=null;dictUI()};
-  try{rec.start();S.dict={rec,day};dictUI()}catch(e){toast("Impossible de démarrer la dictée.")}
+  rec.onend=()=>{const mine=S.dict&&S.dict.rec===rec;if(mine)S.dict=null;
+    /* Fin d'une dictée d'idée : ce qui a été dit est enregistré tout de suite, avec sa date */
+    if(mine&&target==="idea"&&addIdea(S.ideaDraft)){toast("Idée enregistrée");render();return}
+    dictUI()};
+  try{rec.start();S.dict={rec,day,target};dictUI()}catch(e){toast("Impossible de démarrer la dictée.")}
 }
 /* Mise au propre et recommandations : le texte du jour n'est envoyé à Claude que sur demande */
 async function journalClean(){
@@ -1688,6 +1715,9 @@ document.addEventListener("click",e=>{
   else if(a==="daynext"){if(S.day<today())S.day=addDays(S.day,1);render()}
   else if(a==="openday"){S.day=b.dataset.d;S.view="health";render();window.scrollTo({top:0})}
   else if(a==="dictate")dictToggle();
+  else if(a==="ideadict")dictToggle("idea");
+  else if(a==="ideaadd"){const box=$("#ideaIn");if(addIdea(box?box.value:S.ideaDraft)){toast("Idée enregistrée");render()}else if(box)box.focus()}
+  else if(a==="ideadel"){if(S.ideaArm===id){S.ideaArm=null;delItem(id);toast("Idée supprimée")}else S.ideaArm=id;render()}
   else if(a==="jclean")journalClean();
   else if(a==="jreco")journalRecos();
   else if(a==="jundo"){const x=D(S.day);if(x.journalRaw){patch(S.day,{journal:x.journalRaw,journalRaw:null});render()}}
@@ -1752,10 +1782,11 @@ document.addEventListener("click",e=>{
   else if(a==="copykey")navigator.clipboard.writeText(S.newKey).then(()=>toast("Clé copiée."),()=>toast("Sélectionne la clé et copie-la à la main."));
   else if(a==="logout")sb.auth.signOut();
 });
-document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="ravIn"){S.ravEdit=null;render()}else if(e.target.id==="todoIn"||e.target.id==="todoDue")addTodo();else if(e.target.id==="askIn"){const q=e.target.value.trim();if(q){e.target.value="";askClaude(q)}}else if(e.target.id==="sportMin")addSport();else if(e.target.id==="stepIn")addStep(S.goal)});
+document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="ravIn"){S.ravEdit=null;render()}else if(e.target.id==="todoIn"||e.target.id==="todoDue")addTodo();else if(e.target.id==="askIn"){const q=e.target.value.trim();if(q){e.target.value="";askClaude(q)}}else if(e.target.id==="ideaIn"){if(addIdea(e.target.value)){toast("Idée enregistrée");render()}}else if(e.target.id==="sportMin")addSport();else if(e.target.id==="stepIn")addStep(S.goal)});
 document.addEventListener("input",e=>{
   const el=e.target;
-  if(el.id==="journal")patch(el.dataset.day,{journal:el.value});
+  if(el.id==="journal"){patch(el.dataset.day,{journal:el.value,journalAt:new Date().toISOString()});const js=$("#journalStamp");if(js)js.textContent=journalStamp(D(el.dataset.day))}
+  else if(el.id==="ideaIn")S.ideaDraft=el.value;
   else if(el.id==="steps"){patch(el.dataset.day,{steps:el.value===""?null:Math.max(0,Math.round(+el.value)),src:{...(D(el.dataset.day).src||{}),steps:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().steps*100)+"%"}
   else if(el.id==="sleep"){patch(el.dataset.day,{sleep:el.value===""?null:Math.max(0,Math.min(24,+el.value)),src:{...(D(el.dataset.day).src||{}),sleep:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().sleep*100)+"%"}
   else if(el.dataset.sav){const m=el.dataset.m,sv={...(P().savings||{})},base=sv[m]||savingsAt(m)||{};const {m:_x,...clean}=base;sv[m]={...clean,[el.dataset.sav]:el.value===""?null:+el.value};savePrefs({savings:sv})}

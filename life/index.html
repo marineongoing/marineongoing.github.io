@@ -489,7 +489,6 @@ dialog.sheet::backdrop{background:rgba(10,8,6,.35)}
 .famount{border:0;background:none;color:#fff;padding:0;margin:16px 0 12px;display:inline-flex;align-items:baseline;gap:2px;cursor:pointer}
 .fint{font-size:clamp(64px,13vw,92px);font-weight:400;letter-spacing:-.04em;line-height:1}
 .fdec{font-size:clamp(26px,5vw,34px);font-weight:400;letter-spacing:-.02em}
-.fnote{margin:8px 0 0;font-size:13px;color:var(--muted)}
 .factions{display:flex;align-items:center;gap:18px;margin-top:40px;text-align:left}
 .fadd{display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;font-size:14px}
 .fround{width:60px;height:60px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
@@ -1360,7 +1359,6 @@ function financePage(){
     <p class="fsub">Reste à vivre · EUR</p>
     ${S.ravEdit===m?`<div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0"><input type="number" inputmode="decimal" step="0.01" id="ravIn" data-m="${m}" value="${Math.round(mm.left*100)/100}" class="bigin" style="max-width:200px;text-align:center" aria-label="Reste à vivre ce mois-ci"><button class="btn dark" data-act="ravdone">OK</button>${mm.override!=null?`<button class="btn" data-act="ravreset">Revenir au calcul</button>`:""}</div>`
       :`<button class="famount" data-act="ravedit" aria-label="Modifier le reste à vivre">${mm.I||mm.override!=null?`<span class="fint">${neg?"−":""}${ent}</span><span class="fdec">,${dec} €</span>`:`<span class="fint">–</span>`}</button>`}
-    <p class="fnote">${mm.override!=null?`Ajusté à la main (${mm.override<0?"−":"+"} ${eur2(Math.abs(mm.override))}) · calculé ${eur2(mm.calc)}`:"Revenus − dépenses fixes − dépenses variables"}</p>
     <div class="factions">
       <div class="fbudget"><div class="row between"><span>Budget variable</span><b>${mm.I?Math.round((1-pct)*100)+" % restant":"–"}</b></div>
         <span class="pl" style="height:6px;margin-top:10px;--c:${pct>.9?"#FF6F8A":pct>.7?"#FFB070":"#8CCBE3"}"><i style="width:${Math.round(pct*100)}%"></i></span>

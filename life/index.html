@@ -1006,7 +1006,7 @@ async function loadAll(){
   const localPrefs=S.prefs&&Object.keys(S.prefs).length?S.prefs:null;
   S.days=days;S.items=its;
   if(pr&&pr.data)S.prefs={...(localPrefs||{}),...pr.data};
-  cacheSave();render(true);
+  migrateRav();cacheSave();render(true);
   let fail=false;
   if(pushItems.length){const rows=pushItems.map(id=>({user_id:S.uid,id,kind:its[id].kind,data:its[id],updated_at:new Date().toISOString()}));const {error}=await sb.from("vie_items").upsert(rows);if(error)fail=true}
   for(const [d,p] of Object.entries(pushDays)){const {error}=await sb.rpc("vie_save",{p_day:d,p_patch:p});if(error)fail=true}
@@ -1053,10 +1053,16 @@ function moneyBase(m){
   const I=sum(inc.map(x=>x.amount)),F=sum(fix.map(x=>x.amount)),V=sum(exp.map(x=>x.amount));
   return {exp,fix,inc,I,F,V,left:I-F-V};
 }
-/* Reste à vivre du mois : montant saisi à la main s'il existe, sinon revenus − fixes − variables */
+/* Reste à vivre du mois : revenus − fixes − variables, plus l'ajustement saisi à la main (ravAdj), qui suit les nouvelles opérations */
 function money(m){
-  const b=moneyBase(m),o=(P().rav||{})[m],override=o==null||o===""?null:+o;
-  return {...b,calc:b.left,override,left:override!=null?override:b.left};
+  const b=moneyBase(m),a=(P().ravAdj||{})[m],adj=a==null||a===""||isNaN(+a)?null:+a;
+  return {...b,calc:b.left,override:adj,left:b.left+(adj||0)};
+}
+/* Anciens montants fixes (prefs.rav) convertis une fois en ajustements : le montant affiché ne change pas */
+function migrateRav(){
+  const p=S.prefs||{};if(p.ravAdj||!p.rav)return;
+  const adj={};for(const [m,v] of Object.entries(p.rav))if(v!=null&&v!==""&&!isNaN(+v))adj[m]=Math.round((+v-moneyBase(m).left)*100)/100;
+  savePrefs({ravAdj:adj});
 }
 
 /* ============ Recommandations (règles simples, calculées sur tes données) ============ */
@@ -1354,7 +1360,7 @@ function financePage(){
     <p class="fsub">Reste à vivre · EUR</p>
     ${S.ravEdit===m?`<div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0"><input type="number" inputmode="decimal" step="0.01" id="ravIn" data-m="${m}" value="${Math.round(mm.left*100)/100}" class="bigin" style="max-width:200px;text-align:center" aria-label="Reste à vivre ce mois-ci"><button class="btn dark" data-act="ravdone">OK</button>${mm.override!=null?`<button class="btn" data-act="ravreset">Revenir au calcul</button>`:""}</div>`
       :`<button class="famount" data-act="ravedit" aria-label="Modifier le reste à vivre">${mm.I||mm.override!=null?`<span class="fint">${neg?"−":""}${ent}</span><span class="fdec">,${dec} €</span>`:`<span class="fint">–</span>`}</button>`}
-    <p class="fnote">${mm.override!=null?`Ajusté à la main · calculé ${eur2(mm.calc)}`:"Revenus − dépenses fixes − dépenses variables"}</p>
+    <p class="fnote">${mm.override!=null?`Ajusté à la main (${mm.override<0?"−":"+"} ${eur2(Math.abs(mm.override))}) · calculé ${eur2(mm.calc)}`:"Revenus − dépenses fixes − dépenses variables"}</p>
     <div class="factions">
       <div class="fbudget"><div class="row between"><span>Budget variable</span><b>${mm.I?Math.round((1-pct)*100)+" % restant":"–"}</b></div>
         <span class="pl" style="height:6px;margin-top:10px;--c:${pct>.9?"#FF6F8A":pct>.7?"#FFB070":"#8CCBE3"}"><i style="width:${Math.round(pct*100)}%"></i></span>
@@ -1721,7 +1727,7 @@ document.addEventListener("click",e=>{
   else if(a==="addcert"){saveItem(uid(),{kind:"cert",name:v,org:/ESSEC/.test(v)?"ESSEC (Coursera)":"Google (Coursera)",progress:0});render()}
   else if(a==="ravedit"){S.ravEdit=S.month;render();setTimeout(()=>{const i=$("#ravIn");if(i){i.focus();i.select()}},30)}
   else if(a==="ravdone"){S.ravEdit=null;render()}
-  else if(a==="ravreset"){const r={...(P().rav||{})};delete r[S.month];savePrefs({rav:r});S.ravEdit=null;render()}
+  else if(a==="ravreset"){const r={...(P().ravAdj||{})};delete r[S.month];savePrefs({ravAdj:r});S.ravEdit=null;render()}
   else if(a==="addmenu"){openPanel("add")}
   else if(a==="opsfilter"){S.opsFilter=v;S.opsAll=false;render()}
   else if(a==="opsall"){S.opsAll=!S.opsAll;render()}
@@ -1755,7 +1761,7 @@ document.addEventListener("input",e=>{
   else if(el.id==="steps"){patch(el.dataset.day,{steps:el.value===""?null:Math.max(0,Math.round(+el.value)),src:{...(D(el.dataset.day).src||{}),steps:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().steps*100)+"%"}
   else if(el.id==="sleep"){patch(el.dataset.day,{sleep:el.value===""?null:Math.max(0,Math.min(24,+el.value)),src:{...(D(el.dataset.day).src||{}),sleep:"app"}});const i=el.parentElement.querySelector(".bar i");if(i)i.style.width=Math.min(100,(+el.value||0)/P().sleep*100)+"%"}
   else if(el.dataset.sav){const m=el.dataset.m,sv={...(P().savings||{})},base=sv[m]||savingsAt(m)||{};const {m:_x,...clean}=base;sv[m]={...clean,[el.dataset.sav]:el.value===""?null:+el.value};savePrefs({savings:sv})}
-  else if(el.id==="ravIn"){savePrefs({rav:{...(P().rav||{}),[el.dataset.m]:el.value===""?null:+el.value}})}
+  else if(el.id==="ravIn"){const m=el.dataset.m,r={...(P().ravAdj||{})};if(el.value==="")delete r[m];else r[m]=Math.round((+el.value-moneyBase(m).left)*100)/100;savePrefs({ravAdj:r})}
   else if(el.dataset.pz){const k=el.dataset.pz;setTheme({[k]:k==="font"?el.value:+el.value});const o=el.type==="range"&&el.parentElement.querySelector("output");if(o)o.textContent=el.value+(k==="tint"?" %":k==="bgBlur"||k==="glassBlur"?" px":"°")}
   else if(el.dataset.pzmood){setTheme({moods:{...TH().moods,[el.dataset.pzmood]:+el.value}});const o=el.parentElement.querySelector("output");if(o)o.textContent=el.value+"°"}
   else if(el.dataset.pref){const k=el.dataset.pref;if(k==="name"||k==="profile")savePrefs({[k]:el.value.trim()});else if(k==="iud")savePrefs({iud:el.value||null});else if(el.value!==""&&+el.value>0)savePrefs({[k]:+el.value})}

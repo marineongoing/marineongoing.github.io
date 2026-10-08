@@ -693,7 +693,7 @@ nav.views .homebtn img{filter:drop-shadow(0 0 8px rgba(247,195,212,.7)) drop-sha
 .btn[data-act="mprev"]::before,.btn[data-act="mnext"]::before,.btn[data-act="mtoday"]::before,.btn[data-act="prev"]::before,.btn[data-act="next"]::before,.btn[data-act="today"]::before{display:none!important}
 .btn[data-act="mprev"],.btn[data-act="mnext"],.btn[data-act="prev"],.btn[data-act="next"]{font-size:24px!important;line-height:1;padding:4px 12px!important;border-radius:50%}
 .btn[data-act="mprev"]:hover,.btn[data-act="mnext"]:hover,.btn[data-act="mtoday"]:hover,.btn[data-act="prev"]:hover,.btn[data-act="next"]:hover,.btn[data-act="today"]:hover{background:rgba(255,255,255,.14)!important}
-.aura-wrap{padding-bottom:10px!important;margin-bottom:0!important}
+.aura-wrap{padding-top:26px!important;padding-bottom:10px!important;margin-bottom:0!important}
 .hometabs{justify-content:safe center;margin-bottom:22px!important}
 #goalbar{margin:-8px 0 14px}
 .goalpill{display:inline-flex;align-items:center;gap:10px;max-width:min(560px,100%);font-size:14px;padding:6px 8px 6px 14px;border-radius:999px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(36,30,26,var(--glass-a,.3));border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
@@ -1802,7 +1802,7 @@ function todayHTML(part){const t=iso(new Date()),today=new Date();
   const pills=`<div class="pills">${ring(pct/100,"var(--accent)",pct+" %","year","Cours effectués cette année")}${ring(Math.min(1,devN/5),"#FFBE85",String(devN),"week","Devoirs dans les 7 jours")}${ring(Math.min(1,late/3),"#F59DB8",String(late),"week","Devoirs en retard")}${ring(Math.min(1,dqn/10),"#B7C8F5",String(dqn),"review","Questions à réviser")}${ring(miss.length?Math.min(1,miss.length/5):0,"#A8DCC8",String(miss.length),"subjects","Notes à rattraper")}</div>`;
   const tile=(ico,lab,go)=>`<button class="htile" data-go="${go}"><span class="hti">${ICO[ico]||""}</span><span>${lab}</span></button>`;
   const tiles=`<div class="htiles">${tile("cal","Semaine","week")}${tile("book","Matières","subjects")}${tile("chart","Évaluations","evals")}${tile("brief","Mon alternance","alt")}${tile("cap","Après le BTS","studies")}${tile("star","Certificats","extra")}</div>`;
-  const hero=pp.hideHero?"":`<section class="aura-wrap"><div class="aura" style="--a1:${c1};--a2:${c2}" aria-hidden="true"><i></i><i></i></div>
+  const hero=pp.hideHero?"":`<section class="aura-wrap">
     <h2 class="hello">${hello}</h2><p class="hsub">${sub}</p></section>`;
   if(part==="hero")return hero;
   return bilanHTML()+revBox+(secs.length?`<div class="panel today-one" style="margin-bottom:16px"><div class="today-grid" style="grid-template-columns:repeat(${secs.length},1fr);margin:0">${secs.join("")}</div></div>`:"")}
@@ -1852,7 +1852,7 @@ function drawPrefs(){const z=$("#prefZone");if(!z||!$("#prefDlg").open)return;co
     <div class="prow" style="margin-top:8px">${HFONTS.map((f,i)=>`<button class="btn${(p.hfont||0)===i?" primary":""}" data-pf="hfont" data-v="${i}" style="font-family:${f[0].replace(/"/g,"'")}">${f[1]}</button>`).join("")}</div></section>
   <section><h3 class="nl-sec">Accueil</h3>
     <label class="field">Mon prénom (pour le message d'accueil)<input id="pfName" value="${esc(p.name||"")}" placeholder="Ex. Marine"></label>
-    <label class="pchk"><input type="checkbox" data-pc="hideHero" ${p.hideHero?"":"checked"}> Afficher l'aura et le message d'accueil</label>
+    <label class="pchk"><input type="checkbox" data-pc="hideHero" ${p.hideHero?"":"checked"}> Afficher le message d'accueil</label>
     <label class="pchk"><input type="checkbox" data-pc="hideBilan" ${p.hideBilan?"":"checked"}> Afficher le bilan du vendredi</label>
     <label class="pchk"><input type="checkbox" data-pc="hideRev" ${p.hideRev?"":"checked"}> Afficher les questions à réviser</label></section>
   <div class="toolbar" style="margin-top:14px"><button class="btn ghost" data-pf="reset">Tout réinitialiser</button></div>`}

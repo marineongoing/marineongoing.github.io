@@ -2541,19 +2541,7 @@ function renderHead(){
 }
 $("#pagehead").addEventListener("click",e=>{if(e.target.closest("[data-act=semdates]"))openSem()});
 $("#view-dash").addEventListener("change",e=>{if(e.target.id==="icsInput"&&e.target.files[0]){importICS(e.target.files[0]);e.target.value=""}});
-function openPage(p){state.evFilter=null;state.mOpen=false;state.subjOpen=false;state.revOpen=false;reorder=false;
-  flush();state.page=p;
-  document.querySelectorAll("nav.views button[data-page]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.page===p));
-  if(p==="dash"){state.view="dash"}
-  else{
-    state.sem=p;state.noteId=null;state.preview=false;
-    const t=new Date();state.weekStart=inSem(iso(t),p)?mondayOf(t):mondayOf(parseISO(state.semesters[p].start));
-    state.view=state.ytab;
-  }
-  $("#yeartabs").hidden=p==="dash";
-  document.querySelectorAll("#yeartabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.ytab===state.ytab));
-  $("#view-dash").hidden=state.view!=="dash";$("#view-week").hidden=state.view!=="week";$("#view-subjects").hidden=state.view!=="subjects";$("#view-evals").hidden=state.view!=="evals";$("#view-revs").hidden=state.view!=="revs";
-  function openPrefs(){const d=$("#prefDlg");
+function openPrefs(){const d=$("#prefDlg");
   try{if(!d.open){if(typeof d.showModal==="function")d.showModal();else d.setAttribute("open","")}}catch(e){d.setAttribute("open","")}
   try{drawPrefs()}catch(e){$("#prefZone").innerHTML=`<div class="pref-head"><h2>Préférences</h2><button class="btn ghost" data-pf="close">Fermer</button></div><p class="hint">Le menu n'a pas pu s'afficher (${esc(e&&e.message||String(e))}). Envoie-moi ce message pour que je corrige.</p>`}}
 $("#prefBtn").addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openPrefs()});
@@ -2567,6 +2555,18 @@ let prT=null;$("#prefDlg").addEventListener("input",e=>{const t=e.target;
   else if(t.id==="pfAccent"){state.prefs={...P(),accent:t.value};applyPrefs();clearTimeout(prT);prT=setTimeout(()=>persist("prefs",{...state.prefs}),600)}
   else if(t.id==="pfName"){state.prefs={...P(),name:t.value};clearTimeout(prT);prT=setTimeout(()=>{persist("prefs",{...state.prefs});render()},700)}});
 $("#prefDlg").addEventListener("change",e=>{const t=e.target;if(t.id==="pfAccent"){savePrefs({accent:t.value});return}if(t.id==="bgFile")setBgFile(t.files[0]);else if(t.dataset.pc)savePrefs({[t.dataset.pc]:!t.checked})});
+function openPage(p){state.evFilter=null;state.mOpen=false;state.subjOpen=false;state.revOpen=false;reorder=false;
+  flush();state.page=p;
+  document.querySelectorAll("nav.views button[data-page]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.page===p));
+  if(p==="dash"){state.view="dash"}
+  else{
+    state.sem=p;state.noteId=null;state.preview=false;
+    const t=new Date();state.weekStart=inSem(iso(t),p)?mondayOf(t):mondayOf(parseISO(state.semesters[p].start));
+    state.view=state.ytab;
+  }
+  $("#yeartabs").hidden=p==="dash";
+  document.querySelectorAll("#yeartabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.ytab===state.ytab));
+  $("#view-dash").hidden=state.view!=="dash";$("#view-week").hidden=state.view!=="week";$("#view-subjects").hidden=state.view!=="subjects";$("#view-evals").hidden=state.view!=="evals";$("#view-revs").hidden=state.view!=="revs";
 try{const c=JSON.parse(localStorage.getItem("bts-prefs")||"null");if(c){state.prefs=c.p||{};state.bgImg=c.img||""}}catch(e){}
 applyPrefs();
 renderHead();render();window.scrollTo(0,0);
@@ -2616,7 +2616,7 @@ $("#flBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#flMenu"
   m.hidden=!open;$("#flBtn").setAttribute("aria-expanded",String(open))});
 $("#searchBtn").addEventListener("click",()=>{const on=document.body.classList.toggle("search-open");$("#searchBtn").setAttribute("aria-expanded",String(on));if(on)$("#q").focus();else{$("#q").value="";$("#qres").hidden=true}});
 $("#flMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();
-  if(b.dataset.mp==="prefs"){$("#prefBtn").click();return}if(b.dataset.mp==="site"){location.href="../";return}
+  if(b.dataset.mp==="prefs"){openPrefs();return}if(b.dataset.mp==="site"){location.href="../";return}
   openPage(b.dataset.mp);window.scrollTo(0,0)});
 $("#stabs").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(b)switchTab(b.dataset.mt)});
 {let sx=0,sy=0,ok=false;const EXC=".gtable,input,textarea,select,.rte,.fl,.sgrid.reo,.olog,.qres";

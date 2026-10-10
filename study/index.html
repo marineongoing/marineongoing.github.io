@@ -940,7 +940,10 @@ nav.views,.hometabs,#yeartabs{display:none!important}
 .stabs button:hover{color:#fff}
 .stabs button[aria-selected="true"]{background:rgba(255,255,255,.9);color:#1B1B1D;text-shadow:none}
 #searchBtn{order:2;margin-left:auto;flex:none}
-.topbar .prefbtn{order:3!important;margin:0!important;flex:none}
+#prefBtn{display:none!important}
+.flmenu button{display:flex;align-items:center;gap:10px}
+.flmenu button svg{width:18px;height:18px;flex:none;stroke-width:1.6}
+.flmenu hr{border:0;border-top:1px solid rgba(255,255,255,.2);margin:2px 8px}
 #searchBtn[aria-expanded="true"]{background:rgba(255,255,255,.9)!important;color:#1B1B1D!important}
 .wrap>.search{display:block;position:relative;z-index:40;max-width:520px!important;margin:0 0 16px!important}
 body:not(.show-search):not(.search-open) .wrap>.search{display:none!important}
@@ -2591,7 +2594,8 @@ function placeSearch(){const S=$(".search"),H=$("#pagehead");if(!S||!H)return;
 function applyMobileMode(){applyNames();placeSearch();document.body.classList.remove("m-menu","m-open");document.body.dataset.home=state.home||"year";document.body.classList.toggle("show-search",state.page!=="dash"&&state.ytab==="subjects");
   const btn=$("#flBtn");if(!btn)return;const pg=state.page||"dash";
   if(!btn.firstChild)btn.innerHTML=pageBadge("dash");
-  $("#flMenu").innerHTML=["s1","s2"].map(k=>`<button data-mp="${k}"${k===pg?` aria-current="page"`:""}>${PG_TITLES[k]}</button>`).join("");
+  $("#flMenu").innerHTML=["s1","s2"].map(k=>`<button data-mp="${k}"${k===pg?` aria-current="page"`:""}>${PG_TITLES[k]}</button>`).join("")
+    +`<hr><button data-mp="prefs">${ICO.edit}Préférences</button><button data-mp="site">${SV('<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>')}Accueil marineongoing</button>`;
   const cur=curTab();$("#stabs").innerHTML=tabList().map(([k,i])=>`<button data-mt="${k}" role="tab" aria-selected="${k===cur}" aria-label="${MTITLES[k]}" title="${MTITLES[k]}">${ICO[i]||""}<span>${MTITLES[k]}</span></button>`).join("")}
 function closeMtabs(){$("#flMenu").hidden=true;$("#flBtn").setAttribute("aria-expanded","false")}
 function render(fromSync){
@@ -2611,7 +2615,9 @@ $("#flBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#flMenu"
   if(state.page!=="dash"||state.home!=="year"){state.home="year";openPage("dash");window.scrollTo(0,0)}
   m.hidden=!open;$("#flBtn").setAttribute("aria-expanded",String(open))});
 $("#searchBtn").addEventListener("click",()=>{const on=document.body.classList.toggle("search-open");$("#searchBtn").setAttribute("aria-expanded",String(on));if(on)$("#q").focus();else{$("#q").value="";$("#qres").hidden=true}});
-$("#flMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();openPage(b.dataset.mp);window.scrollTo(0,0)});
+$("#flMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();
+  if(b.dataset.mp==="prefs"){$("#prefBtn").click();return}if(b.dataset.mp==="site"){location.href="../";return}
+  openPage(b.dataset.mp);window.scrollTo(0,0)});
 $("#stabs").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(b)switchTab(b.dataset.mt)});
 {let sx=0,sy=0,ok=false;const EXC=".gtable,input,textarea,select,.rte,.fl,.sgrid.reo,.olog,.qres";
  document.addEventListener("touchstart",e=>{ok=isMobile()&&!document.querySelector("dialog[open]")&&!e.target.closest(EXC);if(!ok)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});

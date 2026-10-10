@@ -949,7 +949,6 @@ h1,h2,h3{font-weight:300}
     <button class="btn ghost icon prefbtn" id="prefBtn" aria-label="Préférences" title="Préférences"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
     <div class="search"><input id="q" type="search" placeholder="Rechercher dans mes notes…" aria-label="Rechercher dans mes notes" autocomplete="off"><div id="qres" class="qres" hidden></div></div>
   </div>
-  <div id="goalbar"></div>
   <div id="login" class="login" hidden><div class="login-card">
     <img src="icon-192.png" alt="" width="72" height="72">
     <h1>BTS NDRC</h1>
@@ -1606,11 +1605,6 @@ $("#view-dash").addEventListener("click",async e=>{
   else if(b.dataset.act==="vsum")saveVeille(true);
   else if(b.dataset.act==="vsave")saveVeille(false);
   else if(b.dataset.vdel){if(!await uiConfirm("Supprimer cet article ?"))return;state.veille=state.veille.filter(v=>v.id!==b.dataset.vdel);persist("veille",{items:state.veille});renderDash()}
-  else if(b.dataset.act==="bilan"){forceBilan=true;renderDash()}
-  else if(b.dataset.act==="closebilan"){forceBilan=false;renderDash()}
-  else if(b.dataset.act==="savebilan"){const wk=iso(mondayOf(new Date()));const learned=$("#bLearn").value.trim(),goal=$("#bGoal").value.trim();
-    if(!learned&&!goal){toast("Écris au moins une ligne avant de valider.");return}
-    state.bilans=[...state.bilans.filter(x=>x.week!==wk),{week:wk,date:iso(new Date()),learned,goal}].slice(-60);persist("bilans",{items:state.bilans});forceBilan=false;renderDash()}
   else if(b.dataset.catch){const [sid,ds]=b.dataset.catch.split("|");openCourseNote(sid,ds)}
   else if(studiesClick(b)){}
   else if(b.dataset.act==="addstudy")openStudy(null);
@@ -1730,29 +1724,6 @@ ${text.slice(0,30000)}
     catch(e){busy=false;$("#vstat").textContent=e&&e.code==="rate_limited"?"Trop de demandes, réessaie dans une minute.":"Le résumé n'a pas pu être fait.";return}busy=false}
   state.veille=[...state.veille,{id:uid(),title:title||"Article",url,summary,date:iso(new Date())}];persist("veille",{items:state.veille});
   $("#vTitle").value="";$("#vUrl").value="";$("#vText").value="";renderDash()}
-let forceBilan=false;
-function bilanDue(){const d=new Date(),wd=d.getDay(),hm=d.getHours()*60+d.getMinutes();return (wd===5&&hm>=17*60+30)||wd===6||wd===0}
-function goalHTML(){const wk=iso(mondayOf(new Date()));const done=state.bilans.find(b=>b.week===wk);
-  const last=[...state.bilans].sort((a,b)=>b.week.localeCompare(a.week)).find(b=>b.week<wk&&b.goal);const g=done?done.goal:last?last.goal:"";
-  if(!g)return "";return `<div class="goalpill"><span><b>Objectif :</b> ${esc(g)}</span>${!done&&!bilanDue()&&!forceBilan&&!P().hideBilan?`<button class="btn ghost" data-act="bilan">Faire mon bilan</button>`:""}</div>`}
-function bilanHTML(){if(P().hideBilan&&!forceBilan)return "";const wk=iso(mondayOf(new Date()));const done=state.bilans.find(b=>b.week===wk);
-  const last=[...state.bilans].sort((a,b)=>b.week.localeCompare(a.week)).find(b=>b.week<wk&&b.goal);
-  const strip=last&&!done?`<div class="goalstrip"><span><b>Objectif :</b> ${esc(last.goal)}</span>${!bilanDue()&&!forceBilan?`<button class="btn ghost" data-act="bilan">Faire mon bilan</button>`:""}</div>`
-    :"";
-  if(done)return "";
-  if(!bilanDue()&&!forceBilan)return "";
-  const t=iso(new Date()),ws=mondayOf(new Date());const miss=[];
-  for(let i=0;i<5;i++){const d=addDays(ws,i),ds=iso(d);if(ds>t)break;const by={};for(const e of eventsOn(d))if(e.type==="cours"&&e.subject!=="gen"&&SUBJ[e.subject])(by[e.subject]=by[e.subject]||[]).push(e);
-    for(const [sid,l] of Object.entries(by)){const n=state.notes[dayNoteKey(sid,ds,l)];if(!n||!(n.content||"").trim())miss.push({sid,ds})}}
-  const late=state.events.filter(e=>e.type==="devoir"&&!e.done&&e.date<t);
-  const mis=state.alt.missions.filter(m=>m.date>=iso(ws)&&m.date<=t).length;const dq=dueQueue().length;
-  return `<div class="panel bilan"><h2>Bilan de la semaine</h2>
-    <div class="bstats"><div class="stat"><b>${miss.length}</b><span>cours sans note</span></div><div class="stat"><b>${late.length}</b><span>devoir${late.length>1?"s":""} en retard</span></div><div class="stat"><b>${mis}</b><span>mission${mis>1?"s":""} notée${mis>1?"s":""}</span></div><div class="stat"><b>${dq}</b><span>question${dq>1?"s":""} à réviser</span></div></div>
-    ${miss.length?`<p class="hint" style="margin-top:10px">Notes à compléter : ${miss.map(m=>`<button class="btn ghost" data-catch="${m.sid}|${m.ds}">${esc(SUBJ[m.sid].name)} (${fmtDay(parseISO(m.ds))})</button>`).join(" ")}</p>`:""}
-    ${!mis?`<p class="hint">Tu n'as noté aucune mission cette semaine : pense à ton journal dans « Mon alternance ».</p>`:""}
-    <label class="field" style="margin-top:10px">Ce que j'ai appris cette semaine<textarea id="bLearn" rows="3" class="ta"></textarea></label>
-    <label class="field">Mon objectif pour la semaine prochaine<input id="bGoal" placeholder="Ex. Rattraper mes notes de CEJM et finir le cours 2 de Coursera"></label>
-    <div class="toolbar"><button class="btn primary" data-act="savebilan">Valider mon bilan</button>${forceBilan?`<button class="btn ghost" data-act="closebilan">Plus tard</button>`:""}</div></div>`}
 const IVS=[1,3,7,14,30];
 function dueQueue(){const t=iso(new Date()),out=[];for(const [id,n] of Object.entries(state.notes)){for(const q of (n.quiz&&n.quiz.missed)||[])if((q.due||t)<=t)out.push({id,q})}return out}
 let rev=null;const revDlg=$("#revDlg");
@@ -1805,7 +1776,7 @@ function todayHTML(part){const t=iso(new Date()),today=new Date();
   const hero=pp.hideHero?"":`<section class="aura-wrap">
     <h2 class="hello">${hello}</h2><p class="hsub">${sub}</p></section>`;
   if(part==="hero")return hero;
-  return bilanHTML()+revBox+(secs.length?`<div class="panel today-one" style="margin-bottom:16px"><div class="today-grid" style="grid-template-columns:repeat(${secs.length},1fr);margin:0">${secs.join("")}</div></div>`:"")}
+  return revBox+(secs.length?`<div class="panel today-one" style="margin-bottom:16px"><div class="today-grid" style="grid-template-columns:repeat(${secs.length},1fr);margin:0">${secs.join("")}</div></div>`:"")}
 function runSearch(q){const box=$("#qres");const k=nrm(q.trim());if(k.length<2){box.hidden=true;return}
   const res=[];for(const [id,n] of Object.entries(state.notes)){const txt=(n.title||"")+" \n "+(n.content||"");const u=nrm(txt);const i=u.indexOf(k);if(i<0)continue;
     const plain=(n.content||"").replace(/\s+/g," ");const j=nrm(plain).indexOf(k);const snip=j>=0?plain.slice(Math.max(0,j-40),j+k.length+60):"";
@@ -1853,7 +1824,6 @@ function drawPrefs(){const z=$("#prefZone");if(!z||!$("#prefDlg").open)return;co
   <section><h3 class="nl-sec">Accueil</h3>
     <label class="field">Mon prénom (pour le message d'accueil)<input id="pfName" value="${esc(p.name||"")}" placeholder="Ex. Marine"></label>
     <label class="pchk"><input type="checkbox" data-pc="hideHero" ${p.hideHero?"":"checked"}> Afficher le message d'accueil</label>
-    <label class="pchk"><input type="checkbox" data-pc="hideBilan" ${p.hideBilan?"":"checked"}> Afficher le bilan du vendredi</label>
     <label class="pchk"><input type="checkbox" data-pc="hideRev" ${p.hideRev?"":"checked"}> Afficher les questions à réviser</label></section>
   <div class="toolbar" style="margin-top:14px"><button class="btn ghost" data-pf="reset">Tout réinitialiser</button></div>`}
 async function setBgFile(file){if(!file)return;try{const bmp=await createImageBitmap(file);let w=bmp.width,h=bmp.height,m=1600;if(Math.max(w,h)>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
@@ -2594,7 +2564,6 @@ function applyMobileMode(){applyNames();placeSearch();document.body.classList.re
 function closeMtabs(){$("#mtabsMenu").hidden=true;$("#mtabsBtn").setAttribute("aria-expanded","false")}
 function render(fromSync){
   applyMobileMode();
-  const gb=$("#goalbar");if(gb)gb.innerHTML=goalHTML();
   if(state.view==="dash")renderDash();else if(state.view==="week")renderWeek();else if(state.view==="evals")renderEvals();else if(state.view==="revs")renderRevs();else renderSubjects(fromSync);
 }
 $("#q").addEventListener("input",e=>runSearch(e.target.value));
@@ -2605,7 +2574,6 @@ $("#uiForm").addEventListener("submit",e=>{e.preventDefault();uiDone($("#uiInput
 $("#uiCancel").onclick=()=>uiDone($("#uiInput").hidden?false:null);
 $("#uiDlg").addEventListener("cancel",e=>{e.preventDefault();uiDone($("#uiInput").hidden?false:null)});
 {const m={week:"cal",subjects:"book",evals:"chart",revs:"target"};document.querySelectorAll("#yeartabs button").forEach(b=>{const k=m[b.dataset.ytab];if(k&&!b.querySelector("svg"))b.insertAdjacentHTML("afterbegin",ICO[k])})}
-$("#goalbar").addEventListener("click",e=>{const b=e.target.closest("[data-act=bilan]");if(!b)return;forceBilan=true;state.home="year";if(state.page!=="dash")openPage("dash");else renderDash();render()});
 $("#mbackBtn").addEventListener("click",()=>{state.mOpen=false;applyMobileMode();render();window.scrollTo(0,0)});
 $("#mtabsBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#mtabsMenu");m.hidden=!m.hidden;$("#mtabsBtn").setAttribute("aria-expanded",String(!m.hidden))});
 $("#mtabsMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();openPage(b.dataset.mp);window.scrollTo(0,0)});

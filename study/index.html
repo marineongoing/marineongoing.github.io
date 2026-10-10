@@ -921,6 +921,37 @@ nav.views .homebtn img{width:26px!important;height:26px!important}
   body:not(.show-search) .wrap>.search{display:none!important}
 }
 @media (max-width:700px){.wrap>.search{position:relative;z-index:40}.wrap>.search .qres{position:absolute!important;top:calc(100% + 6px)!important;left:0!important;right:0!important}}
+/* ===== En-tête comme Life : hibiscus à gauche, onglets de la page à la suite, recherche repliée ===== */
+nav.views,.hometabs,#yeartabs{display:none!important}
+.topbar{display:flex!important;flex-wrap:nowrap!important;align-items:center;justify-content:flex-start!important;gap:10px!important}
+.fl{position:relative;flex:none;order:0}
+#flBtn{width:46px;height:46px;display:grid;place-items:center;border:0;background:none;padding:0;border-radius:50%}
+#flBtn .pgimg{width:42px;height:42px;display:block;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));transition:transform .18s}
+#flBtn:hover .pgimg{transform:scale(1.08) rotate(-6deg)}
+#flBtn:active .pgimg{transform:scale(.86)}
+.flmenu{position:absolute;left:0;top:calc(100% + 8px);z-index:950;display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.06)),rgba(36,30,26,.55);border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.5),0 16px 40px rgba(0,0,0,.3)}
+.flmenu[hidden]{display:none}
+.flmenu button{border:0;background:none;color:var(--ink);font:inherit;font-size:15px;text-align:left;padding:10px 16px;border-radius:12px;white-space:nowrap}
+.flmenu button:hover{background:rgba(255,255,255,.14)}
+.flmenu button[aria-current="page"]{background:rgba(255,255,255,.9);color:#1B1B1D}
+.stabs{order:1;display:flex;align-items:center;gap:clamp(2px,calc(4.4vw - 38px),34px);min-width:0}
+.stabs button{border:0;background:none;height:42px;min-width:44px;padding:0 14px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,.72);font:inherit;font-size:14px;white-space:nowrap;text-shadow:0 1px 3px rgba(20,24,22,.45)}
+.stabs button svg{width:20px;height:20px;flex:none;stroke-width:1.6}
+.stabs button:hover{color:#fff}
+.stabs button[aria-selected="true"]{background:rgba(255,255,255,.9);color:#1B1B1D;text-shadow:none}
+#searchBtn{order:2;margin-left:auto;flex:none}
+.topbar .prefbtn{order:3!important;margin:0!important;flex:none}
+#searchBtn[aria-expanded="true"]{background:rgba(255,255,255,.9)!important;color:#1B1B1D!important}
+.wrap>.search{display:block;position:relative;z-index:40;max-width:520px!important;margin:0 0 16px!important}
+body:not(.show-search):not(.search-open) .wrap>.search{display:none!important}
+body.search-open .wrap>.search{display:block!important}
+@media (max-width:900px){
+  .topbar{gap:6px!important}
+  .stabs{flex:1;justify-content:space-between;gap:0;padding:5px 4px;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(36,30,26,var(--glass-a,.3));border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  .stabs button{padding:0 6px;min-width:36px}
+  .stabs button span{display:none}
+  .wrap>.search{max-width:none!important}
+}
 /* surligneurs translucides */
 .rte span[style*="background"]{color:var(--ink)!important;border-radius:4px;padding:0 3px}
 .rte span[style*="249, 198, 214"],.rte span[style*="F9C6D6" i]{background-color:rgba(249,198,214,.38)!important;box-shadow:0 0 0 1px rgba(249,198,214,.35)}
@@ -943,8 +974,9 @@ h1,h2,h3{font-weight:300}
       <button data-page="s2" aria-pressed="false" data-short="2e" aria-label="2e année">2e année</button>
       <button class="mprefbtn" id="prefBtn2" aria-label="Préférences" title="Préférences"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
     </nav>
-    <div class="mdots" id="mdots" role="tablist" aria-label="Onglets"></div>
-    <div class="mtabs" id="mtabs"><div class="mtabs-bubble"><button id="mtabsBtn" aria-haspopup="true" aria-expanded="false" aria-label="Changer d'onglet"></button><div id="mtabsMenu" class="mtabs-menu" hidden></div></div></div>
+    <div class="fl" id="fl"><button id="flBtn" aria-haspopup="true" aria-expanded="false" aria-label="Accueil" title="Accueil"></button><div id="flMenu" class="flmenu" hidden></div></div>
+    <nav class="stabs" id="stabs" role="tablist" aria-label="Onglets"></nav>
+    <button class="btn ghost icon" id="searchBtn" aria-expanded="false" aria-label="Rechercher dans mes notes" title="Rechercher dans mes notes"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     <div class="status" id="status" role="status"></div>
     <button class="btn ghost icon prefbtn" id="prefBtn" aria-label="Préférences" title="Préférences"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button>
     <div class="search"><input id="q" type="search" placeholder="Rechercher dans mes notes…" aria-label="Rechercher dans mes notes" autocomplete="off"><div id="qres" class="qres" hidden></div></div>
@@ -2554,36 +2586,39 @@ const PG_TITLES={dash:"Accueil",s1:"1re année",s2:"2e année"};
 function tabList(){return state.page==="dash"?MT_HOME:MT_YEAR}
 function curTab(){return state.page==="dash"?state.home:state.ytab}
 function switchTab(k){if(state.page==="dash"){state.home=k;render()}else{const t=document.querySelector(`#yeartabs button[data-ytab="${k}"]`);if(t)t.click()}window.scrollTo(0,0)}
-function placeSearch(){const S=$(".search"),H=$("#pagehead"),T=$(".topbar");if(!S||!H||!T)return;
-  if(isMobile()){if(S.previousElementSibling!==H)H.insertAdjacentElement("afterend",S)}else if(S.parentElement!==T)T.insertBefore(S,$("#mdots"))}
+function placeSearch(){const S=$(".search"),H=$("#pagehead");if(!S||!H)return;
+  if(S.previousElementSibling!==H)H.insertAdjacentElement("afterend",S)}
 function applyMobileMode(){applyNames();placeSearch();document.body.classList.remove("m-menu","m-open");document.body.dataset.home=state.home||"year";document.body.classList.toggle("show-search",state.page!=="dash"&&state.ytab==="subjects");
-  const btn=$("#mtabsBtn");if(!btn)return;const pg=state.page||"dash";
-  btn.innerHTML=pageBadge(pg);btn.title=PG_TITLES[pg];btn.setAttribute("aria-label",PG_TITLES[pg]+" – changer de page");btn.classList.remove("is-year");
-  $("#mtabsMenu").innerHTML=["dash","s1","s2"].filter(k=>k!==pg).map(k=>`<button data-mp="${k}" aria-label="${PG_TITLES[k]}" title="${PG_TITLES[k]}">${pageBadge(k)}</button>`).join("");
-  const cur=curTab();$("#mdots").innerHTML=tabList().map(([k])=>`<button class="mdot${k===cur?" on":""}" data-mt="${k}" role="tab" aria-selected="${k===cur}" aria-label="${MTITLES[k]}" title="${MTITLES[k]}"></button>`).join("")}
-function closeMtabs(){$("#mtabsMenu").hidden=true;$("#mtabsBtn").setAttribute("aria-expanded","false")}
+  const btn=$("#flBtn");if(!btn)return;const pg=state.page||"dash";
+  if(!btn.firstChild)btn.innerHTML=pageBadge("dash");
+  $("#flMenu").innerHTML=["s1","s2"].map(k=>`<button data-mp="${k}"${k===pg?` aria-current="page"`:""}>${PG_TITLES[k]}</button>`).join("");
+  const cur=curTab();$("#stabs").innerHTML=tabList().map(([k,i])=>`<button data-mt="${k}" role="tab" aria-selected="${k===cur}" aria-label="${MTITLES[k]}" title="${MTITLES[k]}">${ICO[i]||""}<span>${MTITLES[k]}</span></button>`).join("")}
+function closeMtabs(){$("#flMenu").hidden=true;$("#flBtn").setAttribute("aria-expanded","false")}
 function render(fromSync){
   applyMobileMode();
   if(state.view==="dash")renderDash();else if(state.view==="week")renderWeek();else if(state.view==="evals")renderEvals();else if(state.view==="revs")renderRevs();else renderSubjects(fromSync);
 }
 $("#q").addEventListener("input",e=>runSearch(e.target.value));
 $("#q").addEventListener("focus",e=>runSearch(e.target.value));
-document.addEventListener("click",e=>{if(!e.target.closest(".search"))$("#qres").hidden=true;else if(e.target.closest("[data-gonote]")){$("#qres").hidden=true;$("#q").value=""}});
+document.addEventListener("click",e=>{if(!e.target.closest(".search,#searchBtn"))$("#qres").hidden=true;else if(e.target.closest("[data-gonote]")){$("#qres").hidden=true;$("#q").value=""}});
 document.addEventListener("click",e=>{document.querySelectorAll("details.more[open]").forEach(d=>{if(!d.contains(e.target))d.open=false})});
 $("#uiForm").addEventListener("submit",e=>{e.preventDefault();uiDone($("#uiInput").hidden?true:$("#uiInput").value)});
 $("#uiCancel").onclick=()=>uiDone($("#uiInput").hidden?false:null);
 $("#uiDlg").addEventListener("cancel",e=>{e.preventDefault();uiDone($("#uiInput").hidden?false:null)});
 {const m={week:"cal",subjects:"book",evals:"chart",revs:"target"};document.querySelectorAll("#yeartabs button").forEach(b=>{const k=m[b.dataset.ytab];if(k&&!b.querySelector("svg"))b.insertAdjacentHTML("afterbegin",ICO[k])})}
 $("#mbackBtn").addEventListener("click",()=>{state.mOpen=false;applyMobileMode();render();window.scrollTo(0,0)});
-$("#mtabsBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#mtabsMenu");m.hidden=!m.hidden;$("#mtabsBtn").setAttribute("aria-expanded",String(!m.hidden))});
-$("#mtabsMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();openPage(b.dataset.mp);window.scrollTo(0,0)});
-$("#mdots").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(b)switchTab(b.dataset.mt)});
-{let sx=0,sy=0,ok=false;const EXC=".gtable,input,textarea,select,.rte,.mtabs,.sgrid.reo,.olog,.qres";
+$("#flBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#flMenu"),open=m.hidden;
+  if(state.page!=="dash"||state.home!=="year"){state.home="year";openPage("dash");window.scrollTo(0,0)}
+  m.hidden=!open;$("#flBtn").setAttribute("aria-expanded",String(open))});
+$("#searchBtn").addEventListener("click",()=>{const on=document.body.classList.toggle("search-open");$("#searchBtn").setAttribute("aria-expanded",String(on));if(on)$("#q").focus();else{$("#q").value="";$("#qres").hidden=true}});
+$("#flMenu").addEventListener("click",e=>{const b=e.target.closest("[data-mp]");if(!b)return;e.stopPropagation();closeMtabs();openPage(b.dataset.mp);window.scrollTo(0,0)});
+$("#stabs").addEventListener("click",e=>{const b=e.target.closest("[data-mt]");if(b)switchTab(b.dataset.mt)});
+{let sx=0,sy=0,ok=false;const EXC=".gtable,input,textarea,select,.rte,.fl,.sgrid.reo,.olog,.qres";
  document.addEventListener("touchstart",e=>{ok=isMobile()&&!document.querySelector("dialog[open]")&&!e.target.closest(EXC);if(!ok)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
  document.addEventListener("touchend",e=>{if(!ok)return;ok=false;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6)return;
   const L=tabList().map(x=>x[0]);const i=L.indexOf(curTab());const j=i+(dx<0?1:-1);if(j<0||j>=L.length)return;
   const W=$(".wrap");W.classList.remove("slide-l","slide-r");void W.offsetWidth;W.classList.add(dx<0?"slide-l":"slide-r");switchTab(L[j])},{passive:true})}
-document.addEventListener("click",e=>{if(!e.target.closest("#mtabs"))closeMtabs()});
+document.addEventListener("click",e=>{if(!e.target.closest("#fl"))closeMtabs()});
 $("#prefBtn2").addEventListener("click",e=>{e.preventDefault();openPrefs()});
 function currentCourse(){const now=new Date(),t=iso(now),hm=now.toTimeString().slice(0,5);
   const today=eventsOn(now).filter(e=>e.type==="cours"&&e.subject!=="gen"&&SUBJ[e.subject]);

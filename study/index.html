@@ -1098,6 +1098,24 @@ body .topbar{container-type:inline-size;container-name:top;position:relative;z-i
 @media (max-width:900px){body .topbar{gap:10px!important}}
 @media (max-width:900px){body .stabs{background:var(--lglass),rgba(36,30,26,var(--glass-a,.3));box-shadow:var(--ledge)}}
 @media (max-width:700px){body header.top{margin:10px 0 16px}body header.top h1,body .hello{font-size:34px}body .aura-wrap{padding-top:8px!important;margin-bottom:26px!important}body .hsub{font-size:16px;margin-top:8px}}
+/* rubriques repliables des formations */
+body .study-body{align-items:start;gap:0 22px;padding-top:4px}
+body details.ssec{border-bottom:1px solid var(--line);min-width:0}
+body details.ssec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 0}
+body details.ssec>summary::-webkit-details-marker{display:none}
+body details.ssec>summary h4{margin:0;font-size:16px;font-weight:400;font-family:var(--hfont,"Sora","Outfit",system-ui,sans-serif)}
+body details.ssec.warn>summary h4{color:var(--accent)}
+body details.ssec>summary .chev{margin-left:auto;font-size:18px;color:var(--muted);transition:transform .2s}
+body details.ssec[open]>summary .chev{transform:rotate(90deg)}
+body .ssec-b{padding:0 0 14px}
+body ul.chk li.done label span{text-decoration:line-through;color:var(--muted)}
+body .study-body ul.chk{padding-left:0}
+body ul.chk.steps li{flex-wrap:nowrap;align-items:flex-start;gap:8px}
+body ul.chk.steps label{flex:1;min-width:0;align-items:flex-start}
+body ul.chk.steps input{flex:none;margin-top:3px}
+body ul.chk.steps .hint{flex:none;white-space:nowrap;margin-top:1px}
+body ul.chk.steps .btn{flex:none;padding:0 6px;min-height:0;line-height:1.2}
+@media (max-width:700px){body ul.chk.steps li{flex-wrap:wrap;gap:0 8px}body ul.chk.steps label{order:1}body ul.chk.steps .btn{order:2}body ul.chk.steps .hint{order:3;flex:0 0 100%;padding-left:24px;margin:0 0 4px}}
 </style>
 </head>
 <body>
@@ -1515,16 +1533,19 @@ function testHTML(k){const C=TESTS[k],T=state.tests[k],sc=[...T.scores].sort((a,
     ${sc.length?`<div class="tlist">${sc.slice(-8).reverse().map(x=>`<span class="tchip"${x.sec?` title="${TOEFL_SEC.map(([c,l])=>l+" "+f(x.sec[c])).join(" · ")}"`:""}>${fmtDay(parseISO(x.date))} : ${f(x.score)} <button class="btn ghost" data-rmtest="${k}|${x.id}" aria-label="Supprimer">×</button></span>`).join("")}</div>`:""}</div>`}
 function toeicHTML(){return `<div class="tests">${testHTML("toefl")}${testHTML("gmat")}</div>`}
 function saveTest(k,T){state.tests={...state.tests,[k]:T};persist(k,{...T})}
+const openSecs=new Set();
+function ssec(id,key,title,body,warn){return `<details class="ssec${warn?" warn":""}" data-skey="${id}|${key}" ${openSecs.has(id+"|"+key)?"open":""}><summary><h4>${title}</h4><span class="chev" aria-hidden="true">›</span></summary><div class="ssec-b">${body}</div></details>`}
+function stepDone(st){const ev=state.events.find(e=>e.id===st.eventId);return ev?!!ev.done:!!st.done}
 function studyExtras(it){const docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}));const done=docs.filter(d=>d.done).length;const steps=[...(it.steps||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  return `<section><h4>Mon dossier (${done}/${docs.length})</h4><ul class="chk">${docs.map((d,i)=>`<li><label><input type="checkbox" data-sdoc="${it.id}|${i}" ${d.done?"checked":""}> <span>${esc(d.label)}</span></label></li>`).join("")}</ul>
-      <div class="addl"><input id="sd-${it.id}" placeholder="Autre pièce…"><button class="btn" data-adddoc="${it.id}">Ajouter</button></div></section>
-    <section><h4>Mon rétroplanning</h4>${steps.length?`<ul class="chk">${steps.map(st=>{const ev=state.events.find(e=>e.id===st.eventId);return `<li class="${ev&&ev.done?"done":""}"><span>${esc(st.label)}</span> <span class="hint">${st.date?fmtDay(parseISO(st.date))+" "+parseISO(st.date).getFullYear():""}</span> <button class="btn ghost" data-rmstep="${it.id}|${st.id}" aria-label="Supprimer">×</button></li>`}).join("")}</ul>`:`<p class="hint">${studyBusy.has(it.id)?"Claude prépare ton rétroplanning…":"Claude place les étapes à partir de la date limite, de ton dossier et de ton calendrier. Elles apparaîtront aussi dans ton agenda."}</p>`}
-      <button class="btn" data-stplan="${it.id}" style="margin-top:10px"${studyBusy.has(it.id)?" disabled":""}>${studyBusy.has(it.id)?"Claude prépare…":steps.length?"Refaire le rétroplanning avec Claude":"Créer le rétroplanning avec Claude"}</button></section>`}
+  return ssec(it.id,"docs",`Mon dossier (${done}/${docs.length})`,`<ul class="chk">${docs.map((d,i)=>`<li><label><input type="checkbox" data-sdoc="${it.id}|${i}" ${d.done?"checked":""}> <span>${esc(d.label)}</span></label></li>`).join("")}</ul>
+      <div class="addl"><input id="sd-${it.id}" placeholder="Autre pièce…"><button class="btn" data-adddoc="${it.id}">Ajouter</button></div>`)+
+    ssec(it.id,"plan",`Mon rétroplanning${steps.length?` (${steps.filter(stepDone).length}/${steps.length})`:""}`,`${steps.length?`<ul class="chk steps">${steps.map(st=>{const d=stepDone(st);return `<li class="${d?"done":""}"><label><input type="checkbox" data-sstep="${it.id}|${st.id}" ${d?"checked":""}> <span>${esc(st.label)}</span></label><span class="hint">${st.date?fmtDay(parseISO(st.date))+" "+parseISO(st.date).getFullYear():""}</span><button class="btn ghost" data-rmstep="${it.id}|${st.id}" aria-label="Supprimer">×</button></li>`}).join("")}</ul>`:`<p class="hint">${studyBusy.has(it.id)?"Claude prépare ton rétroplanning…":"Claude place les étapes à partir de la date limite, de ton dossier et de ton calendrier. Elles apparaîtront aussi dans ton agenda."}</p>`}
+      <button class="btn" data-stplan="${it.id}" style="margin-top:10px"${studyBusy.has(it.id)?" disabled":""}>${studyBusy.has(it.id)?"Claude prépare…":steps.length?"Refaire le rétroplanning avec Claude":"Créer le rétroplanning avec Claude"}</button>`)}
 const studyBusy=new Set();
 async function planStudy(id){const it=state.studies.find(x=>x.id===id);if(!it||studyBusy.has(id))return;if(!sampleFn){toast("Claude n'est pas disponible pour l'instant.");return}
-  studyBusy.add(id);openStudies.add(id);renderDash();
+  studyBusy.add(id);openStudies.add(id);openSecs.add(id+"|plan");renderDash();
   try{const t=iso(new Date()),docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false})),bestOf=k=>{const x=state.tests[k].scores;return x.length?Math.max(...x.map(y=>y.score)):"aucun pour l'instant"};
-    const isDone=st=>{const ev=state.events.find(e=>e.id===st.eventId);return !!(ev&&ev.done)};
+    const isDone=stepDone;
     const prompt=`${await goalContext({id:null,deadline:it.deadline||""})}\n\nFormation visée : ${it.school}${it.program?" – "+it.program:""}\nStatut de la candidature : ${ST_LABEL[it.status]||it.status||"à explorer"}\nMode d'admission : ${it.admission||"non précisé"}\nDate limite de candidature : ${it.deadline||"inconnue, propose un calendrier réaliste"}\nCe qu'on sait de la formation : ${JSON.stringify((it.sections||[]).map(x=>({[x.t]:x.items}))).slice(0,1500)}\nPièces du dossier : ${docs.map(d=>d.label+(d.done?" (prête)":" (à préparer)")).join(" ; ")}\nTOEFL (noté de 1 à 6 par demi-points depuis janvier 2026) : objectif ${state.tests.toefl.goal}, meilleur score ${bestOf("toefl")}${(()=>{const x=[...state.tests.toefl.scores].sort((a,b)=>a.date.localeCompare(b.date)).pop();return x&&x.sec?` (dernier test : ${TOEFL_SEC.map(([c,l])=>l+" "+x.sec[c]).join(", ")})`:""})()}\nGMAT (205 à 805) : objectif ${state.tests.gmat.goal}, meilleur score ${bestOf("gmat")}\nAujourd'hui : ${t}\nÉtapes déjà faites : ${(it.steps||[]).filter(isDone).map(x=>x.label).join(" ; ")||"aucune"}\n\nConstruis le rétroplanning de cette candidature : 5 à 8 étapes concrètes, en partant de la date limite et en remontant jusqu'à aujourd'hui. Appuie-toi sur les informations ci-dessus (pièces encore à préparer, TOEFL et GMAT, examens prévus, alternance) pour placer chaque étape au bon moment. Chaque étape tient en une phrase courte (60 caractères au plus) et a une date au format AAAA-MM-JJ, comprise entre aujourd'hui et la date limite, dans l'ordre chronologique. Ne répète pas les étapes déjà faites. Tout en français, en la tutoyant, sans emoji. Format : {"steps":[{"text":"...","date":"AAAA-MM-JJ"}]}`;
     const j=await sampleFn.json(prompt,{cache:false,maxTokens:4000});
     const ns=((j&&j.steps)||[]).filter(x=>x&&x.text&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")).map(x=>({text:String(x.text).slice(0,120),date:x.date<t?t:x.date})).sort((a,b)=>a.date.localeCompare(b.date));
@@ -1563,7 +1584,7 @@ function studiesHTML(){
   return html+`<div class="studies">${items.map(it=>{
     let dl="";if(it.deadline){const n=Math.round((parseISO(it.deadline)-parseISO(t))/864e5);
       dl=n<0?`Date limite passée (${fmtDay(parseISO(it.deadline))})`:n===0?"Date limite aujourd'hui":`Date limite dans ${n} j`}
-    const secs=(it.sections||[]).map(sc=>`<section class="${sc.warn?"warn":""}"><h4>${esc(sc.t)}</h4><ul>${sc.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
+    const secs=(it.sections||[]).map((sc,i)=>ssec(it.id,"s"+i,esc(sc.t),`<ul>${sc.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`,sc.warn)).join("");
     return `<details class="study" ${openStudies.has(it.id)?"open":""} data-sid="${it.id}"><summary>
         <div class="ttl"><h3>${esc(it.school)}</h3>${it.program?`<span>${esc(it.program)}</span>`:""}${dl?`<span class="meta">${dl}</span>`:""}</div>
         <span class="st st-${it.status||"explorer"}">${ST_LABEL[it.status]||ST_LABEL.explorer}</span>
@@ -1844,7 +1865,8 @@ $("#gDelete").onclick=async()=>{const {kind,it}=gCtx;if(!it||!await uiConfirm("S
   else{state.extras=state.extras.filter(x=>x!==it);persist("extras",{items:state.extras})}
   gDlg.close();renderDash()};
 const openStudies=new Set();
-document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.study")){d.open?openStudies.add(d.dataset.sid):openStudies.delete(d.dataset.sid)}},true);
+document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches("details.study")){d.open?openStudies.add(d.dataset.sid):openStudies.delete(d.dataset.sid)}
+  if(d.matches&&d.matches("details.ssec")){d.open?openSecs.add(d.dataset.skey):openSecs.delete(d.dataset.skey)}},true);
 function monthHTML(){
   const m=state.month,t=iso(new Date());
   const title=m.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
@@ -2218,6 +2240,9 @@ $("#view-dash").addEventListener("change",onDone);
 $("#view-dash").addEventListener("change",e=>{if(e.target.id==="bkInput"&&e.target.files[0]){importBackup(e.target.files[0]);e.target.value=""}});
 $("#view-dash").addEventListener("change",e=>{const v=e.target.dataset&&e.target.dataset.sdoc;if(!v)return;const [sid,i]=v.split("|");const it=state.studies.find(x=>x.id===sid);if(!it)return;
   const docs=(it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}))).map((d,j)=>j===+i?{...d,done:e.target.checked}:d);it.docs=docs;openStudies.add(sid);saveStudies();renderDash()});
+$("#view-dash").addEventListener("change",e=>{const v=e.target.dataset&&e.target.dataset.sstep;if(!v)return;const [sid,stid]=v.split("|");const it=state.studies.find(x=>x.id===sid);const st=it&&(it.steps||[]).find(x=>x.id===stid);if(!st)return;
+  const on=e.target.checked;st.done=on;if(state.events.some(x=>x.id===st.eventId)){state.events=state.events.map(x=>x.id===st.eventId?{...x,done:on}:x);saveCalendar()}
+  openStudies.add(sid);openSecs.add(sid+"|plan");saveStudies();renderDash()});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-gonote]");if(b){e.stopPropagation();$("#qres").hidden=true;$("#q").value="";goToNote(b.dataset.gonote)}},true);
 $("#view-week").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b||b.dataset.gonote)return;

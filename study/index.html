@@ -1065,6 +1065,12 @@ body .study>summary .st{flex:none}
 body .dash-grid{grid-template-columns:minmax(0,1fr) 320px}
 body .dash-grid>*{min-width:0}
 body .month{min-width:0;grid-template-columns:repeat(5,minmax(0,1fr))}
+body .tests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
+body .tests .toeic{margin-bottom:0}
+body .tests>*{min-width:0}
+@media (max-width:800px){body .tests{grid-template-columns:minmax(0,1fr)}}
+body .tests .toeic .weekbar{flex-direction:column;align-items:stretch}
+body .tests .toeic .toolbar{justify-content:flex-start}
 body .toeic .weekbar{flex-wrap:wrap;gap:10px}
 body .toeic .toolbar{flex-wrap:wrap;gap:8px;max-width:100%}
 body .toeic .toolbar input{min-width:0;flex:1 1 110px}
@@ -1298,7 +1304,7 @@ const SUBJ=Object.fromEntries([GEN,...PINNED,...SUBJECTS].map(s=>[s.id,s]));
 const TYPE_LABEL={cours:"Cours",devoir:"Devoir",examen:"Examen"};
 const DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 
-const state={page:"dash",ytab:"week",sem:null,semesters:defaultSemesters(),month:null,home:"year",prefs:{},bgImg:"",bilans:[],veille:[],orals:[],versions:{},grades:[],goals:{},toeic:{goal:780,scores:[]},alt:{info:{company:"Pierre & Vacances",role:"Assistante commerciale",team:"OTA & Flash Sales",tutor:"",start:"2026-09-01",end:"2028-08-31",rhythm:"École le jeudi et le vendredi"},missions:[]},studies:[],tools:[],extras:[],certs:[],events:[],links:{},notes:{},view:"dash",weekStart:mondayOf(new Date()),subject:"rcnv",noteId:null,preview:false};
+const state={page:"dash",ytab:"week",sem:null,semesters:defaultSemesters(),month:null,home:"year",prefs:{},bgImg:"",bilans:[],veille:[],orals:[],versions:{},grades:[],goals:{},toeic:{goal:780,scores:[]},tests:{toefl:{goal:100,scores:[]},gmat:{goal:655,scores:[]}},alt:{info:{company:"Pierre & Vacances",role:"Assistante commerciale",team:"OTA & Flash Sales",tutor:"",start:"2026-09-01",end:"2028-08-31",rhythm:"École le jeudi et le vendredi"},missions:[]},studies:[],tools:[],extras:[],certs:[],events:[],links:{},notes:{},view:"dash",weekStart:mondayOf(new Date()),subject:"rcnv",noteId:null,preview:false};
 let store=null; // {saveDoc(id,data), deleteDoc(id)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1332,6 +1338,7 @@ function applyDocs(docs){
   if(docs.orals)state.orals=Array.isArray(docs.orals.items)?docs.orals.items:[];
   for(const k in docs)if(k.startsWith("v-"))state.versions[k.slice(2)]=Array.isArray(docs[k].versions)?docs[k].versions:[];
   if(docs.toeic)state.toeic={goal:docs.toeic.goal||780,scores:Array.isArray(docs.toeic.scores)?docs.toeic.scores:[]};
+  for(const k of ["toefl","gmat"])if(docs[k])state.tests={...state.tests,[k]:{goal:docs[k].goal||state.tests[k].goal,scores:Array.isArray(docs[k].scores)?docs[k].scores:[]}};
   if(docs.tools)state.tools=Array.isArray(docs.tools.items)?docs.tools.items:[];
   if(docs.certs)state.certs=Array.isArray(docs.certs.items)?docs.certs.items:[];
   if(docs.extras)state.extras=Array.isArray(docs.extras.items)?docs.extras.items:[];
@@ -1482,13 +1489,17 @@ function yearHTML(k){
 }
 const ST_LABEL={explorer:"À explorer",preparation:"En préparation",envoyee:"Candidature envoyée",entretien:"Entretien / concours",admise:"Admise",refusee:"Refusée"};
 const DEFAULT_DOCS=["CV","Lettre de motivation","Relevés de notes","Relevé du bac","Test d'anglais","Lettre de recommandation"];
-function toeicHTML(){const T=state.toeic,sc=[...T.scores].sort((a,b)=>a.date.localeCompare(b.date));const best=sc.length?Math.max(...sc.map(x=>x.score)):null,last=sc.length?sc[sc.length-1].score:null;
-  const pct=best?Math.min(100,Math.round(best/990*100)):0,gp=Math.round(T.goal/990*100);
-  return `<div class="panel toeic"><div class="weekbar" style="margin-bottom:6px"><div><h2>Mon TOEIC</h2></div>
-    <div class="toolbar"><input type="number" id="tScore" min="10" max="990" step="5" placeholder="Score" style="width:90px"><input type="date" id="tDate" value="${iso(new Date())}"><button class="btn" data-act="addtoeic">Ajouter</button><button class="btn ghost" data-act="toeicgoal">Objectif</button></div></div>
-    <div class="tbar"><i style="width:${pct}%"></i><span class="tgoal" style="left:${gp}%" title="Objectif"></span></div>
-    <p class="hint" style="margin-top:6px">${best==null?"Aucun score pour l'instant.":`Meilleur score : <b>${best}</b> · dernier : <b>${last}</b> · ${best>=T.goal?"objectif atteint":`encore ${T.goal-best} points pour l'objectif`}`}</p>
-    ${sc.length?`<div class="tlist">${sc.slice(-8).reverse().map(x=>`<span class="tchip">${fmtDay(parseISO(x.date))} : ${x.score} <button class="btn ghost" data-rmtoeic="${x.id}" aria-label="Supprimer">×</button></span>`).join("")}</div>`:""}</div>`}
+/* Tests d'admission : TOEFL (anglais, sur 120) et GMAT (de 205 à 805) */
+const TESTS={toefl:{name:"TOEFL",min:0,max:120,step:1,goal:100,ex:"100"},gmat:{name:"GMAT",min:205,max:805,step:10,goal:655,ex:"655"}};
+function testHTML(k){const C=TESTS[k],T=state.tests[k],sc=[...T.scores].sort((a,b)=>a.date.localeCompare(b.date));const best=sc.length?Math.max(...sc.map(x=>x.score)):null,last=sc.length?sc[sc.length-1].score:null;
+  const pos=v=>Math.max(0,Math.min(100,Math.round((v-C.min)/(C.max-C.min)*100))),pct=best==null?0:pos(best),gp=pos(T.goal);
+  return `<div class="panel toeic"><div class="weekbar" style="margin-bottom:6px"><div><h2>Mon ${C.name}</h2></div>
+    <div class="toolbar"><input type="number" id="ts-${k}" min="${C.min}" max="${C.max}" step="${C.step}" placeholder="Score" style="width:90px" aria-label="Score ${C.name}"><input type="date" id="td-${k}" value="${iso(new Date())}" aria-label="Date du test"><button class="btn" data-addtest="${k}">Ajouter</button><button class="btn ghost" data-testgoal="${k}">Objectif</button></div></div>
+    <div class="tbar"><i style="width:${pct}%"></i><span class="tgoal" style="left:${gp}%" title="Objectif : ${T.goal}"></span></div>
+    <p class="hint" style="margin-top:6px">${best==null?`Aucun score pour l'instant. Objectif : <b>${T.goal}</b> sur ${C.max}.`:`Meilleur score : <b>${best}</b> · dernier : <b>${last}</b> · ${best>=T.goal?"objectif atteint":`encore ${T.goal-best} points pour l'objectif (${T.goal})`}`}</p>
+    ${sc.length?`<div class="tlist">${sc.slice(-8).reverse().map(x=>`<span class="tchip">${fmtDay(parseISO(x.date))} : ${x.score} <button class="btn ghost" data-rmtest="${k}|${x.id}" aria-label="Supprimer">×</button></span>`).join("")}</div>`:""}</div>`}
+function toeicHTML(){return `<div class="tests">${testHTML("toefl")}${testHTML("gmat")}</div>`}
+function saveTest(k,T){state.tests={...state.tests,[k]:T};persist(k,{...T})}
 function studyExtras(it){const docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}));const done=docs.filter(d=>d.done).length;const steps=[...(it.steps||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   return `<section><h4>Mon dossier (${done}/${docs.length})</h4><ul class="chk">${docs.map((d,i)=>`<li><label><input type="checkbox" data-sdoc="${it.id}|${i}" ${d.done?"checked":""}> <span>${esc(d.label)}</span></label></li>`).join("")}</ul>
       <div class="addl"><input id="sd-${it.id}" placeholder="Autre pièce…"><button class="btn" data-adddoc="${it.id}">Ajouter</button></div></section>
@@ -1497,9 +1508,9 @@ function studyExtras(it){const docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:
 const studyBusy=new Set();
 async function planStudy(id){const it=state.studies.find(x=>x.id===id);if(!it||studyBusy.has(id))return;if(!sampleFn){toast("Claude n'est pas disponible pour l'instant.");return}
   studyBusy.add(id);openStudies.add(id);renderDash();
-  try{const t=iso(new Date()),docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false})),sc=state.toeic.scores||[],best=sc.length?Math.max(...sc.map(x=>x.score)):null;
+  try{const t=iso(new Date()),docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false})),bestOf=k=>{const x=state.tests[k].scores;return x.length?Math.max(...x.map(y=>y.score)):"aucun pour l'instant"};
     const isDone=st=>{const ev=state.events.find(e=>e.id===st.eventId);return !!(ev&&ev.done)};
-    const prompt=`${await goalContext({id:null,deadline:it.deadline||""})}\n\nFormation visée : ${it.school}${it.program?" – "+it.program:""}\nStatut de la candidature : ${ST_LABEL[it.status]||it.status||"à explorer"}\nMode d'admission : ${it.admission||"non précisé"}\nDate limite de candidature : ${it.deadline||"inconnue, propose un calendrier réaliste"}\nCe qu'on sait de la formation : ${JSON.stringify((it.sections||[]).map(x=>({[x.t]:x.items}))).slice(0,1500)}\nPièces du dossier : ${docs.map(d=>d.label+(d.done?" (prête)":" (à préparer)")).join(" ; ")}\nTOEIC : objectif ${state.toeic.goal}, meilleur score ${best??"aucun pour l'instant"}\nAujourd'hui : ${t}\nÉtapes déjà faites : ${(it.steps||[]).filter(isDone).map(x=>x.label).join(" ; ")||"aucune"}\n\nConstruis le rétroplanning de cette candidature : 5 à 8 étapes concrètes, en partant de la date limite et en remontant jusqu'à aujourd'hui. Appuie-toi sur les informations ci-dessus (pièces encore à préparer, TOEIC, examens prévus, alternance) pour placer chaque étape au bon moment. Chaque étape tient en une phrase courte (60 caractères au plus) et a une date au format AAAA-MM-JJ, comprise entre aujourd'hui et la date limite, dans l'ordre chronologique. Ne répète pas les étapes déjà faites. Tout en français, en la tutoyant, sans emoji. Format : {"steps":[{"text":"...","date":"AAAA-MM-JJ"}]}`;
+    const prompt=`${await goalContext({id:null,deadline:it.deadline||""})}\n\nFormation visée : ${it.school}${it.program?" – "+it.program:""}\nStatut de la candidature : ${ST_LABEL[it.status]||it.status||"à explorer"}\nMode d'admission : ${it.admission||"non précisé"}\nDate limite de candidature : ${it.deadline||"inconnue, propose un calendrier réaliste"}\nCe qu'on sait de la formation : ${JSON.stringify((it.sections||[]).map(x=>({[x.t]:x.items}))).slice(0,1500)}\nPièces du dossier : ${docs.map(d=>d.label+(d.done?" (prête)":" (à préparer)")).join(" ; ")}\nTOEFL (sur 120) : objectif ${state.tests.toefl.goal}, meilleur score ${bestOf("toefl")}\nGMAT (205 à 805) : objectif ${state.tests.gmat.goal}, meilleur score ${bestOf("gmat")}\nAujourd'hui : ${t}\nÉtapes déjà faites : ${(it.steps||[]).filter(isDone).map(x=>x.label).join(" ; ")||"aucune"}\n\nConstruis le rétroplanning de cette candidature : 5 à 8 étapes concrètes, en partant de la date limite et en remontant jusqu'à aujourd'hui. Appuie-toi sur les informations ci-dessus (pièces encore à préparer, TOEFL et GMAT, examens prévus, alternance) pour placer chaque étape au bon moment. Chaque étape tient en une phrase courte (60 caractères au plus) et a une date au format AAAA-MM-JJ, comprise entre aujourd'hui et la date limite, dans l'ordre chronologique. Ne répète pas les étapes déjà faites. Tout en français, en la tutoyant, sans emoji. Format : {"steps":[{"text":"...","date":"AAAA-MM-JJ"}]}`;
     const j=await sampleFn.json(prompt,{cache:false,maxTokens:1200});
     const ns=((j&&j.steps)||[]).filter(x=>x&&x.text&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")).map(x=>({text:String(x.text).slice(0,120),date:x.date<t?t:x.date})).sort((a,b)=>a.date.localeCompare(b.date));
     if(!ns.length)throw {code:"empty"};
@@ -1517,11 +1528,11 @@ function studiesClick(b){
   if(b.dataset.stplan){planStudy(b.dataset.stplan);return true}
   if(b.dataset.rmstep){const [sid,stid]=b.dataset.rmstep.split("|");const it=state.studies.find(x=>x.id===sid);const st=(it.steps||[]).find(x=>x.id===stid);
     if(st){state.events=state.events.filter(e=>e.id!==st.eventId);saveCalendar();it.steps=it.steps.filter(x=>x!==st);saveStudies();renderDash()}return true}
-  if(b.dataset.act==="addtoeic"){const v=+$("#tScore").value,d=$("#tDate").value;if(!v||v<10||v>990){toast("Indique un score entre 10 et 990.");return true}
-    $("#tScore").value="";state.toeic={...state.toeic,scores:[...state.toeic.scores,{id:uid(),score:v,date:d||iso(new Date())}]};persist("toeic",{...state.toeic});renderDash();return true}
-  if(b.dataset.rmtoeic){state.toeic={...state.toeic,scores:state.toeic.scores.filter(x=>x.id!==b.dataset.rmtoeic)};persist("toeic",{...state.toeic});renderDash();return true}
-  if(b.dataset.act==="toeicgoal"){(async()=>{const v=await uiPrompt("Objectif de score TOEIC",state.toeic.goal,"Ex. 780");if(v===null)return;const n=+v;if(!n||n<10||n>990){toast("Indique un score entre 10 et 990.");return}
-    state.toeic={...state.toeic,goal:n};persist("toeic",{...state.toeic});renderDash()})();return true}
+  if(b.dataset.addtest){const k=b.dataset.addtest,C=TESTS[k],v=+$("#ts-"+k).value,d=$("#td-"+k).value;if(!$("#ts-"+k).value||isNaN(v)||v<C.min||v>C.max){toast(`Indique un score ${C.name} entre ${C.min} et ${C.max}.`);return true}
+    $("#ts-"+k).value="";const T=state.tests[k];saveTest(k,{...T,scores:[...T.scores,{id:uid(),score:v,date:d||iso(new Date())}]});renderDash();return true}
+  if(b.dataset.rmtest){const [k,id]=b.dataset.rmtest.split("|"),T=state.tests[k];saveTest(k,{...T,scores:T.scores.filter(x=>x.id!==id)});renderDash();return true}
+  if(b.dataset.testgoal){const k=b.dataset.testgoal,C=TESTS[k];(async()=>{const v=await uiPrompt("Objectif de score "+C.name,state.tests[k].goal,"Ex. "+C.ex);if(v===null)return;const n=+String(v).replace(",",".");if(!String(v).trim()||isNaN(n)||n<C.min||n>C.max){toast(`Indique un score entre ${C.min} et ${C.max}.`);return}
+    saveTest(k,{...state.tests[k],goal:n});renderDash()})();return true}
   return false}
 function studiesHTML(){
   const t=iso(new Date());
@@ -2608,7 +2619,7 @@ async function exportNote(){const n=state.notes[state.noteId];if(!n||!dlFn)retur
 function allDocs(){const d={};const g={};for(const e of state.events)(g[calKey(e)]=g[calKey(e)]||[]).push(e);for(const k in g)d[k]={events:g[k]};
   for(const [id,n] of Object.entries(state.notes))d[id]=n;for(const [id,v] of Object.entries(state.versions))d["v-"+id]={versions:v};
   Object.assign(d,{subjects:{links:state.links},settings:{years:state.semesters},studies:{items:state.studies},alternance:{info:state.alt.info,missions:state.alt.missions},
-    grades:{items:state.grades,goals:state.goals},tools:{items:state.tools},certs:{items:state.certs},extras:{items:state.extras},toeic:{...state.toeic},bilans:{items:state.bilans},veille:{items:state.veille},orals:{items:state.orals}});if(state.prefs&&Object.keys(state.prefs).length)d.prefs={...state.prefs};if(state.bgImg)d.bg={img:state.bgImg};return d}
+    grades:{items:state.grades,goals:state.goals},tools:{items:state.tools},certs:{items:state.certs},extras:{items:state.extras},toeic:{...state.toeic},toefl:{...state.tests.toefl},gmat:{...state.tests.gmat},bilans:{items:state.bilans},veille:{items:state.veille},orals:{items:state.orals}});if(state.prefs&&Object.keys(state.prefs).length)d.prefs={...state.prefs};if(state.bgImg)d.bg={img:state.bgImg};return d}
 async function importBackup(file){let j;try{j=JSON.parse(await file.text())}catch(e){toast("Ce fichier n'est pas une sauvegarde valide.");return}
   if(!j||j.format!=="bts-ndrc-v2"||!j.docs){toast("Ce fichier n'est pas une sauvegarde du site.");return}
   if(!await uiConfirm("Importer cette sauvegarde ? Les éléments du même nom seront remplacés.","Importer"))return;

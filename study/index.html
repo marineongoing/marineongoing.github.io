@@ -1055,6 +1055,8 @@ body .rtebar .rb-f{min-width:30px;font-family:"Sora","Outfit",system-ui,sans-ser
 body .rtebar .rb-f b{font-weight:600}body .rtebar .rb-f i{font-style:italic}body .rtebar .rb-f u{text-underline-offset:3px}
 @media (max-width:700px){body .rtebar{gap:0}body .rtebar button{padding:6px 7px;white-space:nowrap;flex:none}body .rtebar .rb-f{min-width:26px}body .rtebar .rsep{margin:0 3px}}
 body .rte i,body .rte em{font-style:italic}body .rte u{text-decoration:underline;text-underline-offset:3px}
+body .study-body .st-acts{grid-column:1/-1;margin-top:4px}
+body .study-body .st-acts .toolbar{justify-content:flex-end}
 /* corrections d'affichage */
 body .dash-grid{grid-template-columns:minmax(0,1fr) 320px}
 body .dash-grid>*{min-width:0}
@@ -1146,7 +1148,6 @@ body .topbar{container-type:inline-size;container-name:top;position:relative;z-i
         <option value="admise">Admise</option><option value="refusee">Refusée</option></select></label>
     </div>
     <label class="field">Lien<input name="link" type="url" placeholder="https://…"></label>
-    <label class="field">Notes<textarea name="notes" rows="4" style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);resize:vertical" placeholder="Prérequis, épreuves, coût, alternance possible…"></textarea></label>
     <div class="dlg-actions">
       <button type="button" class="btn ghost" id="stDelete" hidden>Supprimer</button>
       <span style="display:flex;gap:8px;margin-left:auto"><button type="button" class="btn" id="stCancel">Annuler</button><button type="submit" class="btn primary">Enregistrer</button></span>
@@ -1487,14 +1488,29 @@ function toeicHTML(){const T=state.toeic,sc=[...T.scores].sort((a,b)=>a.date.loc
 function studyExtras(it){const docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}));const done=docs.filter(d=>d.done).length;const steps=[...(it.steps||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   return `<section><h4>Mon dossier (${done}/${docs.length})</h4><ul class="chk">${docs.map((d,i)=>`<li><label><input type="checkbox" data-sdoc="${it.id}|${i}" ${d.done?"checked":""}> <span>${esc(d.label)}</span></label></li>`).join("")}</ul>
       <div class="addl"><input id="sd-${it.id}" placeholder="Autre pièce…"><button class="btn" data-adddoc="${it.id}">Ajouter</button></div></section>
-    <section><h4>Mon rétroplanning</h4>${steps.length?`<ul class="chk">${steps.map(st=>{const ev=state.events.find(e=>e.id===st.eventId);return `<li class="${ev&&ev.done?"done":""}"><span>${esc(st.label)}</span> <span class="hint">${st.date?fmtDay(parseISO(st.date))+" "+parseISO(st.date).getFullYear():""}</span> <button class="btn ghost" data-rmstep="${it.id}|${st.id}" aria-label="Supprimer">×</button></li>`}).join("")}</ul>`:`<p class="hint">Ajoute les étapes (préparer le TOEIC, demander la recommandation, envoyer le dossier…) : elles apparaîtront dans ton calendrier.</p>`}
-      <div class="addl col"><input id="ss-${it.id}" placeholder="Étape (ex. Passer le TOEIC)"><input type="date" id="sdt-${it.id}"><button class="btn" data-addstep="${it.id}">Ajouter</button></div></section>`}
+    <section><h4>Mon rétroplanning</h4>${steps.length?`<ul class="chk">${steps.map(st=>{const ev=state.events.find(e=>e.id===st.eventId);return `<li class="${ev&&ev.done?"done":""}"><span>${esc(st.label)}</span> <span class="hint">${st.date?fmtDay(parseISO(st.date))+" "+parseISO(st.date).getFullYear():""}</span> <button class="btn ghost" data-rmstep="${it.id}|${st.id}" aria-label="Supprimer">×</button></li>`}).join("")}</ul>`:`<p class="hint">${studyBusy.has(it.id)?"Claude prépare ton rétroplanning…":"Claude place les étapes à partir de la date limite, de ton dossier et de ton calendrier. Elles apparaîtront aussi dans ton agenda."}</p>`}
+      <button class="btn" data-stplan="${it.id}" style="margin-top:10px"${studyBusy.has(it.id)?" disabled":""}>${studyBusy.has(it.id)?"Claude prépare…":steps.length?"Refaire le rétroplanning avec Claude":"Créer le rétroplanning avec Claude"}</button></section>`}
+const studyBusy=new Set();
+async function planStudy(id){const it=state.studies.find(x=>x.id===id);if(!it||studyBusy.has(id))return;if(!sampleFn){toast("Claude n'est pas disponible pour l'instant.");return}
+  studyBusy.add(id);openStudies.add(id);renderDash();
+  try{const t=iso(new Date()),docs=it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false})),sc=state.toeic.scores||[],best=sc.length?Math.max(...sc.map(x=>x.score)):null;
+    const isDone=st=>{const ev=state.events.find(e=>e.id===st.eventId);return !!(ev&&ev.done)};
+    const prompt=`${await goalContext({id:null,deadline:it.deadline||""})}\n\nFormation visée : ${it.school}${it.program?" – "+it.program:""}\nStatut de la candidature : ${ST_LABEL[it.status]||it.status||"à explorer"}\nMode d'admission : ${it.admission||"non précisé"}\nDate limite de candidature : ${it.deadline||"inconnue, propose un calendrier réaliste"}\nCe qu'on sait de la formation : ${JSON.stringify((it.sections||[]).map(x=>({[x.t]:x.items}))).slice(0,1500)}\nPièces du dossier : ${docs.map(d=>d.label+(d.done?" (prête)":" (à préparer)")).join(" ; ")}\nTOEIC : objectif ${state.toeic.goal}, meilleur score ${best??"aucun pour l'instant"}\nAujourd'hui : ${t}\nÉtapes déjà faites : ${(it.steps||[]).filter(isDone).map(x=>x.label).join(" ; ")||"aucune"}\n\nConstruis le rétroplanning de cette candidature : 5 à 8 étapes concrètes, en partant de la date limite et en remontant jusqu'à aujourd'hui. Appuie-toi sur les informations ci-dessus (pièces encore à préparer, TOEIC, examens prévus, alternance) pour placer chaque étape au bon moment. Chaque étape tient en une phrase courte (60 caractères au plus) et a une date au format AAAA-MM-JJ, comprise entre aujourd'hui et la date limite, dans l'ordre chronologique. Ne répète pas les étapes déjà faites. Tout en français, en la tutoyant, sans emoji. Format : {"steps":[{"text":"...","date":"AAAA-MM-JJ"}]}`;
+    const j=await sampleFn.json(prompt,{cache:false,maxTokens:1200});
+    const ns=((j&&j.steps)||[]).filter(x=>x&&x.text&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")).map(x=>({text:String(x.text).slice(0,120),date:x.date<t?t:x.date})).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!ns.length)throw {code:"empty"};
+    const cur=state.studies.find(x=>x.id===id);if(!cur)throw {};
+    const kept=(cur.steps||[]).filter(isDone),gone=new Set((cur.steps||[]).filter(st=>!kept.includes(st)).map(st=>st.eventId));
+    const tag="["+cur.school.replace(/ Business School|Université /g,"").trim()+"] ";
+    const evs=ns.map(x=>({id:uid(),type:"devoir",subject:"gen",title:tag+x.text,date:x.date,start:"",end:"",weekly:false,done:false}));
+    state.events=[...state.events.filter(e=>!gone.has(e.id)),...evs];saveCalendar();
+    cur.steps=[...kept,...ns.map((x,i)=>({id:uid(),label:x.text,date:x.date,eventId:evs[i].id}))];saveStudies();
+  }catch(e){toast(e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":e&&e.code==="offline"?"Pas de connexion : réessaie quand tu es en ligne.":e&&e.code==="empty"?"Claude n'a pas proposé d'étapes : réessaie.":"Le rétroplanning n'a pas pu être créé. Réessaie dans un instant.")}
+  studyBusy.delete(id);renderDash()}
 function saveStudies(){persist("studies",{items:state.studies})}
 function studiesClick(b){
   if(b.dataset.adddoc){const it=state.studies.find(x=>x.id===b.dataset.adddoc);const v=$("#sd-"+it.id).value.trim();if(!v)return;it.docs=[...(it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}))),{label:v,done:false}];openStudies.add(it.id);saveStudies();renderDash();return true}
-  if(b.dataset.addstep){const it=state.studies.find(x=>x.id===b.dataset.addstep);const v=$("#ss-"+it.id).value.trim(),d=$("#sdt-"+it.id).value;if(!v||!d){toast("Indique l'étape et sa date.");return true}
-    const eid=uid();state.events=[...state.events,{id:eid,type:"devoir",subject:"gen",title:"["+it.school.replace(/ Business School|Université /g,"").trim()+"] "+v,date:d,start:"",end:"",weekly:false,done:false}];saveCalendar();
-    it.steps=[...(it.steps||[]),{id:uid(),label:v,date:d,eventId:eid}];openStudies.add(it.id);saveStudies();renderDash();return true}
+  if(b.dataset.stplan){planStudy(b.dataset.stplan);return true}
   if(b.dataset.rmstep){const [sid,stid]=b.dataset.rmstep.split("|");const it=state.studies.find(x=>x.id===sid);const st=(it.steps||[]).find(x=>x.id===stid);
     if(st){state.events=state.events.filter(e=>e.id!==st.eventId);saveCalendar();it.steps=it.steps.filter(x=>x!==st);saveStudies();renderDash()}return true}
   if(b.dataset.act==="addtoeic"){const v=+$("#tScore").value,d=$("#tDate").value;if(!v||v<10||v>990){toast("Indique un score entre 10 et 990.");return true}
@@ -1518,8 +1534,8 @@ function studiesHTML(){
         <span class="st st-${it.status}">${ST_LABEL[it.status]||""}</span><span class="chev" aria-hidden="true">›</span></summary>
       <div class="study-body">${secs}
         ${studyExtras(it)}
-        <section><h4>Mes notes</h4>${it.notes?`<p style="white-space:pre-wrap;margin:0">${esc(it.notes)}</p>`:`<p class="hint">Aucune note pour l'instant.</p>`}
-          <div class="toolbar" style="margin-top:10px">${it.link?`<a class="btn" href="${esc(it.link)}" target="_blank" rel="noopener">Voir la page officielle</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</div></section>
+        <section class="st-acts">
+          <div class="toolbar">${it.link?`<a class="btn" href="${esc(it.link)}" target="_blank" rel="noopener">Voir la page officielle</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</div></section>
       </div></details>`}).join("")}</div>`;
 }
 function certHTML(c){
@@ -1865,12 +1881,12 @@ function openStudy(id){
   editingSt=id?state.studies.find(x=>x.id===id):null;stForm.reset();
   $("#stTitle").textContent=editingSt?"Modifier la formation":"Ajouter une formation";$("#stDelete").hidden=!editingSt;
   const it=editingSt||{status:"explorer"};
-  for(const f of ["school","program","admission","deadline","status","link","notes"])stForm[f].value=it[f]||(f==="status"?"explorer":"");
+  for(const f of ["school","program","admission","deadline","status","link"])stForm[f].value=it[f]||(f==="status"?"explorer":"");
   stDlg.showModal();
 }
 $("#stCancel").onclick=()=>stDlg.close();
 stForm.addEventListener("submit",ev=>{ev.preventDefault();
-  const d={};for(const f of ["school","program","admission","deadline","status","link","notes"])d[f]=stForm[f].value.trim();
+  const d={};for(const f of ["school","program","admission","deadline","status","link"])d[f]=stForm[f].value.trim();
   if(!d.school)return;if(d.link&&!/^https:\/\//i.test(d.link)){toast("Le lien doit commencer par https://");return}
   if(editingSt)Object.assign(editingSt,d);else state.studies.push({id:uid(),...d});
   stDlg.close();persist("studies",{items:state.studies});renderDash()});

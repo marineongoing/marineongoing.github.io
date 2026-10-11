@@ -1057,9 +1057,9 @@ body .rtebar .rb-f b{font-weight:600}body .rtebar .rb-f i{font-style:italic}body
 body .rte i,body .rte em{font-style:italic}body .rte u{text-decoration:underline;text-underline-offset:3px}
 body .study>summary .st-top{margin-left:auto;display:inline-flex;align-items:center;gap:6px;flex:none}
 body .study>summary .st-top+.chev{margin-left:4px}
-body .study>summary .st-top a.btn{font-size:13px;padding:7px 12px;gap:7px}
-body .study>summary .st-top a.btn svg{width:15px;height:15px;flex:none;margin-right:7px}
-@media (max-width:700px){body .study>summary .st-top a.btn span{display:none}body .study>summary .st-top a.btn{padding:8px}body .study>summary .st-top a.btn svg{margin-right:0}}
+body .study>summary .st-top{gap:2px}
+body .study>summary .ttl{flex:1 1 0;min-width:0}
+@media (max-width:700px){body .study>summary{flex-wrap:nowrap;gap:8px;align-items:flex-start}body .study>summary .chev{margin-top:8px}}
 /* corrections d'affichage */
 body .dash-grid{grid-template-columns:minmax(0,1fr) 320px}
 body .dash-grid>*{min-width:0}
@@ -1534,8 +1534,8 @@ function studiesHTML(){
     const secs=(it.sections||[]).map(sc=>`<section class="${sc.warn?"warn":""}"><h4>${esc(sc.t)}</h4><ul>${sc.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
     return `<details class="study" ${openStudies.has(it.id)?"open":""} data-sid="${it.id}"><summary>
         <div class="ttl"><h3>${esc(it.school)}</h3>${it.program?`<span>${esc(it.program)}</span>`:""}${dl?`<span class="meta">${dl}</span>`:""}</div>
-        <span class="st st-${it.status}">${ST_LABEL[it.status]||""}</span>
-        <span class="st-top">${it.link?`<a class="btn" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir la page officielle" aria-label="Voir la page officielle">${SV('<path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M18 14v5H5V6h5"/>')}<span>Voir la page officielle</span></a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</span><span class="chev" aria-hidden="true">›</span></summary>
+        ${it.status&&it.status!=="explorer"&&ST_LABEL[it.status]?`<span class="st st-${it.status}">${ST_LABEL[it.status]}</span>`:""}
+        <span class="st-top">${it.link?`<a class="btn ghost icon" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir la page officielle" aria-label="Voir la page officielle">${SV('<path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M18 14v5H5V6h5"/>')}</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</span><span class="chev" aria-hidden="true">›</span></summary>
       <div class="study-body">${secs}
         ${studyExtras(it)}
       </div></details>`}).join("")}</div>`;

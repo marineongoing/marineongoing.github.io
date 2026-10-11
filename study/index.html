@@ -942,6 +942,11 @@ body .pswatch.on{box-shadow:0 0 0 2px rgba(255,255,255,.9)}
 #flBtn .pgimg{position:relative}
 #flBtn[aria-expanded="true"]::before{inset:-13px;animation-duration:3s}
 @keyframes flAura{0%,100%{transform:scale(.9);opacity:.55}50%{transform:scale(1.14);opacity:.95}}
+#flBtn.pop .pgimg{animation:flPop .75s cubic-bezier(.3,1.4,.5,1)}
+#flBtn.pop::before{animation:flBurst .75s ease-out,flAura 4.6s ease-in-out .75s infinite}
+@keyframes flPop{0%{transform:scale(.6) rotate(-70deg)}55%{transform:scale(1.25) rotate(14deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes flBurst{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:.5}}
+@media (prefers-reduced-motion:reduce){#flBtn.pop .pgimg,#flBtn.pop::before{animation:none}}
 @media (prefers-reduced-motion:reduce){#flBtn::before{animation:none}}
 /* Goals */
 .gl-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
@@ -2738,6 +2743,7 @@ $("#uiDlg").addEventListener("cancel",e=>{e.preventDefault();uiDone($("#uiInput"
 {const m={week:"cal",subjects:"book",evals:"chart",revs:"target"};document.querySelectorAll("#yeartabs button").forEach(b=>{const k=m[b.dataset.ytab];if(k&&!b.querySelector("svg"))b.insertAdjacentHTML("afterbegin",ICO[k])})}
 $("#mbackBtn").addEventListener("click",()=>{state.mOpen=false;applyMobileMode();render();window.scrollTo(0,0)});
 $("#flBtn").addEventListener("click",e=>{e.stopPropagation();const m=$("#flMenu"),open=m.hidden;
+  const fb=$("#flBtn");fb.classList.remove("pop");void fb.offsetWidth;fb.classList.add("pop");clearTimeout(fb._pop);fb._pop=setTimeout(()=>fb.classList.remove("pop"),800);
   if(state.page!=="dash"||state.home!=="year"){state.home="year";openPage("dash");window.scrollTo(0,0)}
   m.hidden=!open;$("#flBtn").setAttribute("aria-expanded",String(open))});
 $("#searchBtn").addEventListener("click",()=>{const on=document.body.classList.toggle("search-open");$("#searchBtn").setAttribute("aria-expanded",String(on));if(on)$("#q").focus();else{$("#q").value="";$("#qres").hidden=true}});

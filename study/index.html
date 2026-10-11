@@ -1116,6 +1116,13 @@ body ul.chk.steps input{flex:none;margin-top:3px}
 body ul.chk.steps .hint{flex:none;white-space:nowrap;margin-top:1px}
 body ul.chk.steps .btn{flex:none;padding:0 6px;min-height:0;line-height:1.2}
 @media (max-width:700px){body ul.chk.steps li{flex-wrap:wrap;gap:0 8px}body ul.chk.steps label{order:1}body ul.chk.steps .btn{order:2}body ul.chk.steps .hint{order:3;flex:0 0 100%;padding-left:24px;margin:0 0 4px}}
+/* rappels des rétroplannings sous le titre de Mon année */
+body ul.dl{list-style:none;margin:20px 0 0;padding:14px 18px;display:flex;flex-direction:column;gap:10px;max-width:62ch;align-self:flex-start;box-sizing:border-box;background:rgba(34,20,20,.46);border:1px solid rgba(255,120,120,.5);border-radius:20px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+body ul.dl label{display:flex;align-items:flex-start;gap:10px;cursor:pointer;color:#FF8A8A;font-size:16px;line-height:1.35}
+body ul.dl input{flex:none;width:17px;height:17px;margin-top:3px;accent-color:#FF6B6B}
+body ul.dl b{font-weight:600;margin-right:4px;color:#FF6B6B}
+body ul.dl small{display:block;font-size:13px;opacity:.8}
+@media (max-width:700px){body ul.dl{align-self:stretch;padding:12px 14px}}
 </style>
 </head>
 <body>
@@ -1330,7 +1337,7 @@ const SUBJ=Object.fromEntries([GEN,...PINNED,...SUBJECTS].map(s=>[s.id,s]));
 const TYPE_LABEL={cours:"Cours",devoir:"Devoir",examen:"Examen"};
 const DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 
-const state={page:"dash",ytab:"week",sem:null,semesters:defaultSemesters(),month:null,home:"year",prefs:{},bgImg:"",bilans:[],veille:[],orals:[],versions:{},grades:[],goals:{},toeic:{goal:780,scores:[]},tests:{toefl:{goal:5,scores:[]},gmat:{goal:655,scores:[]}},alt:{info:{company:"Pierre & Vacances",role:"Assistante commerciale",team:"OTA & Flash Sales",tutor:"",start:"2026-09-01",end:"2028-08-31",rhythm:"École le jeudi et le vendredi"},missions:[]},studies:[],tools:[],extras:[],certs:[],events:[],links:{},notes:{},view:"dash",weekStart:mondayOf(new Date()),subject:"rcnv",noteId:null,preview:false};
+const state={page:"dash",ytab:"week",sem:null,semesters:defaultSemesters(),month:null,home:"year",prefs:{},bgImg:"",bilans:[],veille:[],orals:[],versions:{},grades:[],goals:{},toeic:{goal:780,scores:[]},tests:{toefl:{goal:5,scores:[]},gmat:{goal:655,scores:[]}},remind:{},alt:{info:{company:"Pierre & Vacances",role:"Assistante commerciale",team:"OTA & Flash Sales",tutor:"",start:"2026-09-01",end:"2028-08-31",rhythm:"École le jeudi et le vendredi"},missions:[]},studies:[],tools:[],extras:[],certs:[],events:[],links:{},notes:{},view:"dash",weekStart:mondayOf(new Date()),subject:"rcnv",noteId:null,preview:false};
 let store=null; // {saveDoc(id,data), deleteDoc(id)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1354,6 +1361,7 @@ function applyDocs(docs){
   for(const id of skip){if(id.startsWith("n-")&&state.notes[id])notes[id]=state.notes[id];delete docs[id]}
   for(const id in revs){if(id.startsWith("n-")&&!(id in docs)&&state.notes[id]&&Date.now()-revs[id]<15000)notes[id]=state.notes[id]}
   if(docs.settings&&docs.settings.years)state.semesters=docs.settings.years;
+  if(docs.remind)state.remind=docs.remind.acks||{};
   if(docs.studies)state.studies=Array.isArray(docs.studies.items)?docs.studies.items:[];
   if(docs.alternance)state.alt={info:docs.alternance.info||state.alt.info,missions:Array.isArray(docs.alternance.missions)?docs.alternance.missions:[]};
   if(docs.grades){state.grades=Array.isArray(docs.grades.items)?docs.grades.items:[];state.goals=docs.grades.goals||{}}
@@ -1760,7 +1768,7 @@ function toolsHTML(){
 let lifeGoals=null,lifeGoalsAt=0,lifeProfile="";const openGoals=new Set(),goalBusy=new Set();
 try{lifeGoals=JSON.parse(localStorage.getItem("bts-lifegoals")||"null")}catch(e){}
 function keepGoals(){try{localStorage.setItem("bts-lifegoals",JSON.stringify(lifeGoals))}catch(e){}}
-function drawGoals(){if(state.page==="dash"&&state.home==="goals")render()}
+function drawGoals(){if(state.page==="dash"&&(state.home==="goals"||state.home==="year"))render()}
 async function loadLifeGoals(force){if(!sb||(!force&&Date.now()-lifeGoalsAt<15000))return;lifeGoalsAt=Date.now();
   try{const {data,error}=await sb.from("vie_items").select("id,data").eq("kind","goal");if(error)return;
     lifeGoals=data.map(r=>({...(r.data||{}),id:r.id}));keepGoals();drawGoals()}catch(e){}}
@@ -2016,6 +2024,20 @@ function answerRev(i){if(!rev||rev.answered)return;const it=rev.list[rev.i];rev.
   $("#rfb").innerHTML=`<p style="margin:12px 0 8px"><b>${ok?"Bonne réponse.":"Pas tout à fait."}</b> ${esc(it.q.explanation||"")}</p><button class="btn primary" data-rv="next">${rev.i+1<rev.list.length?"Question suivante":"Voir mon score"}</button>`}
 revDlg.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   if(b.dataset.rq!==undefined)answerRev(+b.dataset.rq);else if(b.dataset.rv==="next"){rev.i++;rev.answered=false;drawRev()}else if(b.dataset.rv==="close"){rev=null;revDlg.close();render()}});
+/* Rappels des rétroplannings (Après le BTS et Goals) : à J-7, puis J-3, puis le jour J. Une case cochée masque l'étape jusqu'au rappel suivant. */
+function dueSteps(){const t=iso(new Date()),ack=state.remind||{},out=[];
+  const add=o=>{const n=Math.round((parseISO(o.date)-parseISO(t))/864e5),l=n<=0?0:n<=3?3:n<=7?7:null;if(l===null||(ack[o.key]!==undefined&&ack[o.key]<=l))return;out.push({...o,n,l})};
+  for(const it of state.studies||[])for(const st of it.steps||[])if(st.date&&!stepDone(st))add({key:"s|"+it.id+"|"+st.id,label:st.label,date:st.date,from:it.school});
+  for(const g of (lifeGoals||[]).filter(g=>g.cat==="Études"||g.cat==="Carrière"))for(const st of g.steps||[])if(st.date&&!st.done)add({key:"g|"+g.id+"|"+st.id,label:st.text,date:st.date,from:g.title});
+  return out.sort((a,b)=>a.date.localeCompare(b.date))}
+function dueHTML(){const l=dueSteps();if(!l.length)return "";
+  return `<ul class="dl">${l.map(x=>`<li><label title="${x.l===0?"Coche quand c'est fait":x.l===7?"Coche pour être rappelée à J-3":"Coche pour être rappelée le jour J"}"><input type="checkbox" data-dl="${esc(x.key)}"><span><b>${x.n<0?"En retard":x.n===0?"Aujourd'hui":"J-"+x.n}</b> ${esc(x.label||"")}<small>${esc(x.from||"")} · ${fmtDay(parseISO(x.date))}</small></span></label></li>`).join("")}</ul>`}
+async function dueTick(key){const x=dueSteps().find(y=>y.key===key);if(!x)return;const [k,pid,sid]=key.split("|");
+  if(x.l>0){state.remind={...(state.remind||{}),[key]:x.l};persist("remind",{acks:state.remind});toast(x.l===7?"Noté. Je te le rappelle à J-3.":"Noté. Je te le rappelle le jour J.");renderDash();return}
+  if(k==="g"){await toggleGoalStep(pid,sid);renderDash();return}
+  const it=state.studies.find(y=>y.id===pid),st=it&&(it.steps||[]).find(y=>y.id===sid);if(!st)return;
+  st.done=true;if(state.events.some(e=>e.id===st.eventId)){state.events=state.events.map(e=>e.id===st.eventId?{...e,done:true}:e);saveCalendar()}
+  saveStudies();toast("Étape cochée dans ton rétroplanning.");renderDash()}
 function todayHTML(part){const t=iso(new Date()),today=new Date();
   const evs=eventsOn(today).filter(e=>e.type!=="devoir"||!e.done);
   const wk=iso(addDays(today,7));
@@ -2040,7 +2062,7 @@ function todayHTML(part){const t=iso(new Date()),today=new Date();
   const ttl=!subjSeq.length?"Aucun cours prévu":upDay?"Prochain cours":todayC.length===evs.filter(e=>e.type==="cours").length?"Aujourd'hui":"Encore aujourd'hui";
   const det=!subjSeq.length?"Ton calendrier est vide pour les 30 prochains jours.":upDay?`<span>${cap(upDay.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/ 1 /," 1er "))}</span>${nm}`:nm;
   const hero=pp.hideHero?"":`<section class="aura-wrap">
-    <h2 class="hello">${ttl}</h2>${det?`<p class="hsub">${det}</p>`:""}</section>`;
+    <h2 class="hello">${ttl}</h2>${det?`<p class="hsub">${det}</p>`:""}${dueHTML()}</section>`;
   if(part==="hero")return hero;
   return revBox+(secs.length?`<div class="panel today-one" style="margin-bottom:16px"><div class="today-grid" style="grid-template-columns:repeat(${secs.length},1fr);margin:0">${secs.join("")}</div></div>`:"")}
 function runSearch(q){const box=$("#qres");const k=nrm(q.trim());if(k.length<2){box.hidden=true;return}
@@ -2240,6 +2262,7 @@ $("#view-dash").addEventListener("change",onDone);
 $("#view-dash").addEventListener("change",e=>{if(e.target.id==="bkInput"&&e.target.files[0]){importBackup(e.target.files[0]);e.target.value=""}});
 $("#view-dash").addEventListener("change",e=>{const v=e.target.dataset&&e.target.dataset.sdoc;if(!v)return;const [sid,i]=v.split("|");const it=state.studies.find(x=>x.id===sid);if(!it)return;
   const docs=(it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}))).map((d,j)=>j===+i?{...d,done:e.target.checked}:d);it.docs=docs;openStudies.add(sid);saveStudies();renderDash()});
+$("#view-dash").addEventListener("change",e=>{const v=e.target.dataset&&e.target.dataset.dl;if(v)dueTick(v)});
 $("#view-dash").addEventListener("change",e=>{const v=e.target.dataset&&e.target.dataset.sstep;if(!v)return;const [sid,stid]=v.split("|");const it=state.studies.find(x=>x.id===sid);const st=it&&(it.steps||[]).find(x=>x.id===stid);if(!st)return;
   const on=e.target.checked;st.done=on;if(state.events.some(x=>x.id===st.eventId)){state.events=state.events.map(x=>x.id===st.eventId?{...x,done:on}:x);saveCalendar()}
   openStudies.add(sid);openSecs.add(sid+"|plan");saveStudies();renderDash()});

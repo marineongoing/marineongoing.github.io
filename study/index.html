@@ -1055,8 +1055,11 @@ body .rtebar .rb-f{min-width:30px;font-family:"Sora","Outfit",system-ui,sans-ser
 body .rtebar .rb-f b{font-weight:600}body .rtebar .rb-f i{font-style:italic}body .rtebar .rb-f u{text-underline-offset:3px}
 @media (max-width:700px){body .rtebar{gap:0}body .rtebar button{padding:6px 7px;white-space:nowrap;flex:none}body .rtebar .rb-f{min-width:26px}body .rtebar .rsep{margin:0 3px}}
 body .rte i,body .rte em{font-style:italic}body .rte u{text-decoration:underline;text-underline-offset:3px}
-body .study-body .st-acts{grid-column:1/-1;margin-top:4px}
-body .study-body .st-acts .toolbar{justify-content:flex-end}
+body .study>summary .st-top{margin-left:auto;display:inline-flex;align-items:center;gap:6px;flex:none}
+body .study>summary .st-top+.chev{margin-left:4px}
+body .study>summary .st-top a.btn{font-size:13px;padding:7px 12px;gap:7px}
+body .study>summary .st-top a.btn svg{width:15px;height:15px;flex:none;margin-right:7px}
+@media (max-width:700px){body .study>summary .st-top a.btn span{display:none}body .study>summary .st-top a.btn{padding:8px}body .study>summary .st-top a.btn svg{margin-right:0}}
 /* corrections d'affichage */
 body .dash-grid{grid-template-columns:minmax(0,1fr) 320px}
 body .dash-grid>*{min-width:0}
@@ -1531,11 +1534,10 @@ function studiesHTML(){
     const secs=(it.sections||[]).map(sc=>`<section class="${sc.warn?"warn":""}"><h4>${esc(sc.t)}</h4><ul>${sc.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
     return `<details class="study" ${openStudies.has(it.id)?"open":""} data-sid="${it.id}"><summary>
         <div class="ttl"><h3>${esc(it.school)}</h3>${it.program?`<span>${esc(it.program)}</span>`:""}${dl?`<span class="meta">${dl}</span>`:""}</div>
-        <span class="st st-${it.status}">${ST_LABEL[it.status]||""}</span><span class="chev" aria-hidden="true">›</span></summary>
+        <span class="st st-${it.status}">${ST_LABEL[it.status]||""}</span>
+        <span class="st-top">${it.link?`<a class="btn" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir la page officielle" aria-label="Voir la page officielle">${SV('<path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M18 14v5H5V6h5"/>')}<span>Voir la page officielle</span></a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</span><span class="chev" aria-hidden="true">›</span></summary>
       <div class="study-body">${secs}
         ${studyExtras(it)}
-        <section class="st-acts">
-          <div class="toolbar">${it.link?`<a class="btn" href="${esc(it.link)}" target="_blank" rel="noopener">Voir la page officielle</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</div></section>
       </div></details>`}).join("")}</div>`;
 }
 function certHTML(c){

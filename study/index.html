@@ -1059,7 +1059,8 @@ body .study>summary .st-top{margin-left:auto;display:inline-flex;align-items:cen
 body .study>summary .st-top+.chev{margin-left:4px}
 body .study>summary .st-top{gap:2px}
 body .study>summary .ttl{flex:1 1 0;min-width:0}
-@media (max-width:700px){body .study>summary{flex-wrap:nowrap;gap:8px;align-items:flex-start}body .study>summary .chev{margin-top:8px}}
+body .study>summary .st{flex:none}
+@media (max-width:700px){body .study>summary{flex-wrap:wrap;gap:8px;align-items:flex-start}body .study>summary .ttl{flex:1 1 calc(100% - 110px)}body .study>summary .chev{margin-top:8px}body .study>summary .st{order:5;margin-right:auto}}
 /* corrections d'affichage */
 body .dash-grid{grid-template-columns:minmax(0,1fr) 320px}
 body .dash-grid>*{min-width:0}
@@ -1534,7 +1535,7 @@ function studiesHTML(){
     const secs=(it.sections||[]).map(sc=>`<section class="${sc.warn?"warn":""}"><h4>${esc(sc.t)}</h4><ul>${sc.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("");
     return `<details class="study" ${openStudies.has(it.id)?"open":""} data-sid="${it.id}"><summary>
         <div class="ttl"><h3>${esc(it.school)}</h3>${it.program?`<span>${esc(it.program)}</span>`:""}${dl?`<span class="meta">${dl}</span>`:""}</div>
-        ${it.status&&it.status!=="explorer"&&ST_LABEL[it.status]?`<span class="st st-${it.status}">${ST_LABEL[it.status]}</span>`:""}
+        <span class="st st-${it.status||"explorer"}">${ST_LABEL[it.status]||ST_LABEL.explorer}</span>
         <span class="st-top">${it.link?`<a class="btn ghost icon" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir la page officielle" aria-label="Voir la page officielle">${SV('<path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M18 14v5H5V6h5"/>')}</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</span><span class="chev" aria-hidden="true">›</span></summary>
       <div class="study-body">${secs}
         ${studyExtras(it)}

@@ -290,7 +290,7 @@ body.home{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
 .tabs button[aria-pressed="true"]{color:var(--ink)}
 .blobwrap{display:grid;place-items:center;height:min(44vh,380px);min-height:260px}
 .blob{width:min(260px,62vw);aspect-ratio:1;position:relative;border:0;background:none;padding:0}
-.blob i{position:absolute;inset:0;border-radius:48% 52% 45% 55%/55% 45% 55% 45%;background:radial-gradient(circle at 42% 44%,var(--m1) 0%,color-mix(in srgb,var(--m1) 70%,var(--m2)) 45%,color-mix(in srgb,var(--m2) 60%,transparent) 78%);filter:blur(12px);opacity:.85;animation:morph 13s ease-in-out infinite;transition:background 1.2s;will-change:transform}
+.blob i{position:absolute;inset:0;border-radius:48% 52% 45% 55%/55% 45% 55% 45%;background:radial-gradient(circle at 42% 44%,var(--m1) 0%,color-mix(in srgb,var(--m1) 70%,var(--m2)) 45%,color-mix(in srgb,var(--m2) 60%,transparent) 78%);filter:blur(12px);opacity:.85;animation:morph 13s ease-in-out 2;transition:background 1.2s;will-change:transform}
 .blob i:last-child{inset:4% 8% 10% 4%;background:radial-gradient(circle at 26% 62%,rgba(255,255,255,.7),transparent 42%),radial-gradient(circle at 70% 30%,color-mix(in srgb,var(--m2) 70%,transparent),transparent 60%);filter:blur(10px);animation-duration:17s;animation-direction:reverse}
 /* Seuls rotation et taille bougent : la forme reste fixe pour économiser la batterie */
 @keyframes morph{0%,100%{transform:rotate(0) scale(1)}33%{transform:rotate(24deg) scale(1.04)}66%{transform:rotate(-16deg) scale(.96)}}

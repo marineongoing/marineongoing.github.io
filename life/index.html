@@ -723,6 +723,9 @@ body.home{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)!important}
 @media (prefers-reduced-motion:reduce){.wwave{animation:none}.wlevel{transition:none}}
 /* Fenêtre en arrière-plan : animations en pause */
 body.idle *,body.idle *::before,body.idle *::after{animation-play-state:paused!important}
+/* Après l'ouverture : l'aura et l'hibiscus ne rejouent plus à chaque mise à jour de la page */
+body.calm .blob i{animation:none}
+body.calm .flowerbtn:not(.pop)::before{animation:none;transform:scale(.9);opacity:.55}
 /* Habits */
 .hcal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;background:rgba(255,176,112,calc(.06 + var(--p) * .5))}
 .hcal button span{font-size:11px;color:var(--muted)}
@@ -1835,6 +1838,7 @@ initAuth();
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{}))}
 // Fenêtre en arrière-plan : met les animations en pause pour économiser la batterie
 addEventListener("blur",()=>document.body.classList.add("idle"));addEventListener("focus",()=>document.body.classList.remove("idle"));
+setTimeout(()=>document.body.classList.add("calm"),40000);
 </script>
 </body>
 </html>

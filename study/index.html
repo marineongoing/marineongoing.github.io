@@ -648,6 +648,13 @@ dialog.notedlg{border-radius:30px!important}
 .revcard .toolbar{margin-top:auto}
 #view-revs .oral{margin-top:14px;background:rgba(255,255,255,.05)!important}
 @media (max-width:900px){.revgrid{grid-template-columns:1fr}}
+.revcard.notions{margin-top:12px}
+.nlist{list-style:none;margin:4px 0 0;padding:0}
+.nlist li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.nlist li:first-child{border-top:0}
+.nlist small{grid-column:1/-1;color:var(--muted);font-size:12px}
+.nst{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;color:#2B2A27;background:#F9C6D6;white-space:nowrap}
+.nst.up{background:#FFDDB8}.nst.ok{background:#C8EBC9}
 .mback{display:none}
 @media (max-width:700px){
   body.m-open .mback{display:flex;align-items:center;gap:6px;margin:0 0 12px}
@@ -2021,7 +2028,7 @@ function drawRev(){const z=$("#revZone");if(!rev)return;const it=rev.list[rev.i]
     <h2 style="margin:10px 0 14px">${esc(it.q.question)}</h2><div class="qchoices">${it.q.choices.map((c,i)=>`<button class="qch" data-rq="${i}">${esc(c)}</button>`).join("")}</div><div id="rfb"></div></div>`}
 function answerRev(i){if(!rev||rev.answered)return;const it=rev.list[rev.i];rev.answered=true;const ok=i===it.q.answer;if(ok)rev.ok++;
   document.querySelectorAll("#revZone .qch").forEach((b,j)=>{b.disabled=true;if(j===it.q.answer)b.classList.add("ok");else if(j===i)b.classList.add("ko")});
-  const n=state.notes[it.id];if(n&&n.quiz){const k=(n.quiz.missed||[]).findIndex(x=>x.question===it.q.question);if(k>=0){const q=n.quiz.missed[k];
+  const n=state.notes[it.id];if(n)markNotion(n,it.q,ok);if(n&&n.quiz){const k=(n.quiz.missed||[]).findIndex(x=>x.question===it.q.question);if(k>=0){const q=n.quiz.missed[k];
     if(ok){const pos=IVS.indexOf(q.iv||1);const nx=IVS[pos+1];if(!nx||pos<0&&false){n.quiz.missed.splice(k,1)}else n.quiz.missed[k]={...q,iv:nx,due:iso(addDays(new Date(),nx))}}
     else n.quiz.missed[k]={...q,iv:1,due:iso(addDays(new Date(),1))};
     n.updatedAt=Date.now();persist(it.id,{...n})}}
@@ -2216,7 +2223,7 @@ function renderRevs(){
       <div class="revcard"><h3 class="nl-sec">Mes tests</h3><p class="rbig">${avg==null?"–":avg+" %"}<small>${avg==null?"":" de réussite"}</small></p><p class="hint">${tests.length} note${tests.length>1?"s":""} testée${tests.length>1?"s":""} · ${nNotes} note${nNotes>1?"s":""} de cours</p></div>
       <div class="revcard"><h3 class="nl-sec">Synthèse</h3><p class="hint">${syn&&(syn.content||"").trim()?"Ta fiche de révision de la matière est prête.":"Rassemble toutes tes notes de la matière en une fiche."}</p>
         <div class="toolbar">${syn&&(syn.content||"").trim()?`<button class="btn" data-gonote="n-pin-${sid}-syn">Ouvrir</button>`:""}${sampleFn?`<button class="btn ${syn&&(syn.content||"").trim()?"":"primary"}" data-rsyn="${sid}">${syn&&(syn.content||"").trim()?"Mettre à jour":"Faire la synthèse"}</button>`:""}</div></div>
-    </div>${sid==="rcnv"?oralHTML():""}</div></div>`;
+    </div>${notionsHTML(sid)}${sid==="rcnv"?oralHTML():""}</div></div>`;
   $("#view-revs").innerHTML=html;const ol=$("#oralLog");if(ol)ol.scrollTop=ol.scrollHeight}
 $("#view-revs").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b||b.dataset.gonote)return;
   if(b.dataset.act==="reorder"){reorder=!reorder;render()}
@@ -2598,17 +2605,18 @@ async function initClaude(){
 let quiz=null;
 async function startQuiz(){const n=state.notes[state.noteId];if(!n||busy)return;flush();const zone=$("#claudeZone");
   const txt=(n.content||"").trim();if(txt.length<80){zone.innerHTML=`<p class="hint">Ta note est encore trop courte pour générer un test. Ajoute du contenu puis réessaie.</p>`;return}
-  busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">Claude prépare 5 questions sur ton cours…</p></div>`;
-  const prompt=`Tu es un professeur de BTS NDRC. À partir des notes de cours ci-dessous (matière : ${((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name)}), crée 5 questions à choix multiples pour vérifier la compréhension, en français.
-Chaque question porte sur une notion réellement présente dans les notes, avec 4 propositions dont une seule correcte, et une courte explication (1 à 2 phrases).
-Réponds uniquement avec du JSON de la forme : {"questions":[{"question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"..."}]} où "answer" est l'indice (0 à 3) de la bonne proposition.
+  const isSyn=n.pin==="syn";
+  busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">${isSyn?"Claude prépare une question par notion de ta synthèse (10 à 30)…":"Claude prépare 5 questions sur ton cours…"}</p></div>`;
+  const prompt=`Tu es un professeur de BTS NDRC. À partir ${isSyn?"de la synthèse de révision":"des notes de cours"} ci-dessous (matière : ${((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name)}), ${isSyn?"repère d'abord toutes les notions qu'elle mentionne (définitions, concepts, méthodes, calculs, outils, auteurs, chiffres clés…), puis crée une question à choix multiples par notion, en français. Chaque notion de la synthèse doit avoir sa propre question : n'en oublie aucune et ne pose pas deux questions sur la même notion. Il faut au minimum 10 et au maximum 30 questions : s'il y a moins de 10 notions, pose des questions sur des aspects différents des notions principales ; s'il y en a plus de 30, regroupe les notions très proches.":"crée 5 questions à choix multiples pour vérifier la compréhension, en français."}
+Chaque question porte sur une notion réellement présente ${isSyn?"dans la synthèse":"dans les notes"}, avec 4 propositions dont une seule correcte, une courte explication (1 à 2 phrases) et le nom court de la notion testée (2 à 6 mots, tel qu'il apparaît dans le cours).
+Réponds uniquement avec du JSON de la forme : {"questions":[{"notion":"...","question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"..."}]} où "answer" est l'indice (0 à 3) de la bonne proposition.
 
-Notes :
+${isSyn?"Synthèse":"Notes"} :
 """
 ${txt.slice(0,40000)}
 """`;
-  try{const r=await sampleFn.json(prompt,{cache:false});
-    const qs=(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,8);
+  try{const r=await sampleFn.json(prompt,{cache:false,maxTokens:isSyn?12000:3500});
+    const qs=(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,isSyn?30:8);
     if(!qs.length)throw {code:"empty"};runQuiz(qs,false)}
   catch(e){zone.innerHTML=`<p class="hint">${e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":"Le test n'a pas pu être généré. Réessaie dans un instant."}</p>`}
   busy=false}
@@ -2618,16 +2626,25 @@ function drawQuiz(){const z=$("#claudeZone");if(!quiz||!z)return;const q=quiz.li
     n.quiz=n.quiz||{};const old=n.quiz.missed||[];
     if(quiz.review){const ok=new Set(quiz.list.filter(x=>!quiz.missed.includes(x)).map(x=>x.question));n.quiz.missed=old.filter(x=>!ok.has(x.question))}
     else{n.quiz.last={date:iso(new Date()),score:quiz.score,total};const seen=new Set(old.map(x=>x.question));const tm=iso(addDays(new Date(),1));
-      n.quiz.missed=[...old,...quiz.missed.filter(x=>!seen.has(x.question)).map(x=>({...x,due:tm,iv:1}))].slice(-20)}
+      n.quiz.missed=[...old,...quiz.missed.filter(x=>!seen.has(x.question)).map(x=>({...x,due:tm,iv:1}))].slice(-40)}
     saveNote();z.innerHTML=`<div class="claude-box quiz"><h3 class="nd-h">${quiz.review?"Révision terminée":"Test terminé"} : ${quiz.score} / ${total}</h3>
       <p class="hint">${quiz.score===total?"Parfait, tu maîtrises ce cours.":(quiz.missed.length>1?quiz.missed.length+" questions à revoir : elles sont gardées":"1 question à revoir : elle est gardée")+" pour ta prochaine révision."}</p>
+      ${quiz.missed.some(x=>x.notion)?`<p class="hint" style="margin-top:6px"><b>Notions à retravailler</b> (notées dans Révisions) : ${[...new Set(quiz.missed.map(x=>x.notion).filter(Boolean))].map(esc).join(" · ")}</p>`:""}
       <div class="toolbar" style="margin-top:8px"><button class="btn" data-act="quiz">Nouveau test</button><button class="btn ghost" data-act="discard">Fermer</button></div></div>`;
     quiz=null;renderEditorKeepZone(z.innerHTML);return}
   z.innerHTML=`<div class="claude-box quiz"><p class="hint">Question ${quiz.i+1} sur ${quiz.list.length}${quiz.review?" · révision de tes erreurs":""}</p>
     <h3 class="nd-h" style="margin:6px 0 10px">${esc(q.question)}</h3>
     <div class="qchoices">${q.choices.map((c,i)=>`<button class="qch" data-qa="${i}">${esc(c)}</button>`).join("")}</div><div id="qfb"></div></div>`}
+function markNotion(n,q,ok){if(!n||!q||!q.notion)return;const k=String(q.notion).trim().slice(0,80);if(!k)return;n.quiz=n.quiz||{};const m=n.quiz.notions=n.quiz.notions||{};const o=m[k]||{ok:0,ko:0};m[k]={ok:o.ok+(ok?1:0),ko:o.ko+(ok?0:1),last:ok?"ok":"ko",date:iso(new Date())}}
+function weakNotions(sid){const agg={};for(const n of Object.values(state.notes)){if(n.subject!==sid||!n.quiz||!n.quiz.notions)continue;
+  for(const [k,v] of Object.entries(n.quiz.notions)){if(!v.ko)continue;const key=k.toLowerCase();const a=agg[key]||(agg[key]={name:k,ok:0,ko:0,last:"",date:""});a.ok+=v.ok||0;a.ko+=v.ko||0;if((v.date||"")>=a.date){a.date=v.date||"";a.last=v.last}}}
+  for(const a of Object.values(agg))a.st=a.last==="ko"?"ko":a.ok>a.ko?"ok":"up";const rk={ko:0,up:1,ok:2};
+  return Object.values(agg).sort((a,b)=>rk[a.st]-rk[b.st]||b.ko-a.ko||a.name.localeCompare(b.name))}
+function notionsHTML(sid){const list=weakNotions(sid),lb={ko:"À retravailler",up:"En progrès",ok:"Acquise"};
+  return `<div class="revcard notions"><h3 class="nl-sec">Notions où j'ai eu des difficultés</h3>${list.length?`<p class="hint">${list.filter(x=>x.st==="ko").length} à retravailler · mises à jour à chaque test et révision</p><ul class="nlist">${list.map(x=>`<li><span>${esc(x.name)}</span><span class="nst ${x.st}">${lb[x.st]}</span><small>${x.ko} erreur${x.ko>1?"s":""} · ${x.ok} bonne${x.ok>1?"s":""} réponse${x.ok>1?"s":""} · dernier essai le ${x.date.split("-").reverse().join("/")}</small></li>`).join("")}</ul>`:`<p class="hint">Aucune difficulté notée pour l'instant. Ouvre ta synthèse et clique sur « Me tester » : chaque notion ratée s'affichera ici.</p>`}</div>`}
 function answerQuiz(i){if(!quiz||quiz.answered)return;const q=quiz.list[quiz.i];quiz.answered=true;const ok=i===q.answer;
   if(ok)quiz.score++;else quiz.missed.push(q);
+  {const n=state.notes[state.noteId];if(n&&q.notion){markNotion(n,q,ok);n.updatedAt=Date.now();persist(state.noteId,{...n})}}
   document.querySelectorAll(".qch").forEach((b,j)=>{b.disabled=true;if(j===q.answer)b.classList.add("ok");else if(j===i)b.classList.add("ko")});
   $("#qfb").innerHTML=`<p style="margin:10px 0 6px"><b>${ok?"Bonne réponse.":"Pas tout à fait."}</b> ${esc(q.explanation||"")}</p><button class="btn primary" data-act="qnext">${quiz.i+1<quiz.list.length?"Question suivante":"Voir mon score"}</button>`}
 function renderEditorKeepZone(html){renderEditor();const z=$("#claudeZone");if(z)z.innerHTML=html}
@@ -2709,13 +2726,14 @@ async function makeSynthesis(){if(busy||!sampleFn)return;const sid=state.subject
   const notes=Object.values(state.notes).filter(n=>n.subject===sid&&!n.pin&&(n.content||"").trim()&&(!n.date||inSem(n.date,state.sem))).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const st=$("#synstat");if(!notes.length){st.innerHTML=`<p class="hint">Aucune note avec du contenu dans cette matière pour l'instant.</p>`;return}
   const missed=notes.flatMap(n=>(n.quiz&&n.quiz.missed)||[]).map(q=>"- "+q.question).slice(0,20).join("\n");
+  const weak=weakNotions(sid).filter(x=>x.st!=="ok").map(x=>"- "+x.name).slice(0,30).join("\n");
   const all=notes.map(n=>`### ${n.title}${n.date?" ("+n.date+")":""}\n${n.content}`).join("\n\n").slice(0,60000);
   busy=true;st.innerHTML=`<p class="hint">Claude rassemble tes ${notes.length} note${notes.length>1?"s":""}…</p>`;
   try{const r=await sampleFn(`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.full||sj.name} ». Voici toutes ses notes de cours de l'année${missed?", puis les questions qu'elle a ratées à ses tests":""}.
-Rédige une synthèse de révision en français, en Markdown simple : « # ${sj.full||sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max). N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
+Rédige une synthèse de révision en français, en Markdown simple : « # ${sj.full||sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées et des notions difficiles, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max). N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
 
 ${all}
-${missed?"\nQuestions ratées :\n"+missed:""}`,{cache:false});
+${missed?"\nQuestions ratées :\n"+missed:""}${weak?"\nNotions où elle a des difficultés :\n"+weak:""}`,{cache:false});
     const id="n-pin-"+sid+"-syn";const html=cleanHtml(md(r.text.trim()));const prev=state.notes[id];
     if(prev&&(prev.content||"").trim())pushVersion(id,prev.html||noteHtml(prev),true);
     state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:"Synthèse de révision",html,content:htmlText(html),date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};

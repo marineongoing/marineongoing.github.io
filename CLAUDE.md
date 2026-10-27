@@ -60,7 +60,7 @@ Tables (toutes avec RLS : chaque utilisatrice ne voit que ses lignes, `user_id =
 Fonctions :
 - `vie_save(p_day, p_patch)` : fusionne un patch dans la journée (appelée par Life).
 - `vie_import(p_token, p_day, p_steps, p_sleep, p_flow)` : appelée par le raccourci iPhone, vérifie la clé, accepte le sommeil en heures, minutes ou secondes.
-- Edge Function `claude` : relaie les appels à l'API Claude pour les recos (Study et Life) et pour le Journal de Life (mise au propre, recos). Elle a besoin de deux secrets Supabase nommés `ALLOWED_EMAIL` et `ANTHROPIC_API_KEY` ; sans eux, elle répond « not_allowed ». Réponses limitées à 4000 tokens.
+- Edge Function `claude` : relaie les appels à l'API Claude pour les recos (Study et Life) et pour le Journal de Life (mise au propre, recos). Elle a besoin de deux secrets Supabase nommés `ALLOWED_EMAIL` et `ANTHROPIC_API_KEY` ; sans eux, elle répond « not_allowed ». Réponses limitées à 12000 tokens (les tests de synthèse vont jusqu'à 30 questions).
 
 ## Design (identique sur la page de lancement, Life, Study et Work)
 

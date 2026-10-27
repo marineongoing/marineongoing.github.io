@@ -2572,6 +2572,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   }
   else if(b.dataset.act==="claude")organize();
   else if(b.dataset.act==="quiz")startQuiz();
+  else if(b.dataset.act==="quizfresh")startQuiz(true);
   else if(b.dataset.act==="qreview"){const n=state.notes[state.noteId];if(n&&n.quiz&&n.quiz.missed&&n.quiz.missed.length)runQuiz([...n.quiz.missed],true)}
   else if(b.dataset.qa!==undefined)answerQuiz(+b.dataset.qa);
   else if(b.dataset.act==="qnext"){if(quiz){quiz.i++;quiz.answered=false;drawQuiz()}}
@@ -2603,9 +2604,12 @@ async function initClaude(){
     const t=r.text.replace(/```json|```/g,"").trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty"};return JSON.parse(t.slice(a,b+1))};
   render();if(noteDlg.open)renderEditor()}
 let quiz=null;
-async function startQuiz(){const n=state.notes[state.noteId];if(!n||busy)return;flush();const zone=$("#claudeZone");
+function hashStr(t){let h=5381;for(let i=0;i<t.length;i++)h=(h*33^t.charCodeAt(i))>>>0;return t.length+"-"+h.toString(36)}
+function shuffleQs(qs){return qs.map(q=>{const o=q.choices.map((c,i)=>({c,ok:i===q.answer})).sort(()=>Math.random()-.5);return {...q,choices:o.map(x=>x.c),answer:o.findIndex(x=>x.ok)}}).sort(()=>Math.random()-.5)}
+async function startQuiz(fresh){const n=state.notes[state.noteId];if(!n||busy)return;flush();const zone=$("#claudeZone");
   const txt=(n.content||"").trim();if(txt.length<80){zone.innerHTML=`<p class="hint">Ta note est encore trop courte pour générer un test. Ajoute du contenu puis réessaie.</p>`;return}
-  const isSyn=n.pin==="syn";
+  const isSyn=n.pin==="syn",sig=hashStr(txt),bank=n.quiz&&n.quiz.bank;
+  if(isSyn&&!fresh&&bank&&bank.sig===sig&&Array.isArray(bank.qs)&&bank.qs.length){runQuiz(shuffleQs(bank.qs),false);return}
   busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">${isSyn?"Claude prépare une question par notion de ta synthèse (10 à 30)…":"Claude prépare 5 questions sur ton cours…"}</p></div>`;
   const prompt=`Tu es un professeur de BTS NDRC. À partir ${isSyn?"de la synthèse de révision":"des notes de cours"} ci-dessous (matière : ${((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name)}), ${isSyn?"repère d'abord toutes les notions qu'elle mentionne (définitions, concepts, méthodes, calculs, outils, auteurs, chiffres clés…), puis crée une question à choix multiples par notion, en français. Chaque notion de la synthèse doit avoir sa propre question : n'en oublie aucune et ne pose pas deux questions sur la même notion. Il faut au minimum 10 et au maximum 30 questions : s'il y a moins de 10 notions, pose des questions sur des aspects différents des notions principales ; s'il y en a plus de 30, regroupe les notions très proches.":"crée 5 questions à choix multiples pour vérifier la compréhension, en français."}
 Chaque question porte sur une notion réellement présente ${isSyn?"dans la synthèse":"dans les notes"}, avec 4 propositions dont une seule correcte, une courte explication (1 à 2 phrases) et le nom court de la notion testée (2 à 6 mots, tel qu'il apparaît dans le cours).
@@ -2617,7 +2621,9 @@ ${txt.slice(0,40000)}
 """`;
   try{const r=await sampleFn.json(prompt,{cache:false,maxTokens:isSyn?12000:3500});
     const qs=(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,isSyn?30:8);
-    if(!qs.length)throw {code:"empty"};runQuiz(qs,false)}
+    if(!qs.length)throw {code:"empty"};
+    if(isSyn){n.quiz=n.quiz||{};n.quiz.bank={sig,qs,date:iso(new Date())};n.updatedAt=Date.now();persist(state.noteId,{...n})}
+    runQuiz(qs,false)}
   catch(e){zone.innerHTML=`<p class="hint">${e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":"Le test n'a pas pu être généré. Réessaie dans un instant."}</p>`}
   busy=false}
 function runQuiz(list,review){quiz={list,i:0,score:0,missed:[],review,answered:false};drawQuiz()}
@@ -2630,7 +2636,7 @@ function drawQuiz(){const z=$("#claudeZone");if(!quiz||!z)return;const q=quiz.li
     saveNote();z.innerHTML=`<div class="claude-box quiz"><h3 class="nd-h">${quiz.review?"Révision terminée":"Test terminé"} : ${quiz.score} / ${total}</h3>
       <p class="hint">${quiz.score===total?"Parfait, tu maîtrises ce cours.":(quiz.missed.length>1?quiz.missed.length+" questions à revoir : elles sont gardées":"1 question à revoir : elle est gardée")+" pour ta prochaine révision."}</p>
       ${quiz.missed.some(x=>x.notion)?`<p class="hint" style="margin-top:6px"><b>Notions à retravailler</b> (notées dans Révisions) : ${[...new Set(quiz.missed.map(x=>x.notion).filter(Boolean))].map(esc).join(" · ")}</p>`:""}
-      <div class="toolbar" style="margin-top:8px"><button class="btn" data-act="quiz">Nouveau test</button><button class="btn ghost" data-act="discard">Fermer</button></div></div>`;
+      <div class="toolbar" style="margin-top:8px"><button class="btn" data-act="quiz">Nouveau test</button>${n.pin==="syn"?`<button class="btn ghost" data-act="quizfresh">Nouvelles questions</button>`:""}<button class="btn ghost" data-act="discard">Fermer</button></div>${n.pin==="syn"?`<p class="hint" style="margin-top:6px">« Nouveau test » reprend les mêmes questions dans un autre ordre, sans rien coûter. Elles sont recréées toutes seules quand ta synthèse change. « Nouvelles questions » redemande à Claude.</p>`:""}</div>`;
     quiz=null;renderEditorKeepZone(z.innerHTML);return}
   z.innerHTML=`<div class="claude-box quiz"><p class="hint">Question ${quiz.i+1} sur ${quiz.list.length}${quiz.review?" · révision de tes erreurs":""}</p>
     <h3 class="nd-h" style="margin:6px 0 10px">${esc(q.question)}</h3>

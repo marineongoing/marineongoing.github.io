@@ -2222,7 +2222,7 @@ function renderRevs(){
         <div class="toolbar">${due?`<button class="btn primary" data-rrev="${sid}">Réviser</button>`:""}${tracked.length?`<button class="btn ghost" data-rrevall="${sid}">Tout revoir</button>`:""}</div></div>
       <div class="revcard"><h3 class="nl-sec">Mes tests</h3><p class="rbig">${avg==null?"–":avg+" %"}<small>${avg==null?"":" de réussite"}</small></p><p class="hint">${tests.length} note${tests.length>1?"s":""} testée${tests.length>1?"s":""} · ${nNotes} note${nNotes>1?"s":""} de cours</p></div>
       <div class="revcard"><h3 class="nl-sec">Synthèse</h3><p class="hint">${syn&&(syn.content||"").trim()?"Ta fiche de révision de la matière est prête.":"Rassemble toutes tes notes de la matière en une fiche."}</p>
-        <div class="toolbar">${syn&&(syn.content||"").trim()?`<button class="btn" data-gonote="n-pin-${sid}-syn">Ouvrir</button>`:""}${sampleFn?`<button class="btn ${syn&&(syn.content||"").trim()?"":"primary"}" data-rsyn="${sid}">${syn&&(syn.content||"").trim()?"Mettre à jour":"Faire la synthèse"}</button>`:""}</div></div>
+        <div class="toolbar">${syn&&(syn.content||"").trim()?`<button class="btn" data-gonote="n-pin-${sid}-syn">Ouvrir</button>`:""}${sampleFn?`<button class="btn ${syn&&(syn.content||"").trim()?"":"primary"}" data-rsyn="${sid}">${syn&&(syn.content||"").trim()?"Mettre à jour":"Faire la synthèse"}</button>${syn&&(syn.content||"").trim()?`<button class="btn ghost" data-rsynfull="${sid}" title="Refaire la synthèse à partir de toutes tes notes (plus cher)">Tout refaire</button>`:""}`:""}</div></div>
     </div>${notionsHTML(sid)}${sid==="rcnv"?oralHTML():""}</div></div>`;
   $("#view-revs").innerHTML=html;const ol=$("#oralLog");if(ol)ol.scrollTop=ol.scrollHeight}
 $("#view-revs").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b||b.dataset.gonote)return;
@@ -2234,6 +2234,7 @@ $("#view-revs").addEventListener("click",async e=>{const b=e.target.closest("but
   else if(b.dataset.rrev)startReview(b.dataset.rrev,false);
   else if(b.dataset.rrevall)startReview(b.dataset.rrevall,true);
   else if(b.dataset.rsyn){state.subject=b.dataset.rsyn;state.ytab="subjects";openPage(state.sem);makeSynthesis()}
+  else if(b.dataset.rsynfull){state.subject=b.dataset.rsynfull;state.ytab="subjects";openPage(state.sem);makeSynthesis(true)}
   else if(b.dataset.oral)startOral(b.dataset.oral);
   else if(b.dataset.act==="oralsend"){const v=$("#oralInput").value.trim();if(!v||!oral||oral.wait)return;$("#oralInput").value="";oral.turns.push({role:"user",content:v});oralTurn()}
   else if(b.dataset.act==="oraleval")evalOral();
@@ -2728,21 +2729,40 @@ async function initDownloads(){dlFn={save:async({filename,data})=>{const f=new F
   if(navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|Android/i.test(navigator.userAgent)){try{await navigator.share({files:[f]});return {status:"saved"}}catch(e){if(e.name==="AbortError")throw {code:"declined"}}}
   const u=URL.createObjectURL(data);const a=document.createElement("a");a.href=u;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return {status:"saved"}}};
   render();if(noteDlg.open)renderEditor()}
-async function makeSynthesis(){if(busy||!sampleFn)return;const sid=state.subject,sj=SUBJ[sid];
-  const notes=Object.values(state.notes).filter(n=>n.subject===sid&&!n.pin&&(n.content||"").trim()&&(!n.date||inSem(n.date,state.sem))).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+async function makeSynthesis(full){if(busy||!sampleFn)return;const sid=state.subject,sj=SUBJ[sid];
+  const ents=Object.entries(state.notes).filter(([,n])=>n.subject===sid&&!n.pin&&(n.content||"").trim()&&(!n.date||inSem(n.date,state.sem))).sort(([,a],[,b])=>(a.date||"").localeCompare(b.date||""));
+  const notes=ents.map(([,n])=>n);
   const st=$("#synstat");if(!notes.length){st.innerHTML=`<p class="hint">Aucune note avec du contenu dans cette matière pour l'instant.</p>`;return}
   const missed=notes.flatMap(n=>(n.quiz&&n.quiz.missed)||[]).map(q=>"- "+q.question).slice(0,20).join("\n");
   const weak=weakNotions(sid).filter(x=>x.st!=="ok").map(x=>"- "+x.name).slice(0,30).join("\n");
-  const all=notes.map(n=>`### ${n.title}${n.date?" ("+n.date+")":""}\n${n.content}`).join("\n\n").slice(0,60000);
-  busy=true;st.innerHTML=`<p class="hint">Claude rassemble tes ${notes.length} note${notes.length>1?"s":""}…</p>`;
-  try{const r=await sampleFn(`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.full||sj.name} ». Voici toutes ses notes de cours de l'année${missed?", puis les questions qu'elle a ratées à ses tests":""}.
-Rédige une synthèse de révision en français, en Markdown simple : « # ${sj.full||sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées et des notions difficiles, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max). N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
+  /* Mise à jour économe : si la synthèse n'a pas été retouchée à la main, on n'envoie que la synthèse actuelle et les notes ajoutées ou modifiées depuis */
+  const id="n-pin-"+sid+"-syn",prev=state.notes[id],base=prev&&prev.synBase;
+  const sigs=Object.fromEntries(ents.map(([k,n])=>[k,hashStr(n.content)])),wsig=hashStr(missed+"|"+weak);
+  const inc=!full&&!!(prev&&prev.synMd&&base&&base.notes&&base.edit===hashStr(prev.content||"")&&Object.keys(base.notes).every(k=>k in sigs));
+  const todo=inc?ents.filter(([k])=>base.notes[k]!==sigs[k]).map(([,n])=>n):notes;
+  if(inc&&!todo.length&&base.weak===wsig){st.innerHTML=`<p class="hint">Ta synthèse est déjà à jour : aucune note n'a changé depuis la dernière fois.</p>`;return}
+  const all=todo.map(n=>`### ${n.title}${n.date?" ("+n.date+")":""}\n${n.content}`).join("\n\n").slice(0,60000);
+  const fmt=`en français, en Markdown simple : « # ${sj.full||sj.name} – synthèse », puis une section « ## » par grand thème, avec les définitions clés en **gras** et des puces courtes, une section « ## Mes points faibles » (à partir des questions ratées et des notions difficiles, ou écris « Aucun repéré pour l'instant »), et « ## À savoir refaire pour l'examen » (5 puces max)`;
+  const extra=`${missed?"\nQuestions ratées :\n"+missed:""}${weak?"\nNotions où elle a des difficultés :\n"+weak:""}`;
+  busy=true;st.innerHTML=`<p class="hint">${inc?(todo.length?`Claude ajoute ${todo.length>1?"tes "+todo.length+" notes nouvelles ou modifiées":"ta note nouvelle ou modifiée"} à ta synthèse…`:"Claude met à jour tes points faibles…"):`Claude rassemble tes ${notes.length} note${notes.length>1?"s":""}…`}</p>`;
+  const prompt=inc?`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.full||sj.name} ». Voici sa synthèse de révision actuelle, puis ${todo.length?"seulement les notes de cours ajoutées ou modifiées depuis":"la liste à jour de ses difficultés"}${missed||weak?", puis les questions qu'elle a ratées et les notions où elle a des difficultés":""}.
+Mets la synthèse à jour : intègre le contenu de ces notes dans les bons thèmes (crée une nouvelle section « ## » pour un nouveau thème), corrige ce qui a changé, et garde tout le reste tel quel. Garde la même forme, ${fmt}. N'ajoute aucune notion absente de la synthèse ou des notes. Réponds uniquement avec la synthèse complète mise à jour.
+
+Synthèse actuelle :
+"""
+${prev.synMd}
+"""
+${todo.length?"\nNotes ajoutées ou modifiées :\n\n"+all:""}
+${extra}`:`Tu aides une étudiante en BTS NDRC à réviser la matière « ${sj.full||sj.name} ». Voici toutes ses notes de cours de l'année${missed?", puis les questions qu'elle a ratées à ses tests":""}.
+Rédige une synthèse de révision ${fmt}. N'ajoute aucune notion absente des notes. Réponds uniquement avec la synthèse.
 
 ${all}
-${missed?"\nQuestions ratées :\n"+missed:""}${weak?"\nNotions où elle a des difficultés :\n"+weak:""}`,{cache:false});
-    const id="n-pin-"+sid+"-syn";const html=cleanHtml(md(r.text.trim()));const prev=state.notes[id];
+${extra}`;
+  try{const r=await sampleFn(prompt,{cache:false});
+    const src=r.text.trim(),html=cleanHtml(md(src));
     if(prev&&(prev.content||"").trim())pushVersion(id,prev.html||noteHtml(prev),true);
-    state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:"Synthèse de révision",html,content:htmlText(html),date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
+    const content=htmlText(html);
+    state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:"Synthèse de révision",html,content,synMd:src,synBase:{notes:sigs,weak:wsig,edit:hashStr(content)},date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
     persist(id,{...state.notes[id]});st.innerHTML="";busy=false;openNote(id);renderNoteList();return}
   catch(e){st.innerHTML=`<p class="hint">${e&&e.code==="rate_limited"?"Trop de demandes. Réessaie dans une minute.":"La synthèse n'a pas pu être faite. Réessaie dans un instant."}</p>`}busy=false}
 async function organize(){

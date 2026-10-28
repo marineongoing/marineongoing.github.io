@@ -2367,7 +2367,8 @@ function renderSubjects(keepEditor){
   $("#view-subjects").innerHTML=html;
   renderNoteList();
   const focused=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#noteDlg");
-  if(noteDlg.open&&!(keepEditor&&focused))renderEditor();
+  /* pendant un test (ou quand Claude travaille), la synchro ne redessine pas la note : sinon la question en cours disparaît */
+  if(noteDlg.open&&!(keepEditor&&(focused||quiz||busy))){const z=$("#claudeZone"),keep=keepEditor&&z&&z.querySelector(".quiz")?z.innerHTML:"";renderEditor();if(keep){const z2=$("#claudeZone");if(z2)z2.innerHTML=keep}}
 }
 const PINS=[{k:"syn",name:"Synthèse"},{k:"meth",name:"Méthodologie"},{k:"annexes",name:"Annexes"}];
 const PIN_SVG='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l-1 6 4 4H6l4-4z"/><path d="M12 14v6"/></svg>';

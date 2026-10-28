@@ -2593,16 +2593,29 @@ function flush(){if(tmr){clearTimeout(tmr);tmr=null;rteSave();saveNote()}}
 
 /* ---------- Claude ---------- */
 let sampleFn=null,lastFiche="",busy=false;
-async function callClaude(messages,max){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
-  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000})})}catch(e){throw {code:"offline"}}
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw {code:r.status===429||r.status===529?"rate_limited":r.status===403?"not_granted":"error",message:(j.error&&(j.error.message||j.error))||r.status};return j}
+async function callClaude(messages,max,onDelta){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
+  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true})})}catch(e){throw {code:"offline"}}
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw {code:r.status===429||r.status===529?"rate_limited":r.status===403?"not_granted":"error",message:(j.error&&(j.error.message||j.error))||r.status}}
+  if(!r.body||!(r.headers.get("content-type")||"").includes("text/event-stream"))return await r.json().catch(()=>({}));
+  /* Réponse en direct : la connexion reste active pendant que Claude écrit, sinon l'iPhone coupe les longues réponses */
+  const rd=r.body.getReader(),dec=new TextDecoder();let buf="",text="",stop=null;
+  try{for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
+    while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line.startsWith("data:"))continue;let ev;try{ev=JSON.parse(line.slice(5))}catch(e){continue}
+      if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="text_delta"){text+=ev.delta.text;if(onDelta)onDelta(text)}
+      else if(ev.type==="message_delta"&&ev.delta&&ev.delta.stop_reason)stop=ev.delta.stop_reason;
+      else if(ev.type==="error")throw {code:ev.error&&ev.error.type==="overloaded_error"?"rate_limited":"error",message:ev.error&&ev.error.message}}}}
+  catch(e){if(e&&e.code)throw e;if(!text)throw {code:"offline"};stop="cut"}
+  return {content:[{type:"text",text}],stop_reason:stop}}
+function salvageQs(t){const out=[],a=t.indexOf("[",Math.max(0,t.indexOf('"questions"')));if(a<0)return out;let d=0,st=-1,inS=false,esc=false;
+  for(let i=a+1;i<t.length;i++){const c=t[i];if(inS){if(esc)esc=false;else if(c==="\\")esc=true;else if(c==='"')inS=false;continue}
+    if(c==='"')inS=true;else if(c==="{"){if(!d)st=i;d++}else if(c==="}"){d--;if(!d&&st>=0){try{out.push(JSON.parse(t.slice(st,i+1)))}catch(e){}st=-1}}else if(c==="]"&&!d)break}
+  return out}
 async function initClaude(){
   sampleFn=async(input,opts={})=>{const messages=typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content}));
-    const j=await callClaude(messages,opts.maxTokens||3500);const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
-    if(opts.onText)opts.onText({text});return {text,truncated:j.stop_reason==="max_tokens"}};
+    const j=await callClaude(messages,opts.maxTokens||3500,opts.onText?t=>opts.onText({text:t}):null);const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    if(opts.onText)opts.onText({text});return {text,truncated:j.stop_reason==="max_tokens"||j.stop_reason==="cut"}};
   sampleFn.json=async(p,o)=>{const r=await sampleFn(p+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",o);
-    const t=r.text.replace(/```json|```/g,"").trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty"};return JSON.parse(t.slice(a,b+1))};
+    const t=r.text.replace(/```json|```/g,"").trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty",text:t};try{return JSON.parse(t.slice(a,b+1))}catch(e){throw {code:"bad_json",text:t}}};
   render();if(noteDlg.open)renderEditor()}
 let quiz=null;
 function hashStr(t){let h=5381;for(let i=0;i<t.length;i++)h=(h*33^t.charCodeAt(i))>>>0;return t.length+"-"+h.toString(36)}
@@ -2611,7 +2624,7 @@ async function startQuiz(fresh){const n=state.notes[state.noteId];if(!n||busy)re
   const txt=(n.content||"").trim();if(txt.length<80){zone.innerHTML=`<p class="hint">Ta note est encore trop courte pour générer un test. Ajoute du contenu puis réessaie.</p>`;return}
   const isSyn=n.pin==="syn",sig=hashStr(txt),bank=n.quiz&&n.quiz.bank;
   if(isSyn&&!fresh&&bank&&bank.sig===sig&&Array.isArray(bank.qs)&&bank.qs.length){runQuiz(shuffleQs(bank.qs),false);return}
-  busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">${isSyn?"Claude prépare une question par notion de ta synthèse (10 à 30)…":"Claude prépare 5 questions sur ton cours…"}</p></div>`;
+  busy=true;zone.innerHTML=`<div class="claude-box"><p class="hint">${isSyn?"Claude prépare une question par notion de ta synthèse (10 à 30)…":"Claude prépare 5 questions sur ton cours…"}</p><p class="hint" id="qprog"></p></div>`;
   const prompt=`Tu es un professeur de BTS NDRC. À partir ${isSyn?"de la synthèse de révision":"des notes de cours"} ci-dessous (matière : ${((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name)}), ${isSyn?"repère d'abord toutes les notions qu'elle mentionne (définitions, concepts, méthodes, calculs, outils, auteurs, chiffres clés…), puis crée une question à choix multiples par notion, en français. Chaque notion de la synthèse doit avoir sa propre question : n'en oublie aucune et ne pose pas deux questions sur la même notion. Il faut au minimum 10 et au maximum 30 questions : s'il y a moins de 10 notions, pose des questions sur des aspects différents des notions principales ; s'il y en a plus de 30, regroupe les notions très proches.":"crée 5 questions à choix multiples pour vérifier la compréhension, en français."}
 Chaque question porte sur une notion réellement présente ${isSyn?"dans la synthèse":"dans les notes"}, avec 4 propositions dont une seule correcte, une courte explication (1 à 2 phrases) et le nom court de la notion testée (2 à 6 mots, tel qu'il apparaît dans le cours).
 Réponds uniquement avec du JSON de la forme : {"questions":[{"notion":"...","question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"..."}]} où "answer" est l'indice (0 à 3) de la bonne proposition.
@@ -2620,12 +2633,13 @@ ${isSyn?"Synthèse":"Notes"} :
 """
 ${txt.slice(0,40000)}
 """`;
-  try{const r=await sampleFn.json(prompt,{cache:false,maxTokens:isSyn?12000:3500});
+  const prog=({text})=>{const k=(text.match(/"question"\s*:/g)||[]).length,h=$("#qprog");if(h&&k)h.textContent=k+(k>1?" questions prêtes…":" question prête…")};
+  try{let r;try{r=await sampleFn.json(prompt,{cache:false,maxTokens:isSyn?12000:3500,onText:prog})}catch(e){if(e&&e.code==="bad_json")r={questions:salvageQs(e.text||"")};else throw e}
     const qs=(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,isSyn?30:8);
     if(!qs.length)throw {code:"empty"};
     if(isSyn){n.quiz=n.quiz||{};n.quiz.bank={sig,qs,date:iso(new Date())};n.updatedAt=Date.now();persist(state.noteId,{...n})}
     runQuiz(qs,false)}
-  catch(e){zone.innerHTML=`<p class="hint">${e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":"Le test n'a pas pu être généré. Réessaie dans un instant."}</p>`}
+  catch(e){zone.innerHTML=`<p class="hint">${e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":e&&e.code==="offline"?"La connexion a été coupée. Vérifie ta connexion internet puis réessaie.":"Le test n'a pas pu être généré. Réessaie dans un instant."}</p>`}
   busy=false}
 function runQuiz(list,review){quiz={list,i:0,score:0,missed:[],review,answered:false};drawQuiz()}
 function drawQuiz(){const z=$("#claudeZone");if(!quiz||!z)return;const q=quiz.list[quiz.i];

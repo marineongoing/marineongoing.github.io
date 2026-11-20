@@ -116,6 +116,12 @@ dialog.notedlg{width:min(1150px,96vw);max-width:96vw;height:min(880px,92vh);max-
 .rte span[style*="background"]{color:#2B2A27;border-radius:3px;padding:0 2px}
 .rte img{display:block;max-width:100%;height:auto;margin:10px 0;border-radius:10px}
 .rte img:not([src]){width:100%;height:90px;background:rgba(255,255,255,.08)}
+.rte img[data-size="25"]{width:25%}.rte img[data-size="50"]{width:50%}.rte img[data-size="75"]{width:75%}
+.rte img{cursor:pointer}.rte img.on{outline:2px solid var(--c,#fff);outline-offset:2px}
+.nd-main{position:relative}
+.imgbar{position:absolute;z-index:5;display:flex;gap:2px;padding:3px;border-radius:10px;background:rgba(27,27,29,.72);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18)}
+.imgbar button{border:0;background:none;color:#fff;font-size:12px;padding:6px 9px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.imgbar button.on{background:#fff;color:#1B1B1D}
 .rte hr{border:0;height:1px;margin:20px 0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c,var(--accent)) 70%,rgba(255,255,255,.6)),transparent);box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 50%,transparent)}
 .ev-top{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-bottom:16px;align-items:start}
 .avg-big{font-size:46px;font-weight:500;line-height:1;margin:8px 0 4px;font-family:var(--hfont,"Sora","Outfit",system-ui,sans-serif)}
@@ -1477,6 +1483,19 @@ async function addImgs(files,range){const el=$("#rte"),nid=state.noteId;if(!el||
   for(const f of files){try{const src=await shrinkImg(f),id="img-"+uid();imgSrc[id]=src;imgDB.put(id,src);persist(id,{src,note:nid});h+=`<img data-img="${id}" src="${src}" alt="">`}catch(e){toast("Cette image n'a pas pu être ajoutée.")}}
   if(!h||state.noteId!==nid||!$("#rte"))return;el.focus();if(range&&el.contains(range.startContainer)){const sel=getSelection();sel.removeAllRanges();sel.addRange(range)}
   document.execCommand("insertHTML",false,h);onNoteInput({target:el})}
+/* taille d'une image : un clic dessus ouvre une petite barre (25 %, 50 %, 75 %, 100 %) */
+function imgBar(im){let bar=$("#imgBar");const host=im&&im.closest(".nd-main");
+  document.querySelectorAll("#rte img.on").forEach(x=>{if(x!==im)x.classList.remove("on")});
+  if(!host){if(bar)bar.remove();return}
+  if(!bar||bar.parentNode!==host){if(bar)bar.remove();bar=document.createElement("div");bar.id="imgBar";bar.className="imgbar";bar.setAttribute("role","toolbar");bar.setAttribute("aria-label","Taille de l'image");
+    bar.innerHTML=[["25","25 %"],["50","50 %"],["75","75 %"],["","100 %"]].map(([v,t])=>`<button type="button" data-isz="${v}">${t}</button>`).join("");host.appendChild(bar)}
+  im.classList.add("on");const cur=im.dataset.size||"";bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.isz===cur));
+  const hr=host.getBoundingClientRect(),ir=im.getBoundingClientRect();bar.style.top=(ir.top-hr.top+8)+"px";bar.style.left=(ir.left-hr.left+8)+"px"}
+document.addEventListener("mousedown",e=>{if(e.target.closest&&e.target.closest("#imgBar"))e.preventDefault()});
+document.addEventListener("click",e=>{const t=e.target;if(!t.closest)return;
+  const b=t.closest("[data-isz]");if(b){const im=$("#rte img.on");if(!im)return;if(b.dataset.isz)im.dataset.size=b.dataset.isz;else delete im.dataset.size;
+    imgBar(im);rteSave();dirty.add(state.noteId);clearTimeout(tmr);tmr=setTimeout(()=>{tmr=null;saveNote();renderNoteList()},900);return}
+  if(t.closest("#imgBar"))return;imgBar(t.tagName==="IMG"&&t.closest("#rte")?t:null)});
 /* pour le PDF et Word : remet les images (avec leur taille) dans le HTML de la note */
 async function withImgs(html){const t=document.createElement("template");t.innerHTML=html||"";const ims=[...t.content.querySelectorAll("img[data-img]")];if(!ims.length)return t.innerHTML;
   await loadImgs(ims.map(i=>i.dataset.img));
@@ -2434,7 +2453,7 @@ function cleanHtml(html){const t=document.createElement("template");t.innerHTML=
     if(n.nodeType!==1)continue;const tag=n.tagName.toLowerCase();
     if(tag==="span"||tag==="mark"||tag==="font"){const c=HL[((n.style&&n.style.backgroundColor)||"").toLowerCase()];
       if(c){const sp=document.createElement("span");sp.style.backgroundColor=c;walk(n,sp);dst.appendChild(sp)}else walk(n,dst);continue}
-    if(tag==="img"){const k=n.getAttribute("data-img")||"";if(/^img-[\w-]+$/.test(k)){const im=document.createElement("img");im.setAttribute("data-img",k);im.alt="";dst.appendChild(im)}continue}
+    if(tag==="img"){const k=n.getAttribute("data-img")||"";if(/^img-[\w-]+$/.test(k)){const im=document.createElement("img");im.setAttribute("data-img",k);const z=n.getAttribute("data-size");if(/^(25|50|75)$/.test(z||""))im.setAttribute("data-size",z);im.alt="";dst.appendChild(im)}continue}
     const m=map[tag];if(!m){walk(n,dst);continue}
     const el=document.createElement(m);if(m!=="br"&&m!=="hr")walk(n,el);dst.appendChild(el)}};
   walk(t.content,out);return out.innerHTML}
@@ -2555,7 +2574,7 @@ document.addEventListener("toggle",e=>{const d=e.target;if(d.matches&&d.matches(
 function onNoteInput(e){
   const n=state.notes[state.noteId];if(!n)return;
   if(e.target.id==="nTitle")n.title=e.target.value;
-  else if(e.target.id==="rte")rteSave();
+  else if(e.target.id==="rte"){rteSave();imgBar(null)}
   else if(e.target.id==="nDate")n.date=e.target.value;
   else return;
   dirty.add(state.noteId);clearTimeout(tmr);setStatus("Modifications en cours…");
@@ -2710,7 +2729,7 @@ function answerQuiz(i){if(!quiz||quiz.answered)return;const q=quiz.list[quiz.i];
 function renderEditorKeepZone(html){renderEditor();const z=$("#claudeZone");if(z)z.innerHTML=html}
 /* PDF : mise en page propre de la note, puis fenêtre d'impression du navigateur (« Enregistrer au format PDF ») */
 function notePdfDoc(n,html){const sj=((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name),name=(n.title||"Note").replace(/[^\p{L}\p{N} _-]/gu,"").trim().slice(0,60)||"Note";
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(name)}</title><style>@page{margin:18mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;line-height:1.5;color:#111;margin:0}h1{font-size:22pt;line-height:1.2;margin:0 0 4pt}h2{font-size:15pt;margin:16pt 0 4pt}h3{font-size:12.5pt;font-weight:normal;text-decoration:underline;margin:12pt 0 2pt}p{margin:0 0 6pt}ul{margin:0 0 6pt;padding-left:18pt}.meta{color:#666;font-style:italic;margin:0 0 14pt}hr{border:0;border-top:1px solid #bbb;margin:12pt 0}span[style*="background"]{padding:0 2px;border-radius:2px}h2,h3{break-after:avoid}img{display:block;max-width:100%;height:auto;margin:6pt 0;break-inside:avoid}</style></head><body><h1>${esc(n.title||"Note")}</h1><p class="meta">${esc(sj)}${n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""}</p>${html}</body></html>`}
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(name)}</title><style>@page{margin:18mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;line-height:1.5;color:#111;margin:0}h1{font-size:22pt;line-height:1.2;margin:0 0 4pt}h2{font-size:15pt;margin:16pt 0 4pt}h3{font-size:12.5pt;font-weight:normal;text-decoration:underline;margin:12pt 0 2pt}p{margin:0 0 6pt}ul{margin:0 0 6pt;padding-left:18pt}.meta{color:#666;font-style:italic;margin:0 0 14pt}hr{border:0;border-top:1px solid #bbb;margin:12pt 0}span[style*="background"]{padding:0 2px;border-radius:2px}h2,h3{break-after:avoid}img{display:block;max-width:100%;height:auto;margin:6pt 0;break-inside:avoid}img[data-size="25"]{width:25%}img[data-size="50"]{width:50%}img[data-size="75"]{width:75%}</style></head><body><h1>${esc(n.title||"Note")}</h1><p class="meta">${esc(sj)}${n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""}</p>${html}</body></html>`}
 async function exportNotePdf(){const n=state.notes[state.noteId];if(!n)return;rteSave();const html=await withImgs(noteHtml(n));
   const old=$("#pdfFrame");if(old)old.remove();
   const f=document.createElement("iframe");f.id="pdfFrame";f.setAttribute("aria-hidden","true");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
@@ -2737,7 +2756,7 @@ function makeDocx(title,meta,html){
     else if(t==="span"){const c=HLX[(n.style&&n.style.backgroundColor)||""]||(n.style&&n.style.backgroundColor?"FFF2A8":"");o+=inline(n,c?{...f,h:c}:f)}else o+=inline(n,f)}return o};
   const media=[];
   const pic=n=>{const m=/^data:image\/(jpeg|png);base64,(.+)$/.exec(n.getAttribute("src")||"");if(!m)return "";const k=media.length+1,w=+n.dataset.w||800,h=+n.dataset.h||600;
-    const cx=Math.min(w*9525,5759450),cy=Math.round(cx*h/w);media.push({name:`word/media/image${k}.${m[1]}`,data:Uint8Array.from(atob(m[2]),c=>c.charCodeAt(0)),ext:m[1]});
+    const cx=n.dataset.size?Math.round(5759450*n.dataset.size/100):Math.min(w*9525,5759450),cy=Math.round(cx*h/w);media.push({name:`word/media/image${k}.${m[1]}`,data:Uint8Array.from(atob(m[2]),c=>c.charCodeAt(0)),ext:m[1]});
     return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${k}" name="Image ${k}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${k}" name="image${k}.${m[1]}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rImg${k}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`};
   const para=(style,inner,extra)=>`<w:p><w:pPr>${style?`<w:pStyle w:val="${style}"/>`:""}${extra||""}</w:pPr>${inner}</w:p>`;
   const tpl=document.createElement("template");tpl.innerHTML=html||"";let body="",loose="";

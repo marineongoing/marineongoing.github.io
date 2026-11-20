@@ -114,6 +114,8 @@ dialog.notedlg{width:min(1150px,96vw);max-width:96vw;height:min(880px,92vh);max-
 .rte p{margin:0 0 8px}
 .rte ul{margin:0 0 8px;padding-left:24px;list-style:disc}
 .rte span[style*="background"]{color:#2B2A27;border-radius:3px;padding:0 2px}
+.rte img{display:block;max-width:100%;height:auto;margin:10px 0;border-radius:10px}
+.rte img:not([src]){width:100%;height:90px;background:rgba(255,255,255,.08)}
 .rte hr{border:0;height:1px;margin:20px 0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c,var(--accent)) 70%,rgba(255,255,255,.6)),transparent);box-shadow:0 0 8px color-mix(in srgb,var(--c,var(--accent)) 50%,transparent)}
 .ev-top{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-bottom:16px;align-items:start}
 .avg-big{font-size:46px;font-weight:500;line-height:1;margin:8px 0 4px;font-family:var(--hfont,"Sora","Outfit",system-ui,sans-serif)}
@@ -1417,7 +1419,7 @@ function replayOutbox(srv){const o=obRead();let n=0;for(const [id,d] of Object.e
   const c=JSON.parse(JSON.stringify(d));if(id.startsWith("n-")){state.notes[id]=c}n++;persist(id,c)}if(n){render();toast(n+" modification"+(n>1?"s":"")+" non envoyée"+(n>1?"s":"")+" récupérée"+(n>1?"s":"")+" et synchronisée"+(n>1?"s":"")+".")}}
 async function persist(id,data){
   if(!store)return;
-  data._rev=Date.now();revs[id]=data._rev;if(!id.startsWith("v-"))obPut(id,data);
+  data._rev=Date.now();revs[id]=data._rev;if(!id.startsWith("v-")&&!id.startsWith("img-"))obPut(id,data);
   if(writing[id]){pending[id]=data;return}
   writing[id]=true;setStatus("Enregistrement…");
   try{await store.saveDoc(id,data);obDel(id,data._rev);delete failed[id];setStatus("Enregistré");if(!Object.keys(failed).length)hideFail()}
@@ -1438,20 +1440,48 @@ async function initStore(){
   const {data:{session}}=await sb.auth.getSession();const uid=session.user.id;
   const docs=cachedDocs();applyDocs(JSON.parse(JSON.stringify(docs)));render();setStatus(navigator.onLine?"Chargement…":"Hors connexion");
   store={
-    saveDoc:async(id,data)=>{const {error}=await sb.from("docs").upsert({user_id:uid,id,data,updated_at:new Date().toISOString()});if(error)throw {code:error.code==="54000"?"quota_exceeded":"error",message:error.message};docs[id]=JSON.parse(JSON.stringify(data));cacheDocs(docs)},
-    deleteDoc:async(id)=>{const {error}=await sb.from("docs").delete().eq("user_id",uid).eq("id",id);if(error)throw error;delete docs[id];cacheDocs(docs)}
+    saveDoc:async(id,data)=>{const {error}=await sb.from("docs").upsert({user_id:uid,id,data,updated_at:new Date().toISOString()});if(error)throw {code:error.code==="54000"?"quota_exceeded":"error",message:error.message};if(id.startsWith("img-"))return;docs[id]=JSON.parse(JSON.stringify(data));cacheDocs(docs)},
+    deleteDoc:async(id)=>{const {error}=await sb.from("docs").delete().eq("user_id",uid).eq("id",id);if(error)throw error;delete docs[id];cacheDocs(docs)},
+    loadImgs:async(ids)=>{const {data,error}=await sb.from("docs").select("id,data").in("id",ids);if(error)throw error;return data},
+    allImgs:async()=>{const all={};let from=0;for(;;){const {data,error}=await sb.from("docs").select("id,data").like("id","img-%").range(from,from+99);if(error)throw error;for(const r of data)all[r.id]=r.data;if(data.length<100)break;from+=100}return all}
   };
   const emit=()=>{applyDocs(JSON.parse(JSON.stringify(docs)));render(true)};
-  async function loadAll(){const all={};let from=0;for(;;){const {data,error}=await sb.from("docs").select("id,data").range(from,from+999);if(error)throw error;for(const r of data)all[r.id]=r.data;if(data.length<1000)break;from+=1000}
+  async function loadAll(){const all={};let from=0;for(;;){const {data,error}=await sb.from("docs").select("id,data").not("id","like","img-%").range(from,from+999);if(error)throw error;for(const r of data)all[r.id]=r.data;if(data.length<1000)break;from+=1000}
     for(const k of Object.keys(docs))delete docs[k];Object.assign(docs,all);cacheDocs(docs);emit();setStatus("Synchronisé")}
   try{await loadAll()}catch(e){setStatus("Hors connexion : données de cet appareil")}
   loadLifeGoals();
   replayOutbox(docs);
   sb.channel("docs-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"docs",filter:"user_id=eq."+uid},p=>{
+    const pid=(p.new&&p.new.id)||(p.old&&p.old.id)||"";if(pid.startsWith("img-")){if(p.new&&p.new.data&&p.new.data.src){imgSrc[pid]=p.new.data.src;imgDB.put(pid,p.new.data.src);showImgs(document)}return}
     if(p.eventType==="DELETE"){if(p.old&&p.old.id)delete docs[p.old.id]}else if(p.new)docs[p.new.id]=p.new.data;cacheDocs(docs);emit()}).subscribe();
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll().catch(()=>{})});
   window.addEventListener("online",()=>{loadAll().catch(()=>{});retryFailed()});
 }
+/* ---------- Images collées dans les notes ----------
+   Une ligne « img-… » par image dans docs (hors cache localStorage, trop petit), chargée à la demande
+   et gardée sur l'appareil dans IndexedDB. La note ne garde que <img data-img="img-…">. */
+const imgSrc={},imgWait={};
+const imgDB=(()=>{let p=null;const open=()=>p||(p=new Promise((ok,ko)=>{try{const r=indexedDB.open("bts-ndrc-img",1);r.onupgradeneeded=()=>r.result.createObjectStore("i");r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)}catch(e){ko(e)}}));
+  const tx=(m,f)=>open().then(db=>new Promise((ok,ko)=>{const t=db.transaction("i",m),r=f(t.objectStore("i"));t.oncomplete=()=>ok(r.result);t.onerror=()=>ko(t.error)}));
+  return {get:k=>tx("readonly",s=>s.get(k)).catch(()=>null),put:(k,v)=>tx("readwrite",s=>s.put(v,k)).catch(()=>{}),del:k=>tx("readwrite",s=>s.delete(k)).catch(()=>{})}})();
+const imgIds=html=>[...new Set([...(html||"").matchAll(/data-img="(img-[\w-]+)"/g)].map(m=>m[1]))];
+async function loadImgs(ids){ids=ids.filter(id=>!imgSrc[id]&&!imgWait[id]);if(!ids.length)return;ids.forEach(id=>imgWait[id]=1);
+  const miss=[];for(const id of ids){const s=await imgDB.get(id);if(s)imgSrc[id]=s;else miss.push(id)}
+  if(miss.length&&store&&store.loadImgs){try{for(const r of await store.loadImgs(miss))if(r.data&&r.data.src){imgSrc[r.id]=r.data.src;imgDB.put(r.id,r.data.src)}}catch(e){}}
+  ids.forEach(id=>delete imgWait[id]);showImgs(document)}
+function showImgs(root){if(!root)return;const miss=[];root.querySelectorAll("img[data-img]").forEach(im=>{const s=imgSrc[im.dataset.img];if(!s)miss.push(im.dataset.img);else if(im.getAttribute("src")!==s)im.src=s});if(miss.length)loadImgs(miss)}
+async function shrinkImg(file){const bmp=await createImageBitmap(file);let w=bmp.width,h=bmp.height,m=1600;if(Math.max(w,h)>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
+  const cv=document.createElement("canvas");let q=0.85,url="";for(let i=0;i<6;i++){cv.width=w;cv.height=h;const g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);url=cv.toDataURL("image/jpeg",q);if(url.length<450000)break;q-=0.1;w=Math.round(w*.85);h=Math.round(h*.85)}
+  return url}
+async function addImgs(files,range){const el=$("#rte"),nid=state.noteId;if(!el||!state.notes[nid])return;let h="";
+  for(const f of files){try{const src=await shrinkImg(f),id="img-"+uid();imgSrc[id]=src;imgDB.put(id,src);persist(id,{src,note:nid});h+=`<img data-img="${id}" src="${src}" alt="">`}catch(e){toast("Cette image n'a pas pu être ajoutée.")}}
+  if(!h||state.noteId!==nid||!$("#rte"))return;el.focus();if(range&&el.contains(range.startContainer)){const sel=getSelection();sel.removeAllRanges();sel.addRange(range)}
+  document.execCommand("insertHTML",false,h);onNoteInput({target:el})}
+/* pour le PDF et Word : remet les images (avec leur taille) dans le HTML de la note */
+async function withImgs(html){const t=document.createElement("template");t.innerHTML=html||"";const ims=[...t.content.querySelectorAll("img[data-img]")];if(!ims.length)return t.innerHTML;
+  await loadImgs(ims.map(i=>i.dataset.img));
+  for(const i of ims){const s=imgSrc[i.dataset.img];if(!s){i.remove();continue}i.src=s;try{const im=new Image();im.src=s;await im.decode();i.dataset.w=im.naturalWidth;i.dataset.h=im.naturalHeight}catch(e){}}
+  return t.innerHTML}
 /* ---------- Login ---------- */
 async function initAuth(){
   if(!sb){document.body.innerHTML='<p style="padding:40px">Impossible de charger l\'app. Vérifie ta connexion puis recharge.</p>';return}
@@ -2404,6 +2434,7 @@ function cleanHtml(html){const t=document.createElement("template");t.innerHTML=
     if(n.nodeType!==1)continue;const tag=n.tagName.toLowerCase();
     if(tag==="span"||tag==="mark"||tag==="font"){const c=HL[((n.style&&n.style.backgroundColor)||"").toLowerCase()];
       if(c){const sp=document.createElement("span");sp.style.backgroundColor=c;walk(n,sp);dst.appendChild(sp)}else walk(n,dst);continue}
+    if(tag==="img"){const k=n.getAttribute("data-img")||"";if(/^img-[\w-]+$/.test(k)){const im=document.createElement("img");im.setAttribute("data-img",k);im.alt="";dst.appendChild(im)}continue}
     const m=map[tag];if(!m){walk(n,dst);continue}
     const el=document.createElement(m);if(m!=="br"&&m!=="hr")walk(n,el);dst.appendChild(el)}};
   walk(t.content,out);return out.innerHTML}
@@ -2486,7 +2517,7 @@ function renderEditor(){
           <button type="button" data-rte="hg" title="Surligner en vert" aria-label="Surligner en vert"><span class="swatch" style="background:#C8EBC9"></span></button>
           <button type="button" data-rte="hx" title="Retirer le surlignage" aria-label="Retirer le surlignage"><span class="swatch none"></span></button>
         </div>
-        <div id="rte" class="rte" contenteditable="true" spellcheck="true" aria-label="Mes notes" data-ph="Tape tes notes ici, ou colle la transcription de ton cours…">${noteHtml(n)}</div>
+        <div id="rte" class="rte" contenteditable="true" spellcheck="true" aria-label="Mes notes" data-ph="Tape tes notes ici, ou colle la transcription de ton cours ou une image…">${noteHtml(n)}</div>
       </div>
     </div></div>`;
   if(sampleFn){$("#claudeBtn").hidden=false;$("#quizBtn").hidden=false}
@@ -2499,7 +2530,14 @@ function renderEditor(){
       if(e.inputType==="insertText"&&e.data){e.preventDefault();const tn=document.createTextNode(e.data.replace(/ /g,"\u00A0"));sp.parentNode.insertBefore(tn,sp.nextSibling);
         const nr=document.createRange();nr.setStart(tn,tn.nodeValue.length);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr);onNoteInput({target:r})}
       else if(e.inputType==="insertParagraph"){const nr=document.createRange();nr.setStartAfter(sp);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr)}});
-    r.addEventListener("paste",e=>{e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData("text/plain");document.execCommand("insertText",false,t)})}
+    r.addEventListener("paste",e=>{e.preventDefault();const cd=e.clipboardData||window.clipboardData,t=cd.getData("text/plain");
+      const fs=[...(cd.items||[])].filter(i=>i.kind==="file"&&/^image\//.test(i.type)).map(i=>i.getAsFile()).filter(Boolean);
+      const hm=cd.getData("text/html")||"";
+      if(fs.length&&(!t.trim()||!hm||/<img/i.test(hm))){const sel=getSelection();addImgs(fs,sel.rangeCount?sel.getRangeAt(0).cloneRange():null);return}
+      document.execCommand("insertText",false,t)});
+    r.addEventListener("drop",e=>{const fs=[...((e.dataTransfer&&e.dataTransfer.files)||[])].filter(f=>/^image\//.test(f.type));if(!fs.length)return;e.preventDefault();
+      addImgs(fs,document.caretRangeFromPoint?document.caretRangeFromPoint(e.clientX,e.clientY):null)});
+    showImgs(r)}
 }
 function pushVersion(id,html,force){if(!html||!htmlText(html).trim())return;const vs=[...(state.versions[id]||[])];const last=vs[vs.length-1];
   if(last&&last.html===html)return;if(!force&&last&&Date.now()-last.t<20*60*1000)return;
@@ -2548,7 +2586,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   else if(b.dataset.act==="closenote")closeNote();
   else if(b.dataset.act==="synth")makeSynthesis();
   else if(b.dataset.act==="history"){flush();$("#claudeZone").innerHTML=historyHTML()}
-  else if(b.dataset.vprev){const v=(state.versions[state.noteId]||[]).find(x=>String(x.t)===b.dataset.vprev);if(v)$("#vprev").innerHTML=`<div class="preview rte" style="min-height:0;margin-top:8px">${cleanHtml(v.html)}</div>`}
+  else if(b.dataset.vprev){const v=(state.versions[state.noteId]||[]).find(x=>String(x.t)===b.dataset.vprev);if(v){$("#vprev").innerHTML=`<div class="preview rte" style="min-height:0;margin-top:8px">${cleanHtml(v.html)}</div>`;showImgs($("#vprev"))}}
   else if(b.dataset.vres){const id=state.noteId,n=state.notes[id];const v=(state.versions[id]||[]).find(x=>String(x.t)===b.dataset.vres);if(!v||!n)return;
     if(!await uiConfirm("Remplacer le contenu actuel par cette version ? La version actuelle sera gardée dans l'historique.","Remplacer"))return;
     flush();pushVersion(id,n.html||noteHtml(n),true);n.html=cleanHtml(v.html);n.content=htmlText(n.html);saveNote();renderEditor();renderNoteList()}
@@ -2559,7 +2597,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   else if(b.dataset.act==="rmtask"){flush();state.events=state.events.filter(e=>e.id!==b.dataset.id);saveCalendar();renderEditor()}
   else if(b.dataset.act==="delnote"){
     if(!await uiConfirm("Supprimer cette note définitivement ?"))return;
-    const id=state.noteId;delete state.notes[id];dirty.delete(id);closeNote();await remove(id);if(state.versions[id]){delete state.versions[id];remove("v-"+id)}renderNoteList();
+    const id=state.noteId;const ims=imgIds([state.notes[id]&&state.notes[id].html,...(state.versions[id]||[]).map(v=>v.html)].join(" "));delete state.notes[id];dirty.delete(id);closeNote();await remove(id);for(const k of ims){remove(k);imgDB.del(k);delete imgSrc[k]}if(state.versions[id]){delete state.versions[id];remove("v-"+id)}renderNoteList();
   }
   else if(b.dataset.act==="rmrec"){const n=state.notes[state.noteId];flush();n.recording="";saveNote();renderEditor();renderNoteList()}
   else if(b.dataset.act==="addlink"){const n=state.notes[state.noteId];const u=$("#lkUrl").value.trim(),l=$("#lkLabel").value.trim();
@@ -2671,19 +2709,19 @@ function answerQuiz(i){if(!quiz||quiz.answered)return;const q=quiz.list[quiz.i];
   $("#qfb").innerHTML=`<p style="margin:10px 0 6px"><b>${ok?"Bonne réponse.":"Pas tout à fait."}</b> ${esc(q.explanation||"")}</p><button class="btn primary" data-act="qnext">${quiz.i+1<quiz.list.length?"Question suivante":"Voir mon score"}</button>`}
 function renderEditorKeepZone(html){renderEditor();const z=$("#claudeZone");if(z)z.innerHTML=html}
 /* PDF : mise en page propre de la note, puis fenêtre d'impression du navigateur (« Enregistrer au format PDF ») */
-function notePdfDoc(n){const sj=((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name),name=(n.title||"Note").replace(/[^\p{L}\p{N} _-]/gu,"").trim().slice(0,60)||"Note";
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(name)}</title><style>@page{margin:18mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;line-height:1.5;color:#111;margin:0}h1{font-size:22pt;line-height:1.2;margin:0 0 4pt}h2{font-size:15pt;margin:16pt 0 4pt}h3{font-size:12.5pt;font-weight:normal;text-decoration:underline;margin:12pt 0 2pt}p{margin:0 0 6pt}ul{margin:0 0 6pt;padding-left:18pt}.meta{color:#666;font-style:italic;margin:0 0 14pt}hr{border:0;border-top:1px solid #bbb;margin:12pt 0}span[style*="background"]{padding:0 2px;border-radius:2px}h2,h3{break-after:avoid}</style></head><body><h1>${esc(n.title||"Note")}</h1><p class="meta">${esc(sj)}${n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""}</p>${noteHtml(n)}</body></html>`}
-function exportNotePdf(){const n=state.notes[state.noteId];if(!n)return;rteSave();
+function notePdfDoc(n,html){const sj=((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name),name=(n.title||"Note").replace(/[^\p{L}\p{N} _-]/gu,"").trim().slice(0,60)||"Note";
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(name)}</title><style>@page{margin:18mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;font-size:11.5pt;line-height:1.5;color:#111;margin:0}h1{font-size:22pt;line-height:1.2;margin:0 0 4pt}h2{font-size:15pt;margin:16pt 0 4pt}h3{font-size:12.5pt;font-weight:normal;text-decoration:underline;margin:12pt 0 2pt}p{margin:0 0 6pt}ul{margin:0 0 6pt;padding-left:18pt}.meta{color:#666;font-style:italic;margin:0 0 14pt}hr{border:0;border-top:1px solid #bbb;margin:12pt 0}span[style*="background"]{padding:0 2px;border-radius:2px}h2,h3{break-after:avoid}img{display:block;max-width:100%;height:auto;margin:6pt 0;break-inside:avoid}</style></head><body><h1>${esc(n.title||"Note")}</h1><p class="meta">${esc(sj)}${n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""}</p>${html}</body></html>`}
+async function exportNotePdf(){const n=state.notes[state.noteId];if(!n)return;rteSave();const html=await withImgs(noteHtml(n));
   const old=$("#pdfFrame");if(old)old.remove();
   const f=document.createElement("iframe");f.id="pdfFrame";f.setAttribute("aria-hidden","true");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
   f.onload=()=>setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Le PDF n'a pas pu être préparé. Réessaie.")}},150);
-  f.srcdoc=notePdfDoc(n);document.body.appendChild(f)}
+  f.srcdoc=notePdfDoc(n,html);document.body.appendChild(f)}
 /* Word : vrai fichier .docx (archive ZIP de fichiers XML), fabriqué ici sans outil externe */
 const DOCX_MIME="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 function zipStore(files){const enc=new TextEncoder(),T=zipStore.t||(zipStore.t=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})());
   const crc=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=T[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
   const parts=[],cen=[];let off=0;
-  for(const f of files){const nm=enc.encode(f.name),d=enc.encode(f.data),c=crc(d);
+  for(const f of files){const nm=enc.encode(f.name),d=f.data instanceof Uint8Array?f.data:enc.encode(f.data),c=crc(d);
     const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,0,true);h.setUint16(12,0x21,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
     const e=new DataView(new ArrayBuffer(46));e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint16(8,0x0800,true);e.setUint16(10,0,true);e.setUint16(12,0,true);e.setUint16(14,0x21,true);e.setUint32(16,c,true);e.setUint32(20,d.length,true);e.setUint32(24,d.length,true);e.setUint16(28,nm.length,true);e.setUint32(42,off,true);
     parts.push(h.buffer,nm,d);cen.push(e.buffer,nm);off+=30+nm.length+d.length}
@@ -2695,8 +2733,12 @@ function makeDocx(title,meta,html){
   const run=(t,f)=>t?`<w:r><w:rPr>${f.b?"<w:b/>":""}${f.i?"<w:i/>":""}${f.u?'<w:u w:val="single"/>':""}${f.h?`<w:shd w:val="clear" w:color="auto" w:fill="${f.h}"/>`:""}</w:rPr><w:t xml:space="preserve">${x(t)}</w:t></w:r>`:"";
   const inline=(node,f)=>{let o="";for(const n of node.childNodes){
     if(n.nodeType===3){o+=run(n.nodeValue.replace(/ /g," "),f);continue}if(n.nodeType!==1)continue;const t=n.tagName.toLowerCase();
-    if(t==="br")o+="<w:r><w:br/></w:r>";else if(t==="b"||t==="strong")o+=inline(n,{...f,b:1});else if(t==="i"||t==="em")o+=inline(n,{...f,i:1});else if(t==="u")o+=inline(n,{...f,u:1});
+    if(t==="br")o+="<w:r><w:br/></w:r>";else if(t==="img")o+=pic(n);else if(t==="b"||t==="strong")o+=inline(n,{...f,b:1});else if(t==="i"||t==="em")o+=inline(n,{...f,i:1});else if(t==="u")o+=inline(n,{...f,u:1});
     else if(t==="span"){const c=HLX[(n.style&&n.style.backgroundColor)||""]||(n.style&&n.style.backgroundColor?"FFF2A8":"");o+=inline(n,c?{...f,h:c}:f)}else o+=inline(n,f)}return o};
+  const media=[];
+  const pic=n=>{const m=/^data:image\/(jpeg|png);base64,(.+)$/.exec(n.getAttribute("src")||"");if(!m)return "";const k=media.length+1,w=+n.dataset.w||800,h=+n.dataset.h||600;
+    const cx=Math.min(w*9525,5759450),cy=Math.round(cx*h/w);media.push({name:`word/media/image${k}.${m[1]}`,data:Uint8Array.from(atob(m[2]),c=>c.charCodeAt(0)),ext:m[1]});
+    return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${k}" name="Image ${k}"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="${k}" name="image${k}.${m[1]}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rImg${k}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`};
   const para=(style,inner,extra)=>`<w:p><w:pPr>${style?`<w:pStyle w:val="${style}"/>`:""}${extra||""}</w:pPr>${inner}</w:p>`;
   const tpl=document.createElement("template");tpl.innerHTML=html||"";let body="",loose="";
   const flush=()=>{if(loose){body+=para("",loose);loose=""}};
@@ -2705,6 +2747,7 @@ function makeDocx(title,meta,html){
     if(t==="h1"||t==="h2"){flush();body+=para("Heading1",inline(n,{}))}
     else if(t==="h3"||t==="h4"){flush();body+=para("Heading2",inline(n,{}))}
     else if(t==="p"||t==="div"){flush();body+=para("",inline(n,{}))}
+    else if(t==="img"){flush();const r=pic(n);if(r)body+=para("",r)}
     else if(t==="hr"){flush();body+=para("","",'<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="999999"/></w:pBdr>')}
     else if(t==="ul"||t==="ol"){flush();block(n,depth+1)}
     else if(t==="li"){flush();const kids=[...n.childNodes],sub=kids.filter(k=>k.nodeType===1&&/^(ul|ol)$/i.test(k.tagName)),h=document.createElement("span");kids.filter(k=>!sub.includes(k)).forEach(k=>h.appendChild(k.cloneNode(true)));
@@ -2712,20 +2755,20 @@ function makeDocx(title,meta,html){
     else if(t==="br"){flush()}else loose+=inline(n,t==="b"||t==="strong"?{b:1}:t==="i"||t==="em"?{i:1}:t==="u"?{u:1}:{})}};
   block(tpl.content,0);flush();
   const W='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-  const doc=`${H}<w:document ${W}><w:body>${para("Title",run(title,{}))}${meta?para("Subtitle",run(meta,{})):""}${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const doc=`${H}<w:document ${W} xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${para("Title",run(title,{}))}${meta?para("Subtitle",run(meta,{})):""}${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const st=(id,name,sz,rp,pp,based)=>`<w:style w:type="paragraph" w:styleId="${id}"><w:name w:val="${name}"/>${based?'<w:basedOn w:val="Normal"/><w:next w:val="Normal"/>':""}<w:qFormat/><w:pPr>${pp}</w:pPr><w:rPr>${rp}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr></w:style>`;
   const styles=`${H}<w:styles ${W}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri" w:eastAsia="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="fr-FR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>
 ${st("Title","Title",44,"<w:b/>",'<w:spacing w:after="60"/>',1)}${st("Subtitle","Subtitle",22,'<w:i/><w:color w:val="666666"/>','<w:spacing w:after="280"/>',1)}${st("Heading1","heading 1",30,"<w:b/>",'<w:keepNext/><w:spacing w:before="320" w:after="100"/><w:outlineLvl w:val="0"/>',1)}${st("Heading2","heading 2",25,'<w:u w:val="single"/>','<w:keepNext/><w:spacing w:before="220" w:after="60"/><w:outlineLvl w:val="1"/>',1)}</w:styles>`;
   return zipStore([
-    {name:"[Content_Types].xml",data:`${H}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`},
+    {name:"[Content_Types].xml",data:`${H}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`},
     {name:"_rels/.rels",data:`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`},
-    {name:"word/_rels/document.xml.rels",data:`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:"word/_rels/document.xml.rels",data:`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>${media.map((f,i)=>`<Relationship Id="rImg${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${i+1}.${f.ext}"/>`).join("")}</Relationships>`},...media,
     {name:"word/document.xml",data:doc},{name:"word/styles.xml",data:styles}])}
 async function exportNote(){const n=state.notes[state.noteId];if(!n||!dlFn)return;rteSave();
   const sj=((SUBJ[n.subject]||GEN).full||(SUBJ[n.subject]||GEN).name);
   const name=(n.title||"note").replace(/[^\p{L}\p{N} _-]/gu,"").trim().slice(0,60)||"note";
-  try{await dlFn.save({filename:name+".docx",data:makeDocx(n.title||"Note",sj+(n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""),noteHtml(n))})}
+  try{await dlFn.save({filename:name+".docx",data:makeDocx(n.title||"Note",sj+(n.date?" · "+fmtDay(parseISO(n.date))+" "+parseISO(n.date).getFullYear():""),await withImgs(noteHtml(n)))})}
   catch(e){if(e&&e.code!=="declined")toast("Le téléchargement n'a pas pu se faire.")}}
 function allDocs(){const d={};const g={};for(const e of state.events)(g[calKey(e)]=g[calKey(e)]||[]).push(e);for(const k in g)d[k]={events:g[k]};
   for(const [id,n] of Object.entries(state.notes))d[id]=n;for(const [id,v] of Object.entries(state.versions))d["v-"+id]={versions:v};
@@ -2734,9 +2777,10 @@ function allDocs(){const d={};const g={};for(const e of state.events)(g[calKey(e
 async function importBackup(file){let j;try{j=JSON.parse(await file.text())}catch(e){toast("Ce fichier n'est pas une sauvegarde valide.");return}
   if(!j||j.format!=="bts-ndrc-v2"||!j.docs){toast("Ce fichier n'est pas une sauvegarde du site.");return}
   if(!await uiConfirm("Importer cette sauvegarde ? Les éléments du même nom seront remplacés.","Importer"))return;
-  const docs=JSON.parse(JSON.stringify(j.docs));for(const [id,data] of Object.entries(docs)){delete data._rev;persist(id,data)}
+  const docs=JSON.parse(JSON.stringify(j.docs));for(const [id,data] of Object.entries(docs)){delete data._rev;persist(id,data);if(id.startsWith("img-")&&data.src){imgSrc[id]=data.src;imgDB.put(id,data.src)}}
   applyDocs(docs);render();toast(Object.keys(docs).length+" éléments importés.")}
 async function exportAll(){if(!dlFn)return;const data={format:"bts-ndrc-v2",exportedAt:new Date().toISOString(),docs:allDocs()};
+  if(store&&store.allImgs){try{Object.assign(data.docs,await store.allImgs())}catch(e){toast("Les images des notes n'ont pas pu être ajoutées à la sauvegarde.")}}
   try{await dlFn.save({filename:"sauvegarde-bts-ndrc-"+iso(new Date())+".json",data:new Blob([JSON.stringify(data,null,1)],{type:"application/json"})})}
   catch(e){if(e&&e.code!=="declined")toast("La sauvegarde n'a pas pu être téléchargée.")}}
 let dlFn=null;

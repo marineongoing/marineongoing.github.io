@@ -1198,6 +1198,7 @@ body .stfill{grid-column:1/-1;margin-top:12px}
 body .addnote{width:40px;height:40px;padding:0!important;border-radius:50%!important;display:grid;place-items:center}
 body .addnote svg{width:20px;height:20px}
 /* Fiches de Claude : légende des couleurs */
+.claude-box .out img{display:block;max-width:100%;height:auto;margin:10px 0;border-radius:10px}.claude-box .out img[data-size="25"]{width:25%}.claude-box .out img[data-size="50"]{width:50%}.claude-box .out img[data-size="75"]{width:75%}
 .hllg{display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:6px;vertical-align:middle}
 .hllg span{font-size:12px;padding:1px 8px;border-radius:6px;color:#fff}
 .hllg span[style*="F9C6D6"]{background-color:rgba(249,198,214,.38)!important}.hllg span[style*="CBE8FA"]{background-color:rgba(203,232,250,.34)!important}.hllg span[style*="C8EBC9"]{background-color:rgba(200,235,201,.34)!important}.hllg span[style*="FFDDB8"]{background-color:rgba(255,221,184,.36)!important}
@@ -2742,7 +2743,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   else if(b.dataset.act==="exportpdf")exportNotePdf();
   else if(b.dataset.act==="replace"||b.dataset.act==="append"){
     const n=state.notes[state.noteId];if(!n||!lastFiche)return;
-    rteSave();const fh=cleanHtml(md(lastFiche));
+    rteSave();const fh=cleanHtml(ficheHtml(lastFiche));
     n.html=b.dataset.act==="replace"?fh:(n.html||"")+"<hr>"+fh;n.content=htmlText(n.html);
     lastFiche="";saveNote();renderEditor();renderNoteList();
   }
@@ -2753,7 +2754,11 @@ noteDlg.addEventListener("click",onSubjClick);
 function flush(){if(tmr){clearTimeout(tmr);tmr=null;rteSave();saveNote()}}
 
 /* ---------- Claude ---------- */
-let sampleFn=null,lastFiche="",busy=false;
+let sampleFn=null,lastFiche="",busy=false,lastImgs=[];
+/* Fiche de Claude : les repères [[IMAGE n]] redeviennent les images de la note ; une image oubliée est ajoutée à la fin */
+function ficheHtml(text,partial){const used=new Set(),tag=k=>{const im=lastImgs[k-1];if(!im)return "";used.add(k);return `<img data-img="${esc(im.id)}"${im.size?` data-size="${esc(im.size)}"`:""} alt="">`};
+  let h=md(text).replace(/<p>\s*\[\[IMAGE (\d+)\]\]\s*<\/p>/g,(_,k)=>tag(+k)).replace(/\[\[IMAGE (\d+)\]\]/g,(_,k)=>tag(+k));
+  if(!partial)lastImgs.forEach((_,i)=>{if(!used.has(i+1))h+=tag(i+1)});return h}
 async function callClaude(messages,max,onDelta,webFetch){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
   let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true,...(webFetch?{web_fetch:true}:{})})})}catch(e){throw {code:"offline"}}
   if(!r.ok){const j=await r.json().catch(()=>({}));throw {code:r.status===429||r.status===529?"rate_limited":r.status===403?"not_granted":"error",message:(j.error&&(j.error.message||j.error))||r.status}}
@@ -2949,7 +2954,9 @@ ${extra}`;
   catch(e){st.innerHTML=`<p class="hint">${e&&e.code==="rate_limited"?"Trop de demandes. Réessaie dans une minute.":"La synthèse n'a pas pu être faite. Réessaie dans un instant."}</p>`}busy=false}
 async function organize(){
   const n=state.notes[state.noteId];if(!n||busy)return;flush();
-  const txt=(n.content||"").trim();const zone=$("#claudeZone");
+  const imgs=[],tmp=document.createElement("div");tmp.innerHTML=n.html||noteHtml(n);
+  tmp.querySelectorAll("img[data-img]").forEach(im=>{imgs.push({id:im.getAttribute("data-img"),size:im.getAttribute("data-size")||""});const q=document.createElement("p");q.textContent="[[IMAGE "+imgs.length+"]]";im.replaceWith(q)});
+  lastImgs=imgs;const txt=(imgs.length?htmlText(tmp.innerHTML):(n.content||"")).trim();const zone=$("#claudeZone");
   if(txt.length<40){zone.innerHTML=`<p class="hint">Ajoute un peu plus de contenu avant de demander une fiche.</p>`;return}
   busy=true;$("#claudeBtn").disabled=true;
   zone.innerHTML=`<div class="claude-box"><p class="hint" id="cState">Claude prépare ta fiche…</p><div class="out preview" style="min-height:0;border:0;padding:0;background:none" id="cOut"></div></div>`;
@@ -2968,17 +2975,19 @@ Transforme-les en fiche de révision claire, aérée et agréable à relire, en 
   !!texte!! en pêche pour les pièges et points d'attention,
 - une section « ## À retenir » (3 à 6 points),
 - une section « ## Questions de révision » (3 à 5 questions).
-Corrige les erreurs de transcription évidentes, supprime les répétitions et les hésitations orales, mais n'invente aucune information absente du texte. Réponds uniquement avec la fiche.
+Corrige les erreurs de transcription évidentes, supprime les répétitions et les hésitations orales, mais n'invente aucune information absente du texte.${imgs.length?`
+Le texte contient ${imgs.length} image${imgs.length>1?"s":""}, repérée${imgs.length>1?"s":""} par ${imgs.map((_,i)=>"[[IMAGE "+(i+1)+"]]").join(", ")}. Garde chacune de ces balises telle quelle, seule sur sa ligne, à l'endroit de la fiche où l'image illustre le mieux le contenu (en général juste après le passage qui l'entourait). N'en supprime aucune et n'en invente pas d'autre.`:""}
+Réponds uniquement avec la fiche.
 
 Texte :
 """
 ${txt.slice(0,60000)}
 """`;
   try{
-    const r=await sampleFn(prompt,{cache:false,onText:({text})=>{$("#cState").textContent="Rédaction en cours…";$("#cOut").innerHTML=md(text)}});
+    const r=await sampleFn(prompt,{cache:false,onText:({text})=>{$("#cState").textContent="Rédaction en cours…";$("#cOut").innerHTML=ficheHtml(text,true);showImgs($("#cOut"))}});
     lastFiche=r.text.trim().replace(/^#\s+[^\n]*\n+/,"");
     $("#cState").innerHTML=(r.truncated?"Fiche prête (coupée car le texte est très long).":"Fiche prête.")+` <span class="hllg"><span style="background-color:#F9C6D6">définitions</span> <span style="background-color:#CBE8FA">méthodes</span> <span style="background-color:#C8EBC9">exemples</span> <span style="background-color:#FFDDB8">attention</span></span>`;
-    $("#cOut").innerHTML=md(lastFiche);
+    $("#cOut").innerHTML=ficheHtml(lastFiche);showImgs($("#cOut"));
     zone.querySelector(".claude-box").insertAdjacentHTML("beforeend",`<div class="toolbar" style="margin-top:10px"><button class="btn primary" data-act="replace">Remplacer mes notes</button><button class="btn" data-act="append">Ajouter à la suite</button><button class="btn ghost" data-act="discard">Ignorer</button></div>`);
   }catch(e){
     const code=e&&e.code;

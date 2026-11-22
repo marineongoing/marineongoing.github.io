@@ -863,6 +863,10 @@ body.search-open .wrap>.search{display:block!important}
 .rte span[style*="background"]{color:var(--ink)!important;border-radius:4px;padding:0 3px}
 .rte span[style*="249, 198, 214"],.rte span[style*="F9C6D6" i]{background-color:rgba(249,198,214,.38)!important;box-shadow:0 0 0 1px rgba(249,198,214,.35)}
 .rte span[style*="200, 235, 201"],.rte span[style*="C8EBC9" i]{background-color:rgba(200,235,201,.34)!important;box-shadow:0 0 0 1px rgba(200,235,201,.35)}
+.rte span[style*="203, 232, 250"],.rte span[style*="CBE8FA" i]{background-color:rgba(203,232,250,.34)!important;box-shadow:0 0 0 1px rgba(203,232,250,.35)}
+.rte span[style*="255, 221, 184"],.rte span[style*="FFDDB8" i]{background-color:rgba(255,221,184,.36)!important;box-shadow:0 0 0 1px rgba(255,221,184,.35)}
+.rtebar .swatch[style*="CBE8FA"]{background:rgba(203,232,250,.55)!important;border-color:rgba(203,232,250,.8)}
+.rtebar .swatch[style*="FFDDB8"]{background:rgba(255,221,184,.55)!important;border-color:rgba(255,221,184,.8)}
 .rtebar .swatch[style*="F9C6D6"]{background:rgba(249,198,214,.55)!important;border-color:rgba(249,198,214,.8)}
 .rtebar .swatch[style*="C8EBC9"]{background:rgba(200,235,201,.5)!important;border-color:rgba(200,235,201,.8)}
 /* ===================== Thème photo et verre (comme la page de lancement marineongoing) ===================== */
@@ -1193,6 +1197,16 @@ body .stfill{grid-column:1/-1;margin-top:12px}
 /* Matière : bouton rond « + » pour une nouvelle note */
 body .addnote{width:40px;height:40px;padding:0!important;border-radius:50%!important;display:grid;place-items:center}
 body .addnote svg{width:20px;height:20px}
+/* Fiches de Claude : légende des couleurs */
+.hllg{display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:6px;vertical-align:middle}
+.hllg span{font-size:12px;padding:1px 8px;border-radius:6px;color:#fff}
+.hllg span[style*="F9C6D6"]{background-color:rgba(249,198,214,.38)!important}.hllg span[style*="CBE8FA"]{background-color:rgba(203,232,250,.34)!important}.hllg span[style*="C8EBC9"]{background-color:rgba(200,235,201,.34)!important}.hllg span[style*="FFDDB8"]{background-color:rgba(255,221,184,.36)!important}
+.claude-box .out span[style*="F9C6D6"]{background-color:rgba(249,198,214,.38)!important;border-radius:4px;padding:0 3px}.claude-box .out span[style*="CBE8FA"]{background-color:rgba(203,232,250,.34)!important;border-radius:4px;padding:0 3px}.claude-box .out span[style*="C8EBC9"]{background-color:rgba(200,235,201,.34)!important;border-radius:4px;padding:0 3px}.claude-box .out span[style*="FFDDB8"]{background-color:rgba(255,221,184,.36)!important;border-radius:4px;padding:0 3px}
+/* Surligneurs : teintes vives de la palette pour bien ressortir sur le verre (les notes gardent les mêmes codes couleur) */
+.rte span[style*="249, 198, 214"],.rte span[style*="F9C6D6" i],.claude-box .out span[style*="F9C6D6"],.hllg span[style*="F9C6D6"]{background-color:rgba(255,140,158,.42)!important;box-shadow:0 0 0 1px rgba(255,140,158,.5)!important}
+.rte span[style*="200, 235, 201"],.rte span[style*="C8EBC9" i],.claude-box .out span[style*="C8EBC9"],.hllg span[style*="C8EBC9"]{background-color:rgba(122,214,168,.38)!important;box-shadow:0 0 0 1px rgba(122,214,168,.5)!important}
+.rte span[style*="203, 232, 250"],.rte span[style*="CBE8FA" i],.claude-box .out span[style*="CBE8FA"],.hllg span[style*="CBE8FA"]{background-color:rgba(143,190,250,.42)!important;box-shadow:0 0 0 1px rgba(143,190,250,.5)!important}
+.rte span[style*="255, 221, 184"],.rte span[style*="FFDDB8" i],.claude-box .out span[style*="FFDDB8"],.hllg span[style*="FFDDB8"]{background-color:rgba(255,176,112,.45)!important;box-shadow:0 0 0 1px rgba(255,176,112,.5)!important}
 </style>
 </head>
 <body>
@@ -2532,7 +2546,7 @@ const noteDlg=$("#noteDlg");
 function openNote(id){const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal()}
 function closeNote(){flush();state.noteId=null;if(noteDlg.open)noteDlg.close()}
 noteDlg.addEventListener("close",()=>{flush();state.noteId=null;if(state.view==="subjects")renderNoteList()});
-const HL={"rgb(249, 198, 214)":"#F9C6D6","#f9c6d6":"#F9C6D6","rgb(200, 235, 201)":"#C8EBC9","#c8ebc9":"#C8EBC9"};
+const HL={"rgb(249, 198, 214)":"#F9C6D6","#f9c6d6":"#F9C6D6","rgb(200, 235, 201)":"#C8EBC9","#c8ebc9":"#C8EBC9","rgb(203, 232, 250)":"#CBE8FA","#cbe8fa":"#CBE8FA","rgb(255, 221, 184)":"#FFDDB8","#ffddb8":"#FFDDB8"};
 function cleanHtml(html){const t=document.createElement("template");t.innerHTML=html||"";const out=document.createElement("div");
   const map={h1:"h2",h2:"h2",h3:"h3",h4:"h3",p:"p",div:"p",ul:"ul",ol:"ul",li:"li",br:"br",strong:"b",b:"b",em:"i",i:"i",u:"u",hr:"hr"};
   const walk=(src,dst)=>{for(const n of [...src.childNodes]){
@@ -2575,7 +2589,7 @@ function rteCmd(k){const el=$("#rte");if(!el)return;el.focus();
   else if(k==="hr"){{const sl=getSelection();if(sl.rangeCount&&!sl.isCollapsed)sl.collapseToEnd()}document.execCommand("insertHorizontalRule");const sel=getSelection();const hrs=el.querySelectorAll("hr");const last=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentNode);
     let hr=null;hrs.forEach(h=>{if(!hr||h.compareDocumentPosition(last||el)&Node.DOCUMENT_POSITION_FOLLOWING)hr=h});
     if(hr&&!hr.nextElementSibling){const pp=document.createElement("p");pp.appendChild(document.createElement("br"));hr.after(pp);const r=document.createRange();r.setStart(pp,0);r.collapse(true);sel.removeAllRanges();sel.addRange(r)}}
-  else highlight(k==="hp"?"#F9C6D6":k==="hg"?"#C8EBC9":null)
+  else highlight(k==="hp"?"#F9C6D6":k==="hg"?"#C8EBC9":k==="hb"?"#CBE8FA":k==="ho"?"#FFDDB8":null)
   rteSave();dirty.add(state.noteId);clearTimeout(tmr);tmr=setTimeout(()=>{saveNote();renderNoteList()},900)}
 document.addEventListener("mousedown",e=>{const b=e.target.closest&&e.target.closest("[data-rte]");if(!b)return;e.preventDefault();rteCmd(b.dataset.rte)});
 document.addEventListener("keydown",e=>{const b=e.target.closest&&e.target.closest("[data-rte]");if(b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();rteCmd(b.dataset.rte)}});
@@ -2621,6 +2635,8 @@ function renderEditor(){
           <span class="rsep"></span>
           <button type="button" data-rte="hp" title="Surligner en rose" aria-label="Surligner en rose"><span class="swatch" style="background:#F9C6D6"></span></button>
           <button type="button" data-rte="hg" title="Surligner en vert" aria-label="Surligner en vert"><span class="swatch" style="background:#C8EBC9"></span></button>
+          <button type="button" data-rte="hb" title="Surligner en bleu" aria-label="Surligner en bleu"><span class="swatch" style="background:#CBE8FA"></span></button>
+          <button type="button" data-rte="ho" title="Surligner en pêche" aria-label="Surligner en pêche"><span class="swatch" style="background:#FFDDB8"></span></button>
           <button type="button" data-rte="hx" title="Retirer le surlignage" aria-label="Retirer le surlignage"><span class="swatch none"></span></button>
         </div>
         <div id="rte" class="rte" contenteditable="true" spellcheck="true" aria-label="Mes notes" data-ph="Tape tes notes ici, ou colle la transcription de ton cours ou une image…">${noteHtml(n)}</div>
@@ -2939,11 +2955,17 @@ async function organize(){
   zone.innerHTML=`<div class="claude-box"><p class="hint" id="cState">Claude prépare ta fiche…</p><div class="out preview" style="min-height:0;border:0;padding:0;background:none" id="cOut"></div></div>`;
   const prompt=`Tu aides une étudiante en BTS NDRC (Négociation et Digitalisation de la Relation Client). Voici ses notes brutes ou la transcription d'un cours de la matière « ${(SUBJ[n.subject].full||SUBJ[n.subject].name)} »${n.title?`, intitulé « ${n.title} »`:""}.
 
-Transforme-les en fiche de révision claire, en français, au format Markdown simple :
+Transforme-les en fiche de révision claire, aérée et agréable à relire, en français, au format Markdown simple :
 - un titre avec « # »,
-- des sections avec « ## » qui suivent la logique du cours,
-- les définitions importantes en **gras**,
-- des listes à puces « - » courtes,
+- des sections avec « ## » qui suivent la logique du cours, et des sous-parties avec « ### » si une section est longue,
+- au début de chaque section, un court paragraphe de 2 ou 3 phrases qui explique l'idée principale, puis des listes à puces « - » courtes (une idée par puce),
+- une ligne « --- » entre les grandes parties,
+- les mots-clés en **gras**,
+- des surligneurs de couleur, avec exactement ces balises, sur des passages courts (quelques mots, jamais une phrase entière ni une ligne de titre), 2 à 4 par section au plus :
+  ==texte== en rose pour les définitions et notions clés,
+  ^^texte^^ en bleu pour les méthodes, étapes et formules,
+  ++texte++ en vert pour les exemples concrets,
+  !!texte!! en pêche pour les pièges et points d'attention,
 - une section « ## À retenir » (3 à 6 points),
 - une section « ## Questions de révision » (3 à 5 questions).
 Corrige les erreurs de transcription évidentes, supprime les répétitions et les hésitations orales, mais n'invente aucune information absente du texte. Réponds uniquement avec la fiche.
@@ -2955,7 +2977,7 @@ ${txt.slice(0,60000)}
   try{
     const r=await sampleFn(prompt,{cache:false,onText:({text})=>{$("#cState").textContent="Rédaction en cours…";$("#cOut").innerHTML=md(text)}});
     lastFiche=r.text.trim();
-    $("#cState").textContent=r.truncated?"Fiche prête (coupée car le texte est très long).":"Fiche prête.";
+    $("#cState").innerHTML=(r.truncated?"Fiche prête (coupée car le texte est très long).":"Fiche prête.")+` <span class="hllg"><span style="background-color:#F9C6D6">définitions</span> <span style="background-color:#CBE8FA">méthodes</span> <span style="background-color:#C8EBC9">exemples</span> <span style="background-color:#FFDDB8">attention</span></span>`;
     $("#cOut").innerHTML=md(lastFiche);
     zone.querySelector(".claude-box").insertAdjacentHTML("beforeend",`<div class="toolbar" style="margin-top:10px"><button class="btn primary" data-act="replace">Remplacer mes notes</button><button class="btn" data-act="append">Ajouter à la suite</button><button class="btn ghost" data-act="discard">Ignorer</button></div>`);
   }catch(e){
@@ -2967,7 +2989,8 @@ ${txt.slice(0,60000)}
 }
 
 /* ---------- Tiny Markdown renderer (safe) ---------- */
-function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
+const MDHL=[[/==(\S(?:.*?\S)?)==/g,"#F9C6D6"],[/\^\^(\S(?:.*?\S)?)\^\^/g,"#CBE8FA"],[/\+\+(\S(?:.*?\S)?)\+\+/g,"#C8EBC9"],[/!!(\S(?:.*?\S)?)!!/g,"#FFDDB8"]];
+function inline(s){return MDHL.reduce((t,[re,c])=>t.replace(re,`<span style="background-color:${c}">$1</span>`),esc(s)).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>")}
 function md(src){
   const lines=String(src).split(/\r?\n/);let out="",inList=false,inOl=false;
   const close=()=>{if(inList){out+="</ul>";inList=false}if(inOl){out+="</ol>";inOl=false}};

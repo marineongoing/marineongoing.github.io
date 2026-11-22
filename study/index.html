@@ -2463,7 +2463,7 @@ function noteVisible(n,sid){return n&&n.subject===sid&&(n.pin||!state.sem||!n.da
 function courseSessions(sid){const out=[];if(!state.sem)return out;const S=state.semesters[state.sem];let d=parseISO(S.start);const end=parseISO(S.end);
   while(d<=end){if(d.getDay()>=1&&d.getDay()<=5){const ds=iso(d);
     const evs=eventsOn(d).filter(e=>e.type==="cours"&&e.subject===sid);
-    if(evs.length&&!evs.some(e=>dead.has("n-ev-"+e.id+(e.weekly?"-"+ds:"")))){const key=dayNoteKey(sid,ds,evs);
+    if(evs.length&&!dead.has("cn|"+sid+"|"+ds)&&!dead.has("n-day-"+sid+"-"+ds)&&!evs.some(e=>dead.has("n-ev-"+e.id+(e.weekly?"-"+ds:"")))){const key=dayNoteKey(sid,ds,evs);
       const starts=evs.map(e=>e.start).filter(Boolean).sort(),ends=evs.map(e=>e.end).filter(Boolean).sort();
       const titles=[...new Set(evs.map(e=>e.title).filter(Boolean))];
       out.push({key,date:ds,start:starts[0]||"",end:ends[ends.length-1]||"",title:titles.join(", ")})}}
@@ -2703,7 +2703,7 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   else if(b.dataset.act==="rmtask"){flush();state.events=state.events.filter(e=>e.id!==b.dataset.id);saveCalendar();renderEditor()}
   else if(b.dataset.act==="delnote"){
     if(!await uiConfirm("Supprimer cette note définitivement ?"))return;
-    const id=state.noteId;const ims=imgIds([state.notes[id]&&state.notes[id].html,...(state.versions[id]||[]).map(v=>v.html)].join(" "));delete state.notes[id];dirty.delete(id);closeNote();await remove(id);for(const k of ims){remove(k);imgDB.del(k);delete imgSrc[k]}if(state.versions[id]){delete state.versions[id];remove("v-"+id)}renderNoteList();
+    const id=state.noteId,dn=state.notes[id];if(dn&&dn.date&&dn.subject&&(dn.evKey||/^n-(ev|day)-/.test(id)))dead.add("cn|"+dn.subject+"|"+dn.date);const ims=imgIds([state.notes[id]&&state.notes[id].html,...(state.versions[id]||[]).map(v=>v.html)].join(" "));delete state.notes[id];dirty.delete(id);closeNote();await remove(id);for(const k of ims){remove(k);imgDB.del(k);delete imgSrc[k]}if(state.versions[id]){delete state.versions[id];remove("v-"+id)}renderNoteList();
   }
   else if(b.dataset.act==="rmrec"){const n=state.notes[state.noteId];flush();n.recording="";saveNote();renderEditor();renderNoteList()}
   else if(b.dataset.act==="addlink"){const n=state.notes[state.noteId];const u=$("#lkUrl").value.trim(),l=$("#lkLabel").value.trim();

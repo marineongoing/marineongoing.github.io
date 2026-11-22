@@ -1146,6 +1146,57 @@ body ul.dl input{flex:none;width:17px;height:17px;margin-top:3px;accent-color:#F
 body ul.dl b{font-weight:600;margin-right:4px;color:#FF6B6B}
 body ul.dl small{display:block;font-size:13px;opacity:.8}
 @media (max-width:700px){body ul.dl{align-self:stretch;padding:12px 14px}}
+/* ===== Révisions par matière ===== */
+.rx-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.rx-weak,.rx-filter{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rx-filter{margin:4px 0 14px}
+.rx-chip{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:13px;font-weight:300;cursor:pointer}
+.rx-chip:hover{background:rgba(255,255,255,.16)}.rx-chip.on{background:#fff;color:#1B1B1D;border-color:#fff}
+.rx-levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rx-lv{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.rx-lv h3.nl-sec{color:#fff!important;font-size:15px!important;letter-spacing:.02em!important}
+.rx-lv0{border-top:3px solid rgba(143,190,250,.7)}.rx-lv1{border-top:3px solid rgba(255,176,112,.75)}.rx-lv2{border-top:3px solid rgba(255,111,138,.8)}
+.rx-modes{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.rx-mode{display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;border-radius:12px;padding:9px 12px;font:inherit;cursor:pointer}
+.rx-mode:hover{background:rgba(255,255,255,.14)}.rx-mode b{font-weight:400;font-size:14px}.rx-mode small{font-size:12px;color:var(--muted);text-align:right}
+.rx-rec{margin-top:4px}
+.rx-bars{display:flex;flex-direction:column;gap:6px}
+.rx-bar{display:grid;grid-template-columns:minmax(0,1fr) 110px 44px;gap:10px;align-items:center;text-align:left;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;border-radius:12px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+.rx-bar i{height:6px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden}.rx-bar s{display:block;height:100%;background:#fff;border-radius:9px}.rx-bar b{font-weight:400;text-align:right}
+.rx-gen{margin-top:12px}
+@media (max-width:900px){.rx-levels{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){.rx-filter{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}.rx-filter::-webkit-scrollbar{display:none}.rx-filter .rx-chip,.rx-filter .hint{flex:none}.rx-top{grid-template-columns:minmax(0,1fr)}.rx-bar{grid-template-columns:minmax(0,1fr) 70px 40px}}
+dialog.rxdlg{height:auto;min-height:min(560px,92vh)}
+#rxZone{padding:20px 22px;max-height:92vh;overflow:auto}
+@media (max-width:700px){#rxZone{padding:calc(env(safe-area-inset-top,0px) + 12px) 14px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:100%}}
+.rx-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}.rx-head b{font-weight:300;font-size:20px}.rx-head .hint{margin-left:auto}
+.rx-prog{height:4px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden;margin-bottom:14px}.rx-prog s{display:block;height:100%;background:#fff;transition:width .3s}
+.rx-card{display:block;width:100%;text-align:left;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:16px;margin-bottom:10px;color:#fff;font:inherit}
+.rx-card p{margin:.4em 0;line-height:1.6}.rx-card summary{cursor:pointer}
+.rx-center{text-align:center}.rx-center .toolbar{justify-content:center}
+.rx-tag{font-size:12px;color:var(--muted);letter-spacing:.03em;margin-bottom:6px}
+.rx-q{font-size:18px!important;font-weight:300!important;line-height:1.5;margin:4px 0 14px;color:#fff!important;letter-spacing:0!important}
+.rx-opts{display:flex;flex-direction:column;gap:8px}.rx-opts.two{flex-direction:row}.rx-opts.two .rx-opt{flex:1;text-align:center}
+.rx-opt{text-align:left;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:11px 14px;font:inherit;font-size:15px;cursor:pointer}
+.rx-opt:not(:disabled):hover{background:rgba(255,255,255,.16)}.rx-opt:disabled{cursor:default}
+.rx-opt.good{background:rgba(122,214,168,.32);border-color:rgba(122,214,168,.8)}.rx-opt.bad{background:rgba(255,140,158,.32);border-color:rgba(255,140,158,.85)}
+.rx-fb{border-radius:12px;padding:12px 14px;margin:12px 0 4px}.rx-fb.ok{background:rgba(122,214,168,.22)}.rx-fb.ko{background:rgba(255,140,158,.22)}.rx-fb b{font-weight:500}.rx-fb p{margin:.3em 0 0}
+.rx-fb+.btn,.rx-card>.btn{margin-top:10px}
+.rx-good{color:#B9F0D2}.rx-bad{color:#FFC2CB}
+.rx-trou{line-height:2.1}.rx-trou input{font:inherit;width:190px;max-width:100%;border:0;border-bottom:2px solid #fff;background:rgba(255,255,255,.1);color:#fff;padding:2px 8px;border-radius:6px 6px 0 0;outline:none}
+.rx-flip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:260px;width:100%;text-align:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:22px;color:#fff;font:inherit;cursor:pointer;margin-bottom:10px}
+.rx-flip b{font-size:22px;font-weight:300}.rx-flip p{font-size:16px;line-height:1.6;max-width:560px}.rx-flip.on{background:rgba(255,255,255,.12)}
+.rx-fi{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1)}.rx-fi:last-child{border:0}.rx-fi b{font-weight:500}.rx-fi p{margin:.2em 0 0;color:var(--muted)}
+.rx-combo{text-align:center;min-height:22px;color:#FFB070;margin:0 0 6px}.rx-vf{min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.rx-pick small{display:block;margin-top:2px}.rx-pick b{font-weight:400}
+.rx-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rx-mgrid>div,.rx-pool{display:flex;flex-direction:column;gap:8px}
+.rx-mt{text-align:left;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;min-height:48px;cursor:pointer}
+.rx-mt.l{font-weight:400}.rx-mt.sel{background:#fff;color:#1B1B1D}.rx-mt.done{background:rgba(122,214,168,.25);border-color:rgba(122,214,168,.6);opacity:.7}
+.rx-mt.shake{animation:rxsh .4s;border-color:rgba(255,140,158,.9)}@keyframes rxsh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.rx-seq{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.rx-slot{border:1px dashed rgba(255,255,255,.3);border-radius:12px;padding:9px 12px;min-height:42px}
+.rx-slot.good{border-style:solid;border-color:rgba(122,214,168,.8);background:rgba(122,214,168,.18)}.rx-slot.bad{border-style:solid;border-color:rgba(255,140,158,.85);background:rgba(255,140,158,.18)}
+#rxZone .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#rxZone textarea{width:100%;box-sizing:border-box;margin-top:8px}
 /* ===== Retouches design (nov. 2026) ===== */
 /* Largeur moyenne (iPad, petite fenêtre) : calendrier et « À venir » l'un sous l'autre, pour que les cours restent lisibles */
 @media (min-width:701px) and (max-width:1000px){body .dash-grid{grid-template-columns:minmax(0,1fr)}}
@@ -1466,6 +1517,7 @@ function applyDocs(docs){
   if(docs.bilans)state.bilans=Array.isArray(docs.bilans.items)?docs.bilans.items:[];
   if(docs.veille)state.veille=Array.isArray(docs.veille.items)?docs.veille.items:[];
   if(docs.orals)state.orals=Array.isArray(docs.orals.items)?docs.orals.items:[];
+  for(const k in docs){if(k.startsWith("rb-")&&docs[k]&&Array.isArray(docs[k].it))state.rbank[k.slice(3)]={...docs[k],gen:docs[k].gen||{}};else if(k.startsWith("rp-")&&docs[k])state.rprog[k.slice(3)]=docs[k]}
   for(const k in docs)if(k.startsWith("v-"))state.versions[k.slice(2)]=Array.isArray(docs[k].versions)?docs[k].versions:[];
   if(docs.toeic)state.toeic={goal:docs.toeic.goal||780,scores:Array.isArray(docs.toeic.scores)?docs.toeic.scores:[]};
   for(const k of ["toefl","gmat"])if(docs[k])state.tests={...state.tests,[k]:{goal:docs[k].goal||state.tests[k].goal,scores:Array.isArray(docs[k].scores)?docs[k].scores:[]}};
@@ -1849,13 +1901,14 @@ const SCEN=[
  {id:"b2b",t:"Vendre une offre à un comité d'entreprise",r:"Tu joues Sophie, responsable d'un comité d'entreprise de 800 salariés, qui cherche des séjours pour les vacances d'été. L'étudiante doit découvrir tes besoins et te proposer une offre de résidences. Tu compares avec des concurrents et tu as un budget serré."},
  {id:"reseau",t:"Animer un partenaire du réseau",r:"Tu joues Karim, gérant d'une agence de voyages partenaire qui vend peu les séjours de la marque. L'étudiante doit relancer le partenariat et te motiver (formation, outils, commissions). Tu es sceptique au début."}];
 let oral=null;
-function oralHTML(){const hist=[...state.orals].reverse().slice(0,6);
-  let h=`<div class="panel oral"><div class="weekbar" style="margin-bottom:6px"><div><h2>S'entraîner à l'oral de négociation</h2></div></div>`;
+function oralCtx(){const a=(state.alt&&state.alt.info)||{};return a.company?` Contexte de l'étudiante : elle est en alternance chez ${a.company}${a.role?` (${a.role})`:""} ; tu peux t'en servir pour rendre la situation réaliste.`:""}
+function oralHTML(sid){sid=sid||"rcnv";const O=RX_ORAL[sid],scen=O.scen||SCEN,hist=[...state.orals].filter(o=>(o.sid||"rcnv")===sid).reverse().slice(0,6),cur=oral&&oral.sid===sid?oral:null;
+  let h=`<div class="panel oral"><div class="weekbar" style="margin-bottom:6px"><div><h2>${esc(O.title)}</h2></div></div>`;
   if(!sampleFn)return h+`<p class="hint">Autorise Claude sur cette page pour utiliser l'entraînement.</p></div>`;
-  if(!oral){h+=`<div class="scen">${SCEN.map(x=>`<button class="ccard" data-oral="${x.id}" style="--c:var(--accent)"><span class="cc-main"><b>${x.t}</b></span></button>`).join("")}</div>`}
-  else{h+=`<div class="oral-head"><b>${esc(oral.t)}</b><span style="margin-left:auto;display:flex;gap:8px">${oral.feedback?`<button class="btn primary" data-act="oralquit">Nouvel entraînement</button>`:`<button class="btn primary" data-act="oraleval" ${oral.turns.length<4||oral.wait?"disabled":""}>Terminer et évaluer</button><button class="btn ghost" data-act="oralquit">Abandonner</button>`}</span></div>
-    <div class="olog" id="oralLog">${oral.turns.slice(1).map(t=>`<div class="omsg ${t.role}"><span>${esc(t.content)}</span></div>`).join("")}${oral.wait?`<div class="omsg assistant"><span class="hint">…</span></div>`:""}</div>
-    ${oral.feedback?`<div class="preview fiche-body" style="margin-top:12px">${md(oral.feedback)}</div>`:`<div class="addl"><textarea id="oralInput" rows="2" class="ta" style="flex:1" placeholder="Ta réponse…"></textarea><button class="btn primary" data-act="oralsend" ${oral.wait?"disabled":""}>Envoyer</button></div>`}`}
+  if(!cur){h+=`<p class="hint">Claude joue ton interlocuteur${O.lang==="en"?" en anglais":""}, puis te note comme un jury.</p><div class="scen">${scen.map(x=>`<button class="ccard" data-oral="${x.id}" style="--c:var(--accent)"><span class="cc-main"><b>${esc(x.t)}</b></span></button>`).join("")}</div>`}
+  else{h+=`<div class="oral-head"><b>${esc(cur.t)}</b><span style="margin-left:auto;display:flex;gap:8px">${cur.feedback?`<button class="btn primary" data-act="oralquit">Nouvel entraînement</button>`:`<button class="btn primary" data-act="oraleval" ${cur.turns.length<4||cur.wait?"disabled":""}>Terminer et évaluer</button><button class="btn ghost" data-act="oralquit">Abandonner</button>`}</span></div>
+    <div class="olog" id="oralLog">${cur.turns.slice(1).map(t=>`<div class="omsg ${t.role}"><span>${esc(t.content)}</span></div>`).join("")}${cur.wait?`<div class="omsg assistant"><span class="hint">…</span></div>`:""}</div>
+    ${cur.feedback?`<div class="preview fiche-body" style="margin-top:12px">${md(cur.feedback)}</div>`:`<div class="addl"><textarea id="oralInput" rows="2" class="ta" style="flex:1" placeholder="${O.lang==="en"?"Your answer…":"Ta réponse…"}"></textarea><button class="btn primary" data-act="oralsend" ${cur.wait?"disabled":""}>Envoyer</button></div>`}`}
   if(hist.length)h+=`<h3 class="nl-sec">Mes derniers entraînements</h3>${hist.map(o=>`<details class="fiche"><summary>${fmtDay(parseISO(o.date))} · ${esc(o.t)}</summary><div class="preview fiche-body">${md(o.feedback)}</div></details>`).join("")}`;
   return h+`</div>`}
 async function oralTurn(){oral.wait=true;render();
@@ -1863,16 +1916,17 @@ async function oralTurn(){oral.wait=true;render();
   catch(e){if(oral.turns.length>1){const last=oral.turns.pop();oral.wait=false;render();const el=$("#oralInput");if(el)el.value=last.content}else oral=null;
     toast(e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":"La réponse n'a pas pu être générée. Réessaie.");if(oral)oral.wait=false;render();return}
   oral.wait=false;render()}
-function startOral(id){const sc=SCEN.find(x=>x.id===id);oral={t:sc.t,turns:[{role:"user",content:`Jeu de rôle pour s'entraîner à l'épreuve de négociation du BTS NDRC. ${sc.r}
-Règles : reste toujours dans ton personnage, réponds en français à l'oral (2 à 4 phrases maximum), ne donne jamais de conseils à l'étudiante pendant l'échange et ne sors pas du jeu. Ouvre la conversation en te présentant brièvement, comme si l'étudiante venait d'arriver au rendez-vous.`}],wait:false};oralTurn()}
-async function evalOral(){if(!oral||oral.wait)return;oral.wait=true;render();
+function startOral(id){const sid=Object.keys(RX_ORAL).find(k=>(RX_ORAL[k].scen||SCEN).some(x=>x.id===id))||"rcnv",O=RX_ORAL[sid],sc=(O.scen||SCEN).find(x=>x.id===id);
+  oral={sid,t:sc.t,turns:[{role:"user",content:`Jeu de rôle pour s'entraîner à ${O.jury}. ${sc.r}${oralCtx()}
+Règles : reste toujours dans ton personnage, réponds ${O.lang==="en"?"uniquement en anglais":"en français"} à l'oral (2 à 4 phrases maximum), ne donne jamais de conseils à l'étudiante pendant l'échange et ne sors pas du jeu. Sois exigeant et réaliste, comme le jour de l'examen. Ouvre la conversation en te présentant brièvement, comme si l'échange commençait.`}],wait:false};oralTurn()}
+async function evalOral(){if(!oral||oral.wait)return;oral.wait=true;render();const O=RX_ORAL[oral.sid]||RX_ORAL.rcnv;
   const tr=oral.turns.slice(1).map(t=>(t.role==="user"?"ÉTUDIANTE : ":"INTERLOCUTEUR : ")+t.content).join("\n");
-  try{const r=await sampleFn(`Tu es jury de l'épreuve de négociation-vente du BTS NDRC. Voici la transcription d'un entraînement (scénario : ${oral.t}).
+  try{const r=await sampleFn(`Tu es jury de ${O.jury}. Voici la transcription d'un entraînement (scénario : ${oral.t}).
 
 ${tr}
 
-Évalue la prestation de l'étudiante en français, en Markdown simple, avec : « ## Points forts », « ## À améliorer » (découverte des besoins, argumentation, traitement des objections, conclusion, posture), « ## Phrases à retravailler » (cite 1 ou 2 de ses phrases et propose une meilleure formulation), et « ## Note indicative » (sur 20, avec une phrase de justification). Sois exigeant mais bienveillant. Réponds uniquement avec l'évaluation.`,{cache:false});
-    oral.feedback=r.text.trim();state.orals=[...state.orals,{date:iso(new Date()),t:oral.t,feedback:oral.feedback}].slice(-30);persist("orals",{items:state.orals})}
+Évalue la prestation de l'étudiante en français, en la tutoyant, en Markdown simple, avec : « ## Points forts », « ## À améliorer » (${O.crit}), « ## Phrases à retravailler » (cite 1 ou 2 de ses phrases et propose une meilleure formulation${O.lang==="en"?", en anglais correct":""}), et « ## Note indicative » (sur 20, avec une phrase de justification). Sois aussi exigeant qu'un vrai jury. Réponds uniquement avec l'évaluation.`,{cache:false});
+    oral.feedback=r.text.trim();state.orals=[...state.orals,{date:iso(new Date()),sid:oral.sid,t:oral.t,feedback:oral.feedback}].slice(-60);persist("orals",{items:state.orals})}
   catch(e){toast("L'évaluation n'a pas pu être faite. Réessaie dans un instant.")}
   oral.wait=false;render()}
 function saveAlt(){persist("alternance",{info:state.alt.info,missions:state.alt.missions})}
@@ -2362,38 +2416,276 @@ $("#view-evals").addEventListener("click",async e=>{const b=e.target.closest("bu
     if(v===null)return;const t=v.trim().replace(",",".");if(t===""){const g={...state.goals};delete g[b.dataset.goal];state.goals=g}else{const n=+t;if(isNaN(n)||n<0||n>20){toast("Indique une moyenne entre 0 et 20.");return}state.goals={...state.goals,[b.dataset.goal]:n}}
     persist("grades",{items:state.grades,goals:state.goals});renderEvals()}
   else if(b.dataset.act==="addgrade")openGrade(null);else if(b.dataset.grade)openGrade(b.dataset.grade);else if(b.dataset.ev)openEvent(b.dataset.ev,b.dataset.on,b.dataset.st)});
-function revMeta(sid){const t=iso(new Date());const tr=Object.entries(state.notes).filter(([,n])=>n.subject===sid).flatMap(([id,n])=>((n.quiz&&n.quiz.missed)||[]));return {tracked:tr.length,due:tr.filter(q=>(q.due||t)<=t).length}}
+/* ===================== Révisions par matière =====================
+   Banque de questions par matière (document rb-<matière>) : QCM, vrai ou faux, flashcards, mot manquant,
+   associations, remise en ordre, cas pratiques. Progression dans rp-<matière>.
+   Claude complète la banque à chaque nouvelle note (et va chercher des exercices dans les annales du BTS NDRC). */
+const RX_EXAM={rcnv:"E4, oral de 40 min, coefficient 5",rcd:"E5, écrit de 3 h et épreuve pratique de 40 min, coefficient 4",arc:"E6, oral de 40 min, coefficient 3",cejm:"E3, écrit de 4 h, coefficient 3",ang:"E2, oral de 30 min, coefficient 3",cge:"E1, écrit de 3 h, coefficient 3"};
+const RX_ORAL={
+  rcnv:{title:"S'entraîner à l'oral de négociation (E4)",jury:"l'épreuve E4 de négociation-vente et accompagnement de la relation client du BTS NDRC",crit:"découverte des besoins, argumentation (CAP), traitement des objections, conclusion, posture",lang:"fr",scen:null},
+  arc:{title:"S'entraîner à l'oral d'animation de réseaux (E6)",jury:"l'épreuve E6 de relation client et animation de réseaux du BTS NDRC",crit:"maîtrise des notions (distribution, référencement, marges, partenaires, vente directe), justification par des chiffres, clarté, réponses aux questions du jury",lang:"fr",scen:[
+    {id:"e6-dist",t:"Questions du jury sur ta fiche distribution",r:"Tu joues un jury de l'épreuve E6 du BTS NDRC. L'étudiante vient de présenter sa fiche « distribution » (une marque vendue par une enseigne). Pose-lui une par une des questions précises et exigeantes : choix du canal et de la stratégie de distribution, négociation du référencement, calculs de marge et de taux de marque, merchandising, indicateurs. Relance quand une réponse est floue."},
+    {id:"e6-part",t:"Questions du jury sur ta fiche partenaire",r:"Tu joues un jury de l'épreuve E6 du BTS NDRC. L'étudiante présente sa fiche « réseau de partenaires » tirée de son alternance. Interroge-la une question à la fois sur le réseau, les actions d'animation menées, les résultats chiffrés, les indicateurs de performance et ce qu'elle améliorerait. Sois exigeant et relance sur les chiffres."},
+    {id:"e6-vdi",t:"Recruter et animer un vendeur à domicile",r:"Tu joues Nadia, vendeuse à domicile indépendante (VDI) d'un réseau de cosmétiques, démotivée car ses ventes baissent. L'étudiante est animatrice du réseau et doit la remotiver : diagnostic, objectifs, formation, challenge, outils. Tu poses des objections réalistes (manque de temps, commissions jugées faibles)."},
+    {id:"e6-ref",t:"Négocier le référencement d'un produit",r:"Tu joues Marc, acheteur d'une centrale d'achat de supermarchés. L'étudiante veut faire référencer un nouveau produit. Tu es exigeant : prix, marge arrière, place en rayon, preuves de ventes. Tu ne cèdes que face à des arguments chiffrés."}]},
+  ang:{title:"S'entraîner à l'oral d'anglais (E2)",jury:"l'épreuve E2 d'anglais du BTS NDRC (jeu de rôle en anglais)",crit:"fluency, vocabulary of sales, grammar (tenses, conditionnel), politeness, techniques de vente en anglais",lang:"en",scen:[
+    {id:"e2-shop",t:"Sell a product to a customer in a shop",r:"You are Emma, a British customer in a French electronics shop looking for a laptop for your daughter. The student is the sales assistant and must speak English. Ask questions, give your budget only if asked, raise realistic objections (price, warranty, delivery)."},
+    {id:"e2-hotel",t:"Book a holiday residence for a family",r:"You are Mr Johnson, an American tourist calling a French holiday residence to book a week in August for a family of five. The student must find out your needs, present the offer in English and handle your objections (price, distance from the beach, cancellation policy)."},
+    {id:"e2-complaint",t:"Handle an angry customer",r:"You are Ms Patel, an English-speaking customer whose online order arrived damaged and late. You are upset and want a refund. The student is a customer service advisor and must calm you down and offer a solution in English."},
+    {id:"e2-b2b",t:"Present an offer to a foreign business client",r:"You are Lars, a purchasing manager from a Dutch company looking for a supplier of corporate gifts. The student is a sales representative and must present an offer in English, discover your needs and negotiate (volume discount, delivery time)."}]},
+  rcd:{title:"S'entraîner à la relation client à distance (E5)",jury:"l'épreuve E5 de relation client à distance et digitalisation du BTS NDRC",crit:"méthode des 4C, écoute et reformulation, traitement des objections, respect du RGPD, ton professionnel à distance",lang:"fr",scen:[
+    {id:"e5-tel",t:"Appel sortant : décrocher un rendez-vous",r:"Tu joues Thomas, gérant d'une PME de 20 salariés, appelé par l'étudiante (téléprospectrice) qui veut obtenir un rendez-vous pour un commercial. Tu es pressé, sceptique, et tu dis d'abord que tu n'as pas le temps."},
+    {id:"e5-recl",t:"Réclamation par téléphone",r:"Tu joues Mme Girard, cliente d'un opérateur mobile, facturée deux fois ce mois-ci. Tu appelles le service client, tu es agacée et tu menaces de résilier. L'étudiante est téléconseillère."},
+    {id:"e5-chat",t:"Conseil client par chat",r:"Tu écris comme un client sur le chat d'un site e-commerce de mobilier : tu hésites entre deux canapés, tu poses des questions sur la livraison, le retour et le paiement en plusieurs fois. Messages courts, style chat. L'étudiante est conseillère en ligne."},
+    {id:"e5-crm",t:"Réactiver un client inactif",r:"Tu joues M. Benoît, ancien client d'une salle de sport qui n'est pas venu depuis 6 mois. L'étudiante t'appelle pour te réactiver avec une offre. Tu as des objections (prix, manque de temps, mauvaise expérience passée)."}]}
+};
+state.rbank={};state.rprog={};
+const rxFilter={};let rx=null,rxBusy=null;const rxQueue=[];const rxSaveT={};
+const rxBank=sid=>state.rbank[sid]||{v:1,ch:[],it:[],gen:{}};
+function rxProg(sid){if(!state.rprog[sid])state.rprog[sid]={it:{},best:{},cas:{}};const p=state.rprog[sid];p.it=p.it||{};p.best=p.best||{};p.cas=p.cas||{};return p}
+function rxSave(sid){clearTimeout(rxSaveT[sid]);rxSaveT[sid]=setTimeout(()=>persist("rp-"+sid,JSON.parse(JSON.stringify(rxProg(sid)))),1200)}
+function rxSaveBank(sid){persist("rb-"+sid,JSON.parse(JSON.stringify(rxBank(sid))))}
+function rxMark(sid,k,ok){const p=rxProg(sid),r=p.it[k]||[0,0,null,0];ok?r[0]++:r[1]++;r[2]=ok?1:0;r[3]=Date.now();p.it[k]=r;rxSave(sid)}
+const rxShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rxNorm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[’']/g,"'").replace(/[^a-z0-9%,.' -]/g," ").replace(/\s+/g," ").trim().replace(/[.,]$/,"");
+function rxChName(sid,c){const x=rxBank(sid).ch.find(y=>y.id===c);return x?x.n:""}
+function rxPool(sid,types,minLv){const f=rxFilter[sid]||"all";let L=rxBank(sid).it.filter(x=>types.includes(x.t)&&(f==="all"||x.c===f));
+  if(minLv){const hard=L.filter(x=>(x.lv||1)>=minLv);if(hard.length>=8)L=hard}return L}
+function rxPick(sid,pool,n){const p=rxProg(sid);const w=x=>{const r=p.it[x.k];if(!r)return 3;if(r[2]===0)return 4;return 1/(1+r[0])};
+  return pool.map(x=>({x,s:Math.random()*w(x)})).sort((a,b)=>b.s-a.s).slice(0,n).map(o=>o.x)}
+function rxStats(sid){const b=rxBank(sid),p=rxProg(sid),f=rxFilter[sid]||"all";let ok=0,ko=0,seen=0;const errs=[];const per={};
+  for(const x of b.it){const r=p.it[x.k];const pc=per[x.c]||(per[x.c]={n:0,m:0,ok:0,ko:0});pc.n++;if(r){pc.ok+=r[0];pc.ko+=r[1];if(r[2]===1)pc.m++}
+    if(f!=="all"&&x.c!==f)continue;if(r){seen++;ok+=r[0];ko+=r[1];if(r[2]===0&&["q","v","t"].includes(x.t))errs.push(x)}}
+  const weak=b.ch.map(c=>({...c,...(per[c.id]||{n:0,m:0,ok:0,ko:0})})).filter(c=>c.ko>0).map(c=>({...c,rate:Math.round(100*c.ok/(c.ok+c.ko))})).sort((a,b)=>a.rate-b.rate).slice(0,4);
+  return {ok,ko,seen,rate:ok+ko?Math.round(100*ok/(ok+ko)):null,errs,per,weak,total:b.it.length}}
+function revMeta(sid){const t=iso(new Date());const tr=Object.entries(state.notes).filter(([,n])=>n.subject===sid).flatMap(([id,n])=>((n.quiz&&n.quiz.missed)||[]));const s=rxStats(sid);
+  return {tracked:tr.length,due:tr.filter(q=>(q.due||t)<=t).length+s.errs.length,errs:s.errs.length,old:tr.filter(q=>(q.due||t)<=t).length}}
+
+/* ---------- page de la matière ---------- */
+function rxLevels(sid){const n=t=>rxPool(sid,t).length;const L=[
+  ["Facile","Pour apprendre : une explication après chaque réponse.",[["qcm","QCM",n(["q"])+" questions"],["vf","Vrai ou faux",n(["v"])+" affirmations"],["flash","Flashcards",n(["f"])+" cartes"],["fiches","Fiches express",n(["f"])+" notions"]]],
+  ["Avancé","Questions plus difficiles, réponses exactes, correction à la fin.",[["qcm2","QCM sans indice","15 questions"],["trou","Mot manquant","réponse exacte"],["match","Associations",n(["m"])+" jeux"],["ordre","Remets dans l'ordre",n(["o"])+" séquences"],["speed","Vrai ou faux chrono","45 s, une erreur coûte 2 points"]]],
+  ["Hardcore","Conditions d'examen, sans aucune aide.",[["exam","Examen blanc /20","20 min, une erreur retire 0,5 point"],["cas","Cas pratiques type BTS",n(["c"])+" cas, notés par Claude"],["sudden","Mort subite","jusqu'à la première erreur"]]]];
+  const best=rxProg(sid).best;
+  return `<div class="rx-levels">${L.map(([t,d,ms],i)=>`<div class="rx-lv rx-lv${i}"><h3 class="nl-sec">${t}</h3><p class="hint">${d}</p><div class="rx-modes">${ms.map(([k,l,s])=>`<button class="rx-mode" data-rx="${k}"><b>${l}</b><small>${s}</small></button>`).join("")}</div>
+    ${i===2&&(best.exam!=null||best.sudden!=null)?`<p class="hint rx-rec">${best.exam!=null?`Meilleur examen blanc : ${String(best.exam).replace(".",",")}/20`:""}${best.exam!=null&&best.sudden!=null?" · ":""}${best.sudden!=null?`Record mort subite : ${best.sudden}`:""}</p>`:""}</div>`).join("")}</div>`}
+function rxSubjectHTML(sid){const b=rxBank(sid),s=rxStats(sid),f=rxFilter[sid]||"all",old=revMeta(sid).old;
+  if(!b.it.length)return `<div class="revcard"><p class="hint">Pas encore de questions dans cette matière. Elles arrivent dès que Claude a traité tes notes.</p></div>`;
+  const job=rxBusy&&rxBusy.sid===sid?rxBusy:null,waiting=rxQueue.filter(j=>j.sid===sid).length;
+  return `<div class="rx-top">
+    <div class="revcard rx-err"><h3 class="nl-sec">À revoir</h3><p class="rbig">${s.errs.length}<small> question${s.errs.length>1?"s":""} ratée${s.errs.length>1?"s":""}</small></p>
+      ${s.weak.length?`<p class="hint">Notions où tu fais le plus de fautes :</p><div class="rx-weak">${s.weak.map(c=>`<button class="rx-chip" data-rxf="${c.id}">${esc(c.n)} · ${c.rate} %</button>`).join("")}</div>`:`<p class="hint">Aucune erreur pour l'instant${f!=="all"?" dans cette notion":""}.</p>`}
+      <div class="toolbar">${s.errs.length?`<button class="btn primary" data-rx="errors">Retravailler mes erreurs</button>`:""}${old?`<button class="btn ghost" data-rrev="${sid}">${old} question${old>1?"s":""} de mes tests de notes</button>`:""}</div></div>
+    <div class="revcard rx-rate"><h3 class="nl-sec">Mon taux de réussite</h3><p class="rbig">${s.rate==null?"–":s.rate+" %"}</p>
+      <p class="hint">${s.ok} bonne${s.ok>1?"s":""} réponse${s.ok>1?"s":""} sur ${s.ok+s.ko} · ${s.seen} question${s.seen>1?"s":""} déjà travaillée${s.seen>1?"s":""} sur ${s.total}</p></div></div>
+  <div class="rx-filter"><span class="hint">Réviser :</span><button class="rx-chip${f==="all"?" on":""}" data-rxf="all">Toute la matière</button>${b.ch.map(c=>`<button class="rx-chip${f===c.id?" on":""}" data-rxf="${c.id}">${esc(c.n)}</button>`).join("")}</div>
+  ${rxLevels(sid)}
+  <h3 class="nl-sec" style="margin-top:18px">Ma maîtrise par notion</h3><div class="rx-bars">${b.ch.map(c=>{const pc=s.per[c.id]||{n:0,m:0};const v=pc.n?Math.round(100*pc.m/pc.n):0;return `<button class="rx-bar" data-rxf="${c.id}"><span>${esc(c.n)}</span><i><s style="width:${v}%"></s></i><b>${v} %</b></button>`}).join("")}</div>
+  <p class="hint rx-gen">${job?`Claude ajoute des questions${job.kind==="hard"?" plus difficiles et des sujets d'annales":` à partir de « ${esc(job.title||"ta note")} »`}…`:waiting?`${waiting} mise${waiting>1?"s":""} à jour en attente.`:`${b.it.length} questions et exercices. Mis à jour automatiquement à chaque nouvelle note, avec des exercices tirés des annales du BTS NDRC.`}</p>`}
 function renderRevs(){
   if(isMobile()&&!state.revOpen){$("#view-revs").innerHTML=tileHead()+`<div class="sgrid">${orderedSubjects().map(x=>{const m=revMeta(x.id);
-    const inner=`${m.due?`<span class="st-dot" title="Questions à revoir"></span>`:""}<span class="st-name">${esc(x.short||x.name)}</span><span class="st-next">${x.id==="rcnv"?"Entraînement oral":m.tracked+" en suivi"}</span><span class="st-count"><b>${m.due}</b> à revoir</span>`;
+    const inner=`${m.due?`<span class="st-dot" title="Questions à revoir"></span>`:""}<span class="st-name">${esc(x.short||x.name)}</span><span class="st-next">${rxBank(x.id).it.length} questions</span><span class="st-count"><b>${m.due}</b> à revoir</span>`;
     return tileWrap(x,inner,`data-rgrid="${x.id}"`)}).join("")}</div>`;return}
-  const sid=state.rsubject||"rcnv",sj=SUBJ[sid],t=iso(new Date());
-  const tracked=Object.entries(state.notes).filter(([,n])=>n.subject===sid).flatMap(([id,n])=>((n.quiz&&n.quiz.missed)||[]));
-  const due=tracked.filter(q=>(q.due||t)<=t).length;
-  const syn=state.notes["n-pin-"+sid+"-syn"];const nNotes=Object.values(state.notes).filter(n=>n.subject===sid&&!n.pin&&(n.content||"").trim()&&(!n.date||inSem(n.date,state.sem))).length;
-  const tests=Object.values(state.notes).filter(n=>n.subject===sid&&n.quiz&&n.quiz.last).map(n=>n.quiz.last);
-  const avg=tests.length?Math.round(tests.reduce((a,x)=>a+x.score/x.total,0)/tests.length*100):null;
+  const sid=state.rsubject||"rcnv",sj=SUBJ[sid];
+  rxAutoQueue(sid);
   let html=`<div class="binder" style="--c:${sj.c}"><div class="tabs" role="tablist" aria-label="Matières">`+
     SUBJECTS.map(x=>`<button class="tab" role="tab" style="--c:${x.c}" aria-selected="${x.id===sid}" data-rsubj="${x.id}"><span class="dot"></span>${x.name}</button>`).join("")+
     `</div><div class="sheet" role="tabpanel"><div class="sheet-head"><div><button class="btn ghost sback" data-act="revgrid">‹ Toutes les matières</button><h2>${sj.name}</h2></div></div>
-    <div class="revgrid">
-      <div class="revcard"><h3 class="nl-sec">Questions à revoir</h3><p class="rbig">${due}<small> aujourd'hui</small></p><p class="hint">${tracked.length} question${tracked.length>1?"s":""} en suivi dans cette matière</p>
-        <div class="toolbar">${due?`<button class="btn primary" data-rrev="${sid}">Réviser</button>`:""}${tracked.length?`<button class="btn ghost" data-rrevall="${sid}">Tout revoir</button>`:""}</div></div>
-      <div class="revcard"><h3 class="nl-sec">Mes tests</h3><p class="rbig">${avg==null?"–":avg+" %"}<small>${avg==null?"":" de réussite"}</small></p><p class="hint">${tests.length} note${tests.length>1?"s":""} testée${tests.length>1?"s":""} · ${nNotes} note${nNotes>1?"s":""} de cours</p></div>
-      <div class="revcard"><h3 class="nl-sec">Synthèse</h3><p class="hint">${syn&&(syn.content||"").trim()?"Ta fiche de révision de la matière est prête.":"Rassemble toutes tes notes de la matière en une fiche."}</p>
-        <div class="toolbar">${syn&&(syn.content||"").trim()?`<button class="btn" data-gonote="n-pin-${sid}-syn">Ouvrir</button>`:""}${sampleFn?`<button class="btn ${syn&&(syn.content||"").trim()?"":"primary"}" data-rsyn="${sid}">${syn&&(syn.content||"").trim()?"Mettre à jour":"Faire la synthèse"}</button>${syn&&(syn.content||"").trim()?`<button class="btn ghost" data-rsynfull="${sid}" title="Refaire la synthèse à partir de toutes tes notes (plus cher)">Tout refaire</button>`:""}`:""}</div></div>
-    </div>${notionsHTML(sid)}${sid==="rcnv"?oralHTML():""}</div></div>`;
+    ${rxSubjectHTML(sid)}${RX_ORAL[sid]?oralHTML(sid):""}</div></div>`;
   $("#view-revs").innerHTML=html;const ol=$("#oralLog");if(ol)ol.scrollTop=ol.scrollHeight}
+
+/* ---------- Claude complète la banque ---------- */
+function rxAutoQueue(sid){if(!sampleFn||!state.rbank[sid])return;const b=rxBank(sid),from=b.from||0;
+  if(!b.gen._hard&&!rxQueue.some(j=>j.sid===sid&&j.kind==="hard")&&!(rxBusy&&rxBusy.sid===sid&&rxBusy.kind==="hard"))rxQueue.push({kind:"hard",sid});
+  let n=0;for(const [id,nt] of Object.entries(state.notes)){if(n>=3)break;if(nt.subject!==sid||nt.pin==="syn"||(nt.updatedAt||0)<from)continue;if(rxNeedsGen(sid,id)){rxQueueNote(id,true);n++}}
+  rxRun()}
+function rxNeedsGen(sid,id){const n=state.notes[id];if(!n)return false;const txt=(n.content||"").trim();if(txt.length<300)return false;const g=rxBank(sid).gen[id];
+  return !g||(g.h!==hashStr(txt)&&Math.abs(txt.length-(g.len||0))>=300)}
+function rxQueueNote(id,quiet){const n=state.notes[id];if(!n||!SUBJ[n.subject]||!state.rbank[n.subject])return;if(!rxNeedsGen(n.subject,id))return;
+  if(rxQueue.some(j=>j.id===id)||(rxBusy&&rxBusy.id===id))return;rxQueue.push({kind:"note",sid:n.subject,id,title:n.title||""});if(!quiet)rxRun()}
+const RX_FORMAT=`Formats des exercices (respecte-les exactement) :
+- {"t":"q","c":"<id notion>","lv":2,"d":["question",["bonne réponse","piège plausible","piège plausible","piège plausible"],"explication courte"]} (QCM : la 1re réponse est la bonne ; les 3 autres sont des confusions réellement fréquentes, de même longueur et du même registre, jamais absurdes)
+- {"t":"v","c":"…","lv":2,"d":["affirmation précise",true ou false,"explication"]}
+- {"t":"f","c":"…","lv":1,"d":["notion","définition complète et exacte"]}
+- {"t":"t","c":"…","lv":2,"d":["phrase avec ___ à la place du terme exact",["réponse","variante acceptée"]]}
+- {"t":"m","c":"…","lv":2,"d":["titre du jeu",[["terme","correspondance"],… 5 paires]]}
+- {"t":"o","c":"…","lv":2,"d":["titre",["étape 1","étape 2",… dans le bon ordre]]}
+- {"t":"c","c":"…","lv":3,"d":{"t":"titre du cas","ctx":"contexte chiffré et réaliste d'entreprise, comme dans un sujet de BTS","ann":[["titre annexe","contenu"]],"q":"travail à faire (questions numérotées)","pts":["point attendu dans la copie",…],"corr":"corrigé rédigé (balises <b> et <br> autorisées)"}}
+lv : 1 = connaissance, 2 = application (calculs, situations, pièges), 3 = analyse niveau examen.`;
+function rxPromptBase(sid){const b=rxBank(sid),sj=SUBJ[sid];
+  return `Tu prépares des exercices de révision exigeants pour une étudiante en 1re année de BTS NDRC (alternance) qui vise 20/20. Matière : « ${sj.full||sj.name} » (épreuve ${RX_EXAM[sid]||""}).
+Elle trouve les exercices actuels trop faciles : sois rigoureux, niveau examen du BTS, avec des pièges réalistes, des calculs, des mises en situation et des questions de justification. Tout en français (sauf en anglais pour les phrases à travailler en anglais), sans emoji, en tutoyant.
+Notions de la matière (id : nom) : ${b.ch.map(c=>c.id+" : "+c.n).join(" ; ")}. Utilise ces id dans "c" ; si une notion manque vraiment, ajoute-la dans "chapters" avec un id court en minuscules.
+${RX_FORMAT}`}
+async function rxRun(){if(rxBusy||!rxQueue.length||!sampleFn)return;const job=rxQueue.shift();rxBusy=job;if(state.view==="revs")renderRevs();
+  try{const b=rxBank(job.sid);let prompt;
+    if(job.kind==="hard"){const known=b.it.filter(x=>x.t==="f").map(x=>x.d[0]).slice(0,80).join(" ; ");
+      prompt=`${rxPromptBase(job.sid)}
+
+Notions déjà travaillées : ${known}.
+1) Cherche sur internet (outil web_search) des sujets d'annales du BTS NDRC de cette matière (sujets officiels, corrigés, sessions récentes) et inspire-toi de leurs vraies questions.
+2) Crée 30 exercices nouveaux et plus difficiles que des questions de cours : 12 QCM (lv 2 ou 3), 4 vrai ou faux pièges, 5 mots manquants exigeant le terme exact, 2 associations, 2 remises en ordre, 3 cas pratiques type annales (lv 3) avec contexte chiffré, annexes, questions et corrigé. Répartis-les sur toutes les notions.
+Réponds en JSON : {"chapters":[],"items":[…]}`}
+    else{const n=state.notes[job.id];if(!n)throw {code:"gone"};const txt=htmlText(n.html||noteHtml(n)).slice(0,14000);
+      prompt=`${rxPromptBase(job.sid)}
+
+Voici une note de cours de l'étudiante${n.title?` (« ${n.title} »)`:""} :
+"""
+${txt}
+"""
+1) Crée des exercices sur les notions de cette note : 6 QCM, 3 vrai ou faux, 3 flashcards, 3 mots manquants, 1 association ou remise en ordre si la note s'y prête. Majorité de lv 2 et 3.
+2) Cherche sur internet (outil web_search) des exercices d'annales du BTS NDRC portant sur ces notions et ajoute 1 cas pratique type annale (lv 3) inspiré d'un vrai sujet, avec corrigé.
+N'invente aucune information absente de la note ou des sources officielles.
+Réponds en JSON : {"chapters":[],"items":[…]}`}
+    const r=await sampleFn(prompt+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",{cache:false,maxTokens:12000,webSearch:true});
+    const t=r.text.replace(/```json|```/g,"");const a=t.indexOf("{"),z=t.lastIndexOf("}");if(a<0||z<a)throw {code:"empty"};
+    let j;try{j=JSON.parse(t.slice(a,z+1))}catch(e){throw {code:"empty"}}
+    const cur=state.rbank[job.sid];if(!cur)throw {};
+    for(const c of (Array.isArray(j.chapters)?j.chapters:[])){const id=String(c&&c.id||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(id&&c.n&&!cur.ch.some(x=>x.id===id))cur.ch.push({id,n:String(c.n).slice(0,60)})}
+    const ids=new Set(cur.ch.map(c=>c.id)),src=job.kind==="hard"?"hard":"n:"+job.id,stamp=Date.now().toString(36);
+    const items=(Array.isArray(j.items)?j.items:[]).map(x=>rxValid(x,ids)).filter(Boolean).map((x,i)=>({...x,k:"g"+stamp+"-"+i,src}));
+    if(!items.length)throw {code:"empty"};
+    cur.it=[...cur.it.filter(x=>x.src!==src||job.kind==="hard"),...items];
+    if(job.kind==="hard")cur.gen._hard=iso(new Date());else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();cur.gen[job.id]={h:hashStr(txt),len:txt.length,at:iso(new Date())}}
+    rxSaveBank(job.sid);
+  }catch(e){if(e&&e.code==="not_granted")rxQueue.length=0;else if(!(e&&e.code==="gone")){const cur=state.rbank[job.sid];
+      if(cur){if(job.kind==="hard"){cur.gen._hardTry=(cur.gen._hardTry||0)+1;if(cur.gen._hardTry>=2)cur.gen._hard="échec"}else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();cur.gen[job.id]={h:hashStr(txt),len:txt.length,fail:1}}rxSaveBank(job.sid)}}}
+  rxBusy=null;if(state.view==="revs")renderRevs();setTimeout(rxRun,1500)}
+function rxValid(x,ids){if(!x||!x.t||!x.d)return null;const c=ids.has(x.c)?x.c:[...ids][0];const lv=[1,2,3].includes(x.lv)?x.lv:2,d=x.d,S=v=>String(v==null?"":v).slice(0,600);
+  if(x.t==="q"&&Array.isArray(d)&&Array.isArray(d[1])&&d[1].length===4)return {t:"q",c,lv,d:[S(d[0]),d[1].map(S),S(d[2])]};
+  if(x.t==="v"&&Array.isArray(d)&&typeof d[1]==="boolean")return {t:"v",c,lv,d:[S(d[0]),d[1],S(d[2])]};
+  if(x.t==="f"&&Array.isArray(d)&&d[0]&&d[1])return {t:"f",c,lv,d:[S(d[0]),S(d[1])]};
+  if(x.t==="t"&&Array.isArray(d)&&/___/.test(d[0]||"")&&Array.isArray(d[1])&&d[1].length)return {t:"t",c,lv,d:[S(d[0]),d[1].map(S)]};
+  if(x.t==="m"&&Array.isArray(d)&&Array.isArray(d[1])&&d[1].length>=3&&d[1].every(p=>Array.isArray(p)&&p.length===2))return {t:"m",c,lv,d:[S(d[0]),d[1].slice(0,6).map(p=>[S(p[0]),S(p[1])])]};
+  if(x.t==="o"&&Array.isArray(d)&&Array.isArray(d[1])&&d[1].length>=3)return {t:"o",c,lv,d:[S(d[0]),d[1].slice(0,8).map(S)]};
+  if(x.t==="c"&&d&&d.ctx&&d.q&&Array.isArray(d.pts))return {t:"c",c,lv,d:{t:S(d.t),ctx:String(d.ctx).slice(0,3000),ann:(Array.isArray(d.ann)?d.ann:[]).filter(a=>Array.isArray(a)).slice(0,4).map(a=>[S(a[0]),String(a[1]||"").slice(0,2000)]),q:String(d.q).slice(0,1500),pts:d.pts.slice(0,10).map(S),corr:String(d.corr||"").slice(0,5000)}};
+  return null}
+const rxCorr=h=>esc(String(h||"")).replace(/&lt;(\/?)(b|i|br)\s*\/?&gt;/g,"<$1$2>");
+
+/* ---------- séances (dans une fenêtre) ---------- */
+document.body.insertAdjacentHTML("beforeend",`<dialog id="rxDlg" class="notedlg revdlg rxdlg" aria-label="Révision"><div id="rxZone"></div></dialog>`);
+const rxDlg=$("#rxDlg");
+rxDlg.addEventListener("cancel",e=>{e.preventDefault();rxClose()});
+function rxClose(){if(rx&&rx.timer)clearInterval(rx.timer);rx=null;if(rxDlg.open)rxDlg.close();if(state.view==="revs")renderRevs()}
+function rxStart(kind){const sid=state.rsubject||"rcnv";if(rx&&rx.timer)clearInterval(rx.timer);rx=null;
+  const Q=(types,minLv,n)=>rxPick(sid,rxPool(sid,types,minLv),n);
+  if(kind==="qcm")rx={kind:"quiz",title:"QCM",items:Q(["q"],0,15),fb:true};
+  else if(kind==="vf")rx={kind:"quiz",title:"Vrai ou faux",items:Q(["v"],0,15),fb:true};
+  else if(kind==="qcm2")rx={kind:"quiz",title:"QCM sans indice",items:Q(["q"],2,15),fb:false};
+  else if(kind==="errors"){const s=rxStats(sid);rx={kind:"quiz",title:"Mes erreurs",items:rxShuf(s.errs).slice(0,20),fb:true}}
+  else if(kind==="sudden")rx={kind:"quiz",title:"Mort subite",items:rxShuf(rxPool(sid,["q","v"],2)),fb:true,sudden:true};
+  else if(kind==="exam"){const q=Q(["q"],2,12),v=Q(["v"],2,4),t=Q(["t"],2,4);let items=rxShuf([...q,...v,...t]);if(items.length<20)items=[...items,...Q(["q","v"],0,20).filter(x=>!items.includes(x))].slice(0,20);
+    rx={kind:"quiz",title:"Examen blanc /20",items,fb:false,exam:true,end:Date.now()+20*60000}}
+  else if(kind==="trou")rx={kind:"quiz",title:"Mot manquant",items:Q(["t"],0,10),fb:true};
+  else if(kind==="flash")rx={kind:"flash",title:"Flashcards",items:rxShuf(rxPool(sid,["f"])),know:0,again:[]};
+  else if(kind==="fiches")rx={kind:"fiches",title:"Fiches express"};
+  else if(kind==="speed")rx={kind:"speed",title:"Vrai ou faux chrono",items:rxShuf(rxPool(sid,["v"])),score:0,combo:0,maxc:0,miss:[],started:false};
+  else if(kind==="match")rx={kind:"pick",type:"m",title:"Associations"};
+  else if(kind==="ordre")rx={kind:"pick",type:"o",title:"Remets dans l'ordre"};
+  else if(kind==="cas")rx={kind:"pick",type:"c",title:"Cas pratiques type BTS"};
+  if(!rx)return;rx.sid=sid;rx.i=0;rx.score=rx.score||0;rx.miss=rx.miss||[];rx.answers=[];
+  if(rx.items&&!rx.items.length&&rx.kind!=="speed"){rx=null;toast("Pas encore d'exercice de ce type"+((rxFilter[sid]||"all")!=="all"?" pour cette notion":"")+".");return}
+  if(rx.exam){rx.timer=setInterval(()=>{const el=$("#rxClock");if(!rx){return}if(Date.now()>=rx.end){rx.i=rx.items.length;rxDraw();return}if(el)el.textContent=rxClockTxt()},1000)}
+  rxDraw();if(!rxDlg.open)rxDlg.showModal()}
+const rxClockTxt=()=>{const s=Math.max(0,Math.round((rx.end-Date.now())/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+function rxHead(extra){const n=rx.items?rx.items.length:0;return `<div class="rx-head"><b>${esc(rx.title)}</b><span class="hint">${extra||""}</span><button class="btn ghost" data-rxa="close">Fermer</button></div>${rx.items&&rx.kind==="quiz"&&!rx.sudden?`<div class="rx-prog"><s style="width:${n?100*rx.i/n:0}%"></s></div>`:""}`}
+function rxDraw(){const z=$("#rxZone");if(!rx)return;const sid=rx.sid;
+  if(rx.kind==="quiz"){if(rx.i>=rx.items.length||rx.dead)return rxEnd();const it=rx.items[rx.i];
+    if(rx.optsFor!==it.k){rx.optsFor=it.k;rx.opts=it.t==="q"?rxShuf(it.d[1]):it.t==="v"?["Vrai","Faux"]:null;rx.done=false}
+    const good=it.t==="q"?it.d[1][0]:it.t==="v"?(it.d[1]?"Vrai":"Faux"):null;
+    let body;if(it.t==="t"){const p=it.d[0].split("___");body=`<h3 class="rx-q rx-trou">${esc(p[0])}<input id="rxIn" autocomplete="off" autocapitalize="off" spellcheck="false" ${rx.done?"disabled":""} value="${esc(rx.typed||"")}">${esc(p.slice(1).join("___"))}</h3>
+      ${rx.done?"":`<div class="toolbar"><button class="btn primary" data-rxa="check">Valider</button>${rx.fb?`<button class="btn ghost" data-rxa="idk">Je ne sais pas</button>`:""}</div>`}`}
+    else body=`<h3 class="rx-q">${it.t==="v"?"Vrai ou faux ? ":""}${esc(it.d[0])}</h3><div class="rx-opts${it.t==="v"?" two":""}">${rx.opts.map((o,j)=>`<button class="rx-opt${rx.done?(o===good?" good":o===rx.pickd?" bad":""):""}" data-rxo="${j}" ${rx.done?"disabled":""}>${esc(o)}</button>`).join("")}</div>`;
+    const fb=rx.done&&rx.fb?`<div class="rx-fb ${rx.lastOk?"ok":"ko"}"><b>${rx.lastOk?"Exact.":"Faux. Bonne réponse : "+esc(it.t==="t"?it.d[1][0]:good)}</b>${(it.t==="t"?"":esc(it.d[2]||""))?`<p>${esc(it.d[2]||"")}</p>`:""}</div><button class="btn primary" data-rxa="next">${rx.sudden?(rx.lastOk?"Question suivante":"Voir mon score"):rx.i+1<rx.items.length?"Question suivante":"Voir mon score"}</button>`:"";
+    z.innerHTML=rxHead(rx.exam?`<span id="rxClock">${rxClockTxt()}</span> · ${rx.i+1}/${rx.items.length}`:rx.sudden?`Série : ${rx.score}`:`${rx.i+1}/${rx.items.length}`)+`<div class="rx-card"><div class="rx-tag">${esc(rxChName(sid,it.c))}${(it.lv||1)>=3?" · niveau examen":""}</div>${body}${fb}</div>`;
+    const inp=$("#rxIn");if(inp&&!rx.done){inp.focus();inp.oninput=()=>{rx.typed=inp.value}}return}
+  if(rx.kind==="flash"){const it=rx.items[rx.i];if(!it){z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${rx.know}<small> / ${rx.items.length}</small></p><p class="hint">cartes que tu savais</p><div class="toolbar" style="justify-content:center">${rx.again.length?`<button class="btn primary" data-rxa="again">Revoir les ${rx.again.length} cartes ratées</button>`:""}<button class="btn ghost" data-rxa="close">Terminer</button></div></div>`;return}
+    z.innerHTML=rxHead(`${rx.i+1}/${rx.items.length}`)+`<button class="rx-flip${rx.flip?" on":""}" data-rxa="flip"><span class="rx-tag">${esc(rxChName(sid,it.c))}</span><b>${esc(it.d[0])}</b>${rx.flip?`<p>${esc(it.d[1])}</p>`:`<small class="hint">Dis la définition à voix haute, puis touche la carte</small>`}</button>
+      ${rx.flip?`<div class="rx-opts two"><button class="rx-opt" data-rxa="fno">À revoir</button><button class="rx-opt" data-rxa="fyes">Je savais</button></div>`:""}`;return}
+  if(rx.kind==="fiches"){const b=rxBank(sid),f=rxFilter[sid]||"all";z.innerHTML=rxHead()+b.ch.filter(c=>f==="all"||c.id===f).map(c=>{const L=b.it.filter(x=>x.t==="f"&&x.c===c.id);return L.length?`<details class="rx-card fiche" ${f!=="all"?"open":""}><summary><b>${esc(c.n)}</b></summary>${L.map(x=>`<div class="rx-fi"><b>${esc(x.d[0])}</b><p>${esc(x.d[1])}</p></div>`).join("")}</details>`:""}).join("");return}
+  if(rx.kind==="speed"){if(!rx.started){z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p>45 secondes pour enchaîner un maximum de bonnes réponses. Une série de 3 bonnes réponses augmente les points ; une erreur casse la série et retire 2 points.</p><button class="btn primary" data-rxa="go">C'est parti</button></div>`;return}
+    if(rx.over){const p=rxProg(sid),rec=p.best.speed==null||rx.score>p.best.speed;if(rec&&!rx.saved){p.best.speed=rx.score;rxSave(sid)}rx.saved=true;
+      z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${rx.score}<small> points</small></p><p class="hint">Meilleure série : ${rx.maxc}${rec?" · nouveau record":" · record : "+p.best.speed}</p><button class="btn primary" data-rxa="restart">Rejouer</button></div>${rx.miss.map(it=>`<div class="rx-card"><b>${esc(it.d[0])}</b><p class="rx-good">C'est ${it.d[1]?"vrai":"faux"}.</p><p class="hint">${esc(it.d[2]||"")}</p></div>`).join("")}`;return}
+    const it=rx.items[rx.i%rx.items.length];z.innerHTML=rxHead(`<span id="rxClock">${Math.max(0,Math.ceil((rx.end-Date.now())/1000))} s</span> · ${rx.score} points`)+`<div class="rx-prog"><s id="rxBar" style="width:${Math.max(0,100*(rx.end-Date.now())/45000)}%"></s></div><p class="rx-combo">${rx.combo>=3?`Série de ${rx.combo}`:""}</p><div class="rx-card rx-center rx-vf"><span class="rx-tag">${esc(rxChName(sid,it.c))}</span><h3 class="rx-q">${esc(it.d[0])}</h3></div><div class="rx-opts two"><button class="rx-opt" data-rxv="0">Faux</button><button class="rx-opt" data-rxv="1">Vrai</button></div>`;return}
+  if(rx.kind==="pick"){const L=rxPool(sid,[rx.type]);const p=rxProg(sid);
+    z.innerHTML=rxHead()+(L.length?`<p class="hint">${rx.type==="m"?"Choisis un jeu, puis relie chaque notion à sa correspondance.":rx.type==="o"?"Choisis une séquence, puis touche les étapes dans le bon ordre.":"Lis le contexte, rédige ta réponse, puis fais-la corriger par Claude."}</p>`+L.map(x=>{const sc=rx.type==="c"?p.cas[x.k]:null,r=p.it[x.k];return `<button class="rx-card rx-pick" data-rxp="${x.k}"><b>${esc(rx.type==="c"?x.d.t:x.d[0])}</b><small class="hint">${esc(rxChName(sid,x.c))}${sc!=null?` · ta note : ${String(sc).replace(".",",")}/20`:r?(r[2]===1?" · réussi":" · à refaire"):""}${(x.lv||1)>=3?" · niveau examen":""}</small></button>`}).join(""):`<p class="hint">Pas encore d'exercice de ce type${(rxFilter[sid]||"all")!=="all"?" pour cette notion":""}.</p>`);return}
+  if(rx.kind==="match"){const it=rx.item;z.innerHTML=rxHead(`${rx.err} erreur${rx.err>1?"s":""}`)+`<div class="rx-mgrid"><div>${rx.L.map(x=>`<button class="rx-mt l${rx.sel===x.k?" sel":""}${rx.ok.has(x.k)?" done":""}" data-rxl="${x.k}" ${rx.ok.has(x.k)?"disabled":""}>${esc(x.t)}</button>`).join("")}</div><div>${rx.R.map(x=>`<button class="rx-mt r${rx.ok.has(x.k)?" done":""}${rx.shake===x.k?" shake":""}" data-rxr="${x.k}" ${rx.ok.has(x.k)?"disabled":""}>${esc(x.t)}</button>`).join("")}</div></div>
+    ${rx.ok.size===it.d[1].length?`<div class="rx-fb ${rx.err?"ko":"ok"}"><b>${rx.err?`Terminé avec ${rx.err} erreur${rx.err>1?"s":""}.`:"Parfait, sans erreur."}</b></div><button class="btn primary" data-rxa="back">Autres jeux</button>`:""}`;return}
+  if(rx.kind==="ordre"){const it=rx.item,n=it.d[1].length;z.innerHTML=rxHead()+`<div class="rx-seq">${it.d[1].map((_,j)=>{const s=rx.seq[j];return `<div class="rx-slot${rx.checked?(s&&s.k===j?" good":" bad"):""}">${j+1}. ${s?esc(s.t):"<i class='hint'>…</i>"}</div>`}).join("")}</div>
+    ${rx.checked?`<div class="rx-fb ${rx.seq.every((s,j)=>s.k===j)?"ok":"ko"}"><b>${rx.seq.every((s,j)=>s.k===j)?"Parfait.":"Pas tout à fait. Le bon ordre :"}</b>${rx.seq.every((s,j)=>s.k===j)?"":`<ol>${it.d[1].map(t=>`<li>${esc(t)}</li>`).join("")}</ol>`}</div><button class="btn primary" data-rxa="back">Autres séquences</button>`:`<div class="rx-pool">${rx.pool.filter(p=>!rx.seq.includes(p)).map(p=>`<button class="rx-mt" data-rxs="${p.k}">${esc(p.t)}</button>`).join("")}</div>
+    <div class="toolbar"><button class="btn ghost" data-rxa="undo" ${rx.seq.length?"":"disabled"}>Annuler la dernière</button><button class="btn primary" data-rxa="ocheck" ${rx.seq.length===n?"":"disabled"}>Vérifier</button></div>`}`;return}
+  if(rx.kind==="cas"){const c=rx.item.d;z.innerHTML=rxHead(esc(rxChName(sid,rx.item.c)))+`<div class="rx-card"><div class="rx-tag">Contexte</div><p>${esc(c.ctx)}</p></div>${(c.ann||[]).map((a,j)=>`<details class="rx-card"><summary><b>Annexe ${j+1} : ${esc(a[0])}</b></summary><p>${esc(a[1])}</p></details>`).join("")}
+    <div class="rx-card"><div class="rx-tag">Travail à faire</div><p><b>${esc(c.q)}</b></p><textarea id="rxCas" class="ta" rows="9" placeholder="Rédige ta réponse comme le jour de l'examen…" ${rx.graded||rx.wait?"disabled":""}>${esc(rx.ans||"")}</textarea>
+    ${rx.graded?"":`<div class="toolbar">${sampleFn?`<button class="btn primary" data-rxa="grade" ${rx.wait?"disabled":""}>${rx.wait?"Claude corrige…":"Faire corriger par Claude"}</button>`:""}<button class="btn ghost" data-rxa="corr">Voir le corrigé</button></div>`}</div>
+    ${rx.grade?`<div class="rx-card preview fiche-body">${md(rx.grade)}</div>`:""}${rx.showCorr||rx.graded?`<div class="rx-card"><div class="rx-tag">Corrigé</div><p>${rxCorr(c.corr)}</p><div class="rx-tag" style="margin-top:10px">Points attendus</div><ul>${c.pts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div><button class="btn primary" data-rxa="back">Autres cas</button>`:""}`;
+    const ta=$("#rxCas");if(ta)ta.oninput=()=>{rx.ans=ta.value};return}}
+function rxAnswer(ok,pickd){const it=rx.items[rx.i];rxMark(rx.sid,it.k,ok);rx.answers.push(ok);if(ok)rx.score++;else rx.miss.push({it,pickd});rx.done=true;rx.lastOk=ok;rx.pickd=pickd;
+  if(!rx.fb){rx.i++;rx.opts=null;rx.typed="";}rxDraw()}
+function rxEnd(){const z=$("#rxZone"),sid=rx.sid,n=rx.answers.length,p=rxProg(sid);if(rx.timer){clearInterval(rx.timer);rx.timer=null}
+  let big,sub="";if(rx.exam){const raw=rx.score-0.5*(n-rx.score);const note=Math.max(0,Math.round(20*raw/rx.items.length*2)/2);big=`${String(note).replace(".",",")}<small>/20</small>`;sub=`${rx.score} bonnes réponses sur ${rx.items.length}${n<rx.items.length?` (${rx.items.length-n} sans réponse)`:""} · une erreur retire 0,5 point`;if(!rx.saved&&(p.best.exam==null||note>p.best.exam)){p.best.exam=note;rxSave(sid)}}
+  else if(rx.sudden){big=`${rx.score}<small> d'affilée</small>`;if(!rx.saved&&(p.best.sudden==null||rx.score>p.best.sudden)){p.best.sudden=rx.score;rxSave(sid);sub="Nouveau record."}else sub=`Record : ${p.best.sudden}`}
+  else big=`${rx.score}<small> / ${n}</small>`;rx.saved=true;
+  z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${big}</p><p class="hint">${sub}</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-rxa="restart">Recommencer</button><button class="btn ghost" data-rxa="close">Terminer</button></div></div>
+    ${rx.miss.length?`<h3 class="nl-sec">À retenir (${rx.miss.length})</h3>`+rx.miss.map(({it,pickd})=>`<div class="rx-card"><div class="rx-tag">${esc(rxChName(sid,it.c))}</div><b>${esc(it.t==="t"?it.d[0].replace("___","…"):it.d[0])}</b>${pickd!=null?`<p class="rx-bad">Ta réponse : ${esc(pickd||"(vide)")}</p>`:""}<p class="rx-good">Bonne réponse : ${esc(it.t==="q"?it.d[1][0]:it.t==="v"?(it.d[1]?"Vrai":"Faux"):it.d[1][0])}</p>${it.t!=="t"&&it.d[2]?`<p class="hint">${esc(it.d[2])}</p>`:""}</div>`).join(""):""}`}
+async function rxGrade(){const c=rx.item.d,ans=(rx.ans||"").trim();if(ans.length<40){toast("Rédige une réponse plus complète avant de la faire corriger.");return}
+  rx.wait=true;rxDraw();
+  try{const r=await sampleFn(`Tu es correcteur de l'épreuve ${RX_EXAM[rx.sid]||""} du BTS NDRC (${SUBJ[rx.sid].full||SUBJ[rx.sid].name}). Corrige avec la rigueur d'un vrai jury la copie d'une étudiante sur ce cas pratique.
+
+Contexte : ${c.ctx}
+${(c.ann||[]).map((a,j)=>`Annexe ${j+1} (${a[0]}) : ${a[1]}`).join("\n")}
+Travail à faire : ${c.q}
+Points attendus : ${c.pts.join(" ; ")}
+Corrigé de référence : ${String(c.corr).replace(/<[^>]+>/g," ")}
+
+Copie de l'étudiante :
+"""
+${ans.slice(0,8000)}
+"""
+
+Réponds en français, en la tutoyant, en Markdown simple : « ## Note : X/20 » (note stricte, au demi-point, en pénalisant les calculs faux, l'absence de justification et le vocabulaire imprécis), « ## Ce qui est réussi », « ## Ce qui manque ou est faux » (point par point, avec la bonne réponse), « ## Pour gagner des points ». Réponds uniquement avec la correction.`,{cache:false,maxTokens:3000});
+    rx.grade=r.text.trim();const m=rx.grade.match(/Note\s*:\s*([\d.,]+)\s*\/\s*20/i);const note=m?Math.min(20,parseFloat(m[1].replace(",","."))):null;
+    if(note!=null){const p=rxProg(rx.sid);p.cas[rx.item.k]=note;rxMark(rx.sid,rx.item.k,note>=10)}rx.graded=true}
+  catch(e){toast(e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":"La correction n'a pas pu être faite. Réessaie.")}
+  if(rx){rx.wait=false;rxDraw()}}
+rxDlg.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!rx)return;const a=b.dataset.rxa,sid=rx.sid;
+  if(a==="close")return rxClose();
+  if(b.dataset.rxo!=null&&rx.kind==="quiz"&&!rx.done){const it=rx.items[rx.i],o=rx.opts[+b.dataset.rxo],good=it.t==="q"?it.d[1][0]:(it.d[1]?"Vrai":"Faux");const ok=o===good;
+    rxAnswer(ok,o);return}
+  if((a==="check"||a==="idk")&&rx.kind==="quiz"&&!rx.done){const it=rx.items[rx.i],v=a==="idk"?"":($("#rxIn")||{}).value||"";const ok=!!v.trim()&&it.d[1].some(x=>rxNorm(x)===rxNorm(v));rx.typed=v;rxAnswer(ok,v);return}
+  if(a==="next"){if(rx.sudden&&!rx.lastOk){rx.dead=true;rx.score=rx.answers.filter(Boolean).length;return rxDraw()}rx.i++;rx.opts=null;rx.typed="";if(rx.sudden&&rx.i>=rx.items.length)rx.dead=true;return rxDraw()}
+  if(a==="restart"){const k=rx.title;const map={"QCM":"qcm","Vrai ou faux":"vf","QCM sans indice":"qcm2","Mes erreurs":"errors","Mort subite":"sudden","Examen blanc /20":"exam","Mot manquant":"trou","Vrai ou faux chrono":"speed"};return rxStart(map[k]||"qcm")}
+  if(a==="flip"){rx.flip=!rx.flip;return rxDraw()}
+  if(a==="fyes"||a==="fno"){const it=rx.items[rx.i];rxMark(sid,it.k,a==="fyes");if(a==="fyes")rx.know++;else rx.again.push(it);rx.i++;rx.flip=false;return rxDraw()}
+  if(a==="again"){rx.items=rx.again;rx.again=[];rx.know=0;rx.i=0;return rxDraw()}
+  if(a==="go"){rx.started=true;rx.end=Date.now()+45000;rx.timer=setInterval(()=>{if(!rx||rx.kind!=="speed")return;if(Date.now()>=rx.end){clearInterval(rx.timer);rx.timer=null;rx.over=true;rxDraw();return}const c=$("#rxClock"),bar=$("#rxBar");if(c)c.textContent=Math.ceil((rx.end-Date.now())/1000)+" s";if(bar)bar.style.width=Math.max(0,100*(rx.end-Date.now())/45000)+"%"},200);return rxDraw()}
+  if(b.dataset.rxv!=null&&rx.kind==="speed"&&!rx.over){const it=rx.items[rx.i%rx.items.length];const ok=(b.dataset.rxv==="1")===it.d[1];rxMark(sid,it.k,ok);
+    if(ok){rx.score+=1+Math.floor(rx.combo/3);rx.combo++;rx.maxc=Math.max(rx.maxc,rx.combo)}else{rx.score=Math.max(0,rx.score-2);rx.combo=0;if(!rx.miss.includes(it))rx.miss.push(it)}rx.i++;return rxDraw()}
+  if(b.dataset.rxp){const it=rxBank(sid).it.find(x=>x.k===b.dataset.rxp);if(!it)return;const back={kind:"pick",type:rx.type,title:rx.title};
+    if(it.t==="m"){rx={...back,sid,kind:"match",back,item:it,L:rxShuf(it.d[1].map((p,k)=>({k,t:p[0]}))),R:rxShuf(it.d[1].map((p,k)=>({k,t:p[1]}))),ok:new Set(),err:0,sel:null}}
+    else if(it.t==="o"){rx={...back,sid,kind:"ordre",back,item:it,pool:rxShuf(it.d[1].map((t,k)=>({k,t}))),seq:[],checked:false}}
+    else if(it.t==="c"){rx={...back,sid,kind:"cas",back,item:it,ans:"",graded:false}}
+    $("#rxZone").scrollTop=0;rxDlg.scrollTop=0;return rxDraw()}
+  if(a==="back"){rx={...rx.back,sid};return rxDraw()}
+  if(b.dataset.rxl!=null&&rx.kind==="match"){rx.sel=+b.dataset.rxl;rx.shake=null;return rxDraw()}
+  if(b.dataset.rxr!=null&&rx.kind==="match"&&rx.sel!=null){const k=+b.dataset.rxr;if(k===rx.sel){rx.ok.add(k);rx.sel=null;rx.shake=null;if(rx.ok.size===rx.item.d[1].length)rxMark(sid,rx.item.k,rx.err===0)}else{rx.err++;rx.shake=k}return rxDraw()}
+  if(b.dataset.rxs!=null&&rx.kind==="ordre"){const p=rx.pool.find(x=>x.k===+b.dataset.rxs);if(p&&!rx.seq.includes(p))rx.seq.push(p);return rxDraw()}
+  if(a==="undo"){rx.seq.pop();return rxDraw()}
+  if(a==="ocheck"){rx.checked=true;rxMark(sid,rx.item.k,rx.seq.every((s,j)=>s.k===j));return rxDraw()}
+  if(a==="grade")return rxGrade();
+  if(a==="corr"){rx.showCorr=true;return rxDraw()}
+});
+rxDlg.addEventListener("keydown",e=>{if(e.target.id==="rxIn"&&e.key==="Enter"){e.preventDefault();const b=rxDlg.querySelector(rx&&rx.done?"[data-rxa=next]":"[data-rxa=check]");if(b)b.click()}});
+
 $("#view-revs").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b||b.dataset.gonote)return;
-  if(b.dataset.act==="reorder"){reorder=!reorder;render()}
+  if(b.dataset.rx)rxStart(b.dataset.rx);
+  else if(b.dataset.rxf){rxFilter[state.rsubject||"rcnv"]=b.dataset.rxf;renderRevs()}
+  else if(b.dataset.act==="reorder"){reorder=!reorder;render()}
   else if(b.dataset.mv){const [id,d]=b.dataset.mv.split("|");tileMove(id,+d)}
   else if(b.dataset.rgrid){state.rsubject=b.dataset.rgrid;state.revOpen=true;renderRevs();window.scrollTo(0,0)}
   else if(b.dataset.act==="revgrid"){state.revOpen=false;renderRevs();window.scrollTo(0,0)}
   else if(b.dataset.rsubj){state.rsubject=b.dataset.rsubj;renderRevs()}
   else if(b.dataset.rrev)startReview(b.dataset.rrev,false);
   else if(b.dataset.rrevall)startReview(b.dataset.rrevall,true);
-  else if(b.dataset.rsyn){state.subject=b.dataset.rsyn;state.ytab="subjects";openPage(state.sem);makeSynthesis()}
-  else if(b.dataset.rsynfull){state.subject=b.dataset.rsynfull;state.ytab="subjects";openPage(state.sem);makeSynthesis(true)}
   else if(b.dataset.oral)startOral(b.dataset.oral);
   else if(b.dataset.act==="oralsend"){const v=$("#oralInput").value.trim();if(!v||!oral||oral.wait)return;$("#oralInput").value="";oral.turns.push({role:"user",content:v});oralTurn()}
   else if(b.dataset.act==="oraleval")evalOral();
@@ -2557,7 +2849,7 @@ function renderNoteList(){
 const noteDlg=$("#noteDlg");
 function openNote(id){const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal()}
 function closeNote(){flush();state.noteId=null;if(noteDlg.open)noteDlg.close()}
-noteDlg.addEventListener("close",()=>{flush();state.noteId=null;if(state.view==="subjects")renderNoteList()});
+noteDlg.addEventListener("close",()=>{const cid=state.noteId;flush();state.noteId=null;if(state.view==="subjects")renderNoteList();if(cid)setTimeout(()=>rxQueueNote(cid),800)});
 const HL={"rgb(249, 198, 214)":"#F9C6D6","#f9c6d6":"#F9C6D6","rgb(200, 235, 201)":"#C8EBC9","#c8ebc9":"#C8EBC9","rgb(203, 232, 250)":"#CBE8FA","#cbe8fa":"#CBE8FA","rgb(255, 221, 184)":"#FFDDB8","#ffddb8":"#FFDDB8"};
 function cleanHtml(html){const t=document.createElement("template");t.innerHTML=html||"";const out=document.createElement("div");
   const map={h1:"h2",h2:"h2",h3:"h3",h4:"h3",p:"p",div:"p",ul:"ul",ol:"ul",li:"li",br:"br",strong:"b",b:"b",em:"i",i:"i",u:"u",hr:"hr"};
@@ -2770,8 +3062,8 @@ let sampleFn=null,lastFiche="",busy=false,lastImgs=[];
 function ficheHtml(text,partial){const used=new Set(),tag=k=>{const im=lastImgs[k-1];if(!im)return "";used.add(k);return `<img data-img="${esc(im.id)}"${im.size?` data-size="${esc(im.size)}"`:""} alt="">`};
   let h=md(text).replace(/<p>\s*\[\[IMAGE (\d+)\]\]\s*<\/p>/g,(_,k)=>tag(+k)).replace(/\[\[IMAGE (\d+)\]\]/g,(_,k)=>tag(+k));
   if(!partial)lastImgs.forEach((_,i)=>{if(!used.has(i+1))h+=tag(i+1)});return h}
-async function callClaude(messages,max,onDelta,webFetch){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
-  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true,...(webFetch?{web_fetch:true}:{})})})}catch(e){throw {code:"offline"}}
+async function callClaude(messages,max,onDelta,tools){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
+  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true,...(tools&&tools.fetch?{web_fetch:true}:{}),...(tools&&tools.search?{web_search:true}:{})})})}catch(e){throw {code:"offline"}}
   if(!r.ok){const j=await r.json().catch(()=>({}));throw {code:r.status===429||r.status===529?"rate_limited":r.status===403?"not_granted":"error",message:(j.error&&(j.error.message||j.error))||r.status}}
   if(!r.body||!(r.headers.get("content-type")||"").includes("text/event-stream"))return await r.json().catch(()=>({}));
   /* Réponse en direct : la connexion reste active pendant que Claude écrit, sinon l'iPhone coupe les longues réponses */
@@ -2790,7 +3082,7 @@ function salvageQs(t){const out=[],a=t.indexOf("[",Math.max(0,t.indexOf('"questi
   return out}
 async function initClaude(){
   sampleFn=async(input,opts={})=>{const messages=typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content}));
-    const j=await callClaude(messages,opts.maxTokens||3500,opts.onText?t=>opts.onText({text:t}):null,opts.webFetch);const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    const j=await callClaude(messages,opts.maxTokens||3500,opts.onText?t=>opts.onText({text:t}):null,{fetch:opts.webFetch,search:opts.webSearch});const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
     if(opts.onText)opts.onText({text});return {text,truncated:j.stop_reason==="max_tokens"||j.stop_reason==="cut",fetched:!!j.fetched}};
   sampleFn.json=async(p,o)=>{const r=await sampleFn(p+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",o);
     const t=r.text.replace(/```json|```/g,"").trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty",text:t};try{return JSON.parse(t.slice(a,b+1))}catch(e){throw {code:"bad_json",text:t}}};

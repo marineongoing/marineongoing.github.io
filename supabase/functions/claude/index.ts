@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await sb.auth.getUser();
     if (!user || user.email !== Deno.env.get("ALLOWED_EMAIL")) return json({ error: "not_allowed" }, 403);
 
-    const { messages, max_tokens, stream, web_fetch } = await req.json();
+    const { messages, max_tokens, stream, web_fetch, web_search } = await req.json();
     if (!Array.isArray(messages) || !messages.length) return json({ error: "bad_request" }, 400);
 
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -29,8 +29,11 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-5", max_tokens: Math.min(max_tokens || 2000, 12000), messages,
-        // web_fetch: true (Study) : Claude peut lire la page d'une formation à partir de son lien
-        ...(web_fetch ? { tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 }] } : {}),
+        // web_fetch (lire la page d'une formation) et web_search (chercher des annales du BTS pour les révisions)
+        ...(web_fetch || web_search ? { tools: [
+          ...(web_fetch ? [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 }] : []),
+          ...(web_search ? [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }] : []),
+        ] } : {}),
         ...(stream ? { stream: true } : {}),
       }),
     });

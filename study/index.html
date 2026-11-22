@@ -1425,6 +1425,7 @@ function setStatus(t){$("#status").textContent=t;if(typeof updateNet==="function
 
 /* ---------- Storage: private per-user db, localStorage fallback ---------- */
 function applyDocs(docs){
+  if(docs.dead&&Array.isArray(docs.dead.ids))for(const id of docs.dead.ids)dead.add(id);
   const notes={};let events=state.events,links=state.links;
   // ignore stale copies of documents we changed more recently on this page
   const skip=new Set(Object.keys(docs).filter(id=>revs[id]&&((docs[id]&&docs[id]._rev)||0)<revs[id]));
@@ -1454,7 +1455,7 @@ function applyDocs(docs){
     if(id.startsWith("cal-"))calParts[id]=Array.isArray(d.events)?d.events:[];
     else if(id==="calendar"){if(!hasParts){legacyCal=Array.isArray(d.events)?d.events:[]}}
     else if(id==="subjects")links=d.links||{};
-    else if(id.startsWith("n-"))notes[id]=d;
+    else if(id.startsWith("n-")&&!dead.has(id))notes[id]=d;
   }
   // keep the note being edited if it has unsaved local changes
   if(state.noteId&&dirty.has(state.noteId)&&state.notes[state.noteId])notes[state.noteId]=state.notes[state.noteId];
@@ -1464,6 +1465,8 @@ function applyDocs(docs){
 const calParts={};let legacyCal=null;
 function calKey(e){return e.weekly?"cal-weekly":"cal-"+(e.date||"0000-00").slice(0,7)}
 const writing={},pending={},dirty=new Set(),revs={},failed={};
+/* notes supprimées : jamais réaffichées ni renvoyées (même depuis la copie de secours ou un autre appareil) */
+let dead=new Set();
 function showFail(msg){const b=$("#failbar");b.querySelector("span").textContent=msg;b.hidden=false;setStatus("Non enregistré")}
 function hideFail(){$("#failbar").hidden=true}
 function retryFailed(){const f={...failed};for(const k in f){delete failed[k];persist(k,f[k])}}
@@ -1472,10 +1475,10 @@ function obRead(){try{return JSON.parse(localStorage.getItem(OBK)||"{}")}catch(e
 function obWrite(o){try{localStorage.setItem(OBK,JSON.stringify(o))}catch(e){}}
 function obPut(id,d){const o=obRead();o[id]=d;obWrite(o)}
 function obDel(id,rev){const o=obRead();if(o[id]&&(!rev||(o[id]._rev||0)<=rev)){delete o[id];obWrite(o)}}
-function replayOutbox(srv){const o=obRead();let n=0;for(const [id,d] of Object.entries(o)){const sv=srv&&srv[id];if(sv&&(sv._rev||0)>=(d._rev||0)){obDel(id);continue}
+function replayOutbox(srv){const o=obRead();let n=0;for(const [id,d] of Object.entries(o)){if(dead.has(id)){obDel(id);continue}const sv=srv&&srv[id];if(sv&&(sv._rev||0)>=(d._rev||0)){obDel(id);continue}
   const c=JSON.parse(JSON.stringify(d));if(id.startsWith("n-")){state.notes[id]=c}n++;persist(id,c)}if(n){render();toast(n+" modification"+(n>1?"s":"")+" non envoyée"+(n>1?"s":"")+" récupérée"+(n>1?"s":"")+" et synchronisée"+(n>1?"s":"")+".")}}
 async function persist(id,data){
-  if(!store)return;
+  if(!store||dead.has(id))return;
   data._rev=Date.now();revs[id]=data._rev;if(!id.startsWith("v-")&&!id.startsWith("img-"))obPut(id,data);
   if(writing[id]){pending[id]=data;return}
   writing[id]=true;setStatus("Enregistrement…");
@@ -1484,7 +1487,8 @@ async function persist(id,data){
   writing[id]=false;
   if(pending[id]){const p=pending[id];delete pending[id];persist(id,p)}else if(id===state.noteId)dirty.delete(id);
 }
-async function remove(id){if(store){try{await store.deleteDoc(id)}catch(e){setStatus("Suppression impossible pour le moment.")}}}
+async function remove(id){if(id.startsWith("n-")){dead.add(id);delete revs[id];delete pending[id];delete failed[id];dirty.delete(id);obDel(id);persist("dead",{ids:[...dead].slice(-1000)})}
+  if(store){try{await store.deleteDoc(id)}catch(e){setStatus("Suppression impossible pour le moment.")}}}
 
 const SUPA_URL="https://hfspexqbzmomrntlaqpn.supabase.co",SUPA_KEY="sb_publishable_Yl0PsehZgUeN94zn2QloCw_0D9k4Icv";
 const sb=window.supabase?window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
@@ -1505,7 +1509,7 @@ async function initStore(){
   const emit=()=>{applyDocs(JSON.parse(JSON.stringify(docs)));render(true)};
   async function loadAll(){const all={};let from=0;for(;;){const {data,error}=await sb.from("docs").select("id,data").not("id","like","img-%").range(from,from+999);if(error)throw error;for(const r of data)all[r.id]=r.data;if(data.length<1000)break;from+=1000}
     for(const k of Object.keys(docs))delete docs[k];Object.assign(docs,all);cacheDocs(docs);emit();setStatus("Synchronisé")}
-  try{await loadAll()}catch(e){setStatus("Hors connexion : données de cet appareil")}
+  try{await loadAll();for(const id of dead)if(docs[id])store.deleteDoc(id).catch(()=>{})}catch(e){setStatus("Hors connexion : données de cet appareil")}
   loadLifeGoals();
   replayOutbox(docs);
   sb.channel("docs-"+uid).on("postgres_changes",{event:"*",schema:"public",table:"docs",filter:"user_id=eq."+uid},p=>{
@@ -2459,7 +2463,7 @@ function noteVisible(n,sid){return n&&n.subject===sid&&(n.pin||!state.sem||!n.da
 function courseSessions(sid){const out=[];if(!state.sem)return out;const S=state.semesters[state.sem];let d=parseISO(S.start);const end=parseISO(S.end);
   while(d<=end){if(d.getDay()>=1&&d.getDay()<=5){const ds=iso(d);
     const evs=eventsOn(d).filter(e=>e.type==="cours"&&e.subject===sid);
-    if(evs.length){const key=dayNoteKey(sid,ds,evs);
+    if(evs.length&&!evs.some(e=>dead.has("n-ev-"+e.id+(e.weekly?"-"+ds:"")))){const key=dayNoteKey(sid,ds,evs);
       const starts=evs.map(e=>e.start).filter(Boolean).sort(),ends=evs.map(e=>e.end).filter(Boolean).sort();
       const titles=[...new Set(evs.map(e=>e.title).filter(Boolean))];
       out.push({key,date:ds,start:starts[0]||"",end:ends[ends.length-1]||"",title:titles.join(", ")})}}
@@ -2513,9 +2517,11 @@ function renderNoteList(){
     return `<button data-pin="${p.k}" class="ccard pin">${PIN_SVG}<span class="cc-main"><b>${p.name}</b><span class="cc-b">${n?badges(n):`<span class="bdg empty-b">Épinglé</span>`}</span></span></button>`}).join("");
   const sess=courseSessions(sid);
   const cours=sess.length?sess.map(c=>{const n=state.notes[c.key];const d=parseISO(c.date);
+    const day=(t=>t.charAt(0).toUpperCase()+t.slice(1))(d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}));
+    const nt=((n&&n.title)||"").trim(),own=nt&&!/(^|– )Cours du \d/.test(nt)?nt:"";
     return `<button data-cn="${c.key}|${c.date}|${c.start}|${esc(c.title)}" class="ccard${n?" has":""}"><span class="cdot"></span><span class="cc-main">
-      <b>${(t=>t.charAt(0).toUpperCase()+t.slice(1))(d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}))}</b>
-      ${c.title?`<span class="cc-sub">${esc(c.title)}</span>`:""}<span class="cc-b">${badges(n)}</span></span></button>`}).join("")
+      <b>${own?esc(own):day}</b>
+      ${own?`<span class="cc-sub">${day}</span>`:c.title?`<span class="cc-sub">${esc(c.title)}</span>`:""}<span class="cc-b">${badges(n)}</span></span></button>`}).join("")
     :`<p class="hint">Aucun cours dans le calendrier pour cette année.</p>`;
   const free=notesOf(sid);
   el.innerHTML=`<h3 class="nl-sec">Épinglé</h3><div class="cgrid">${pins}</div>

@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await sb.auth.getUser();
     if (!user || user.email !== Deno.env.get("ALLOWED_EMAIL")) return json({ error: "not_allowed" }, 403);
 
-    const { messages, max_tokens, stream, web_fetch, web_search } = await req.json();
+    const { messages, max_tokens, stream, web_fetch, web_search, quick } = await req.json();
     if (!Array.isArray(messages) || !messages.length) return json({ error: "bad_request" }, 400);
 
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -32,8 +32,10 @@ Deno.serve(async (req) => {
         // web_fetch (lire la page d'une formation) et web_search (chercher des annales du BTS pour les révisions)
         ...(web_fetch || web_search ? { tools: [
           ...(web_fetch ? [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 }] : []),
-          ...(web_search ? [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }] : []),
+          ...(web_search ? [quick ? { type: "web_search_20250305", name: "web_search", max_uses: 2 } : { type: "web_search_20260209", name: "web_search", max_uses: 3 }] : []),
         ] } : {}),
+        // quick: true (Study, révisions) : sans longue réflexion, pour rester sous la limite de durée de Supabase
+        ...(quick ? { thinking: { type: "disabled" } } : {}),
         ...(stream ? { stream: true } : {}),
       }),
     });

@@ -1197,6 +1197,11 @@ body .stfill{grid-column:1/-1;margin-top:12px}
 /* Matière : bouton rond « + » pour une nouvelle note */
 body .addnote{width:40px;height:40px;padding:0!important;border-radius:50%!important;display:grid;place-items:center}
 body .addnote svg{width:20px;height:20px}
+/* Images réduites (25 % ou 50 %) qui se suivent : côte à côte plutôt que l'une sous l'autre */
+.rte p:has(> img[data-size="50"]:only-child),.rte p:has(> img[data-size="25"]:only-child),.rte>img[data-size="50"],.rte>img[data-size="25"],.claude-box .out>img[data-size="50"],.claude-box .out>img[data-size="25"]{display:inline-block!important;vertical-align:top;margin:6px 8px 6px 0!important}
+.rte p:has(> img[data-size="50"]:only-child),.rte>img[data-size="50"],.claude-box .out>img[data-size="50"]{width:calc(50% - 8px)!important}
+.rte p:has(> img[data-size="25"]:only-child),.rte>img[data-size="25"],.claude-box .out>img[data-size="25"]{width:calc(25% - 8px)!important}
+.rte p:has(> img[data-size]:only-child) img{width:100%!important;margin:0!important}
 /* Fiches de Claude : légende des couleurs */
 .claude-box .out img{display:block;max-width:100%;height:auto;margin:10px 0;border-radius:10px}.claude-box .out img[data-size="25"]{width:25%}.claude-box .out img[data-size="50"]{width:50%}.claude-box .out img[data-size="75"]{width:75%}
 .hllg{display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:6px;vertical-align:middle}

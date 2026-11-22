@@ -2504,7 +2504,7 @@ function rxNeedsGen(sid,id){const n=state.notes[id];if(!n)return false;const txt
 function rxQueueNote(id,quiet){const n=state.notes[id];if(!n||!SUBJ[n.subject]||!state.rbank[n.subject])return;if(!rxNeedsGen(n.subject,id))return;
   if(rxQueue.some(j=>j.id===id)||(rxBusy&&rxBusy.id===id))return;rxQueue.push({kind:"note",sid:n.subject,id,title:n.title||""});if(!quiet)rxRun()}
 const RX_FORMAT=`Formats des exercices (respecte-les exactement) :
-- {"t":"q","c":"<id notion>","lv":2,"d":["question",["bonne réponse","piège plausible","piège plausible","piège plausible"],"explication courte"]} (QCM : la 1re réponse est la bonne ; les 3 autres sont des confusions réellement fréquentes, de même longueur et du même registre, jamais absurdes)
+- {"t":"q","c":"<id notion>","lv":2,"d":["question",["bonne réponse","piège plausible","piège plausible","piège plausible"],"explication courte"]} (d contient exactement 3 éléments : la question, la liste des 4 réponses entre crochets, l'explication) (QCM : la 1re réponse est la bonne ; les 3 autres sont des confusions réellement fréquentes, de même longueur et du même registre, jamais absurdes)
 - {"t":"v","c":"…","lv":2,"d":["affirmation précise",true ou false,"explication"]}
 - {"t":"f","c":"…","lv":1,"d":["notion","définition complète et exacte"]}
 - {"t":"t","c":"…","lv":2,"d":["phrase avec ___ à la place du terme exact",["réponse","variante acceptée"]]}
@@ -2551,7 +2551,10 @@ Réponds en JSON : {"chapters":[],"items":[…]}`}
   }catch(e){if(e&&e.code==="not_granted")rxQueue.length=0;else if(!(e&&e.code==="gone")){const cur=state.rbank[job.sid];
       if(cur){if(job.kind==="hard"){cur.gen._hardTry=(cur.gen._hardTry||0)+1;if(cur.gen._hardTry>=3)cur.gen._hard="échec"}else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();const pf=(cur.gen[job.id]&&cur.gen[job.id].fail)||0;cur.gen[job.id]={h:hashStr(txt),len:txt.length,fail:pf+1}}rxSaveBank(job.sid)}}}
   rxBusy=null;if(state.view==="revs")renderRevs();setTimeout(rxRun,1500)}
-function rxValid(x,ids){if(!x||!x.t||!x.d)return null;const c=ids.has(x.c)?x.c:[...ids][0];const lv=[1,2,3].includes(x.lv)?x.lv:2,d=x.d,S=v=>String(v==null?"":v).slice(0,600);
+function rxValid(x,ids){if(!x||!x.t||!x.d)return null;const ex=x.explication||x["explication courte"]||x.expl||"";
+  if(x.t==="q"&&Array.isArray(x.d)&&!Array.isArray(x.d[1])&&x.d.length>=5)x={...x,d:[x.d[0],x.d.slice(1,5),x.d[5]||ex]};
+  if(x.t==="q"&&Array.isArray(x.d)&&Array.isArray(x.d[1])&&!x.d[2]&&ex)x={...x,d:[x.d[0],x.d[1],ex]};
+  if(x.t==="v"&&Array.isArray(x.d)&&typeof x.d[1]==="string"&&/^(vrai|faux|true|false)$/i.test(x.d[1]))x={...x,d:[x.d[0],/^(vrai|true)$/i.test(x.d[1]),x.d[2]||ex]};const c=ids.has(x.c)?x.c:[...ids][0];const lv=[1,2,3].includes(x.lv)?x.lv:2,d=x.d,S=v=>String(v==null?"":v).slice(0,600);
   if(x.t==="q"&&Array.isArray(d)&&Array.isArray(d[1])&&d[1].length===4)return {t:"q",c,lv,d:[S(d[0]),d[1].map(S),S(d[2])]};
   if(x.t==="v"&&Array.isArray(d)&&typeof d[1]==="boolean")return {t:"v",c,lv,d:[S(d[0]),d[1],S(d[2])]};
   if(x.t==="f"&&Array.isArray(d)&&d[0]&&d[1])return {t:"f",c,lv,d:[S(d[0]),S(d[1])]};

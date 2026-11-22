@@ -14,7 +14,7 @@ Ce fichier présente le projet à Claude Code. Lis-le avant toute modification.
 Site statique publié par GitHub Pages sur https://marineongoing.github.io (branche `main`). Pas de build, pas de framework : chaque app est un seul fichier HTML (CSS et JS inclus).
 
 ```
-index.html              page de lancement : work, life, study (+ réglages icônes / fond / flou, gardés en localStorage)
+index.html              page de lancement : life, study (+ réglages icônes / fond / flou, gardés en localStorage)
 manifest.webmanifest    manifest de la page de lancement
 sw.js                   « kill switch » : désinstalle l'ancien service worker qui contrôlait tout le site
 icon-*.png              icônes de la page de lancement
@@ -25,7 +25,7 @@ supabase/migrations/    scripts SQL de la base (à appliquer dans l'ordre)
 ```
 
 Work (dashboard d'alternance OTA & ventes flash chez Pierre & Vacances) est encore un artefact Claude :
-https://claude.ai/artifact/MdVHPkN3pLHnB1bJggHRQi. Le rond « work » de la page de lancement l'ouvre dans un nouvel onglet. À migrer plus tard vers `work/` sur Supabase.
+https://claude.ai/artifact/MdVHPkN3pLHnB1bJggHRQi. Il n'est plus sur la page de lancement. À migrer plus tard vers `work/` sur Supabase.
 
 ## Règles à respecter à chaque modification
 

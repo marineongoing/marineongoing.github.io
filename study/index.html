@@ -1190,6 +1190,9 @@ body .ttest .tbody .toolbar{margin:12px 0 10px}
 body .tsec-in input{box-sizing:border-box!important;width:100%!important;flex:none!important;padding:6px 8px!important;font-size:13px!important}
 @media (max-width:700px){body .ttest .tbody{padding:4px 14px 14px}}
 body .stfill{grid-column:1/-1;margin-top:12px}
+/* Matière : bouton rond « + » pour une nouvelle note */
+body .addnote{width:40px;height:40px;padding:0!important;border-radius:50%!important;display:grid;place-items:center}
+body .addnote svg{width:20px;height:20px}
 </style>
 </head>
 <body>
@@ -2488,7 +2491,7 @@ function renderSubjects(keepEditor){
     `</div><div class="sheet" role="tabpanel"><div class="sheet-head"><div><h2>${s.name}</h2>
       <button class="btn ghost sback" data-act="subjgrid">‹ Toutes les matières</button>
       <div class="linkrow">${link?`<a class="btn ghost" href="${esc(link)}" target="_blank" rel="noopener">${ICO.folder} OneDrive</a>`+IB(`data-act="link"`,"edit","Modifier le lien OneDrive"):`<button class="btn ghost" data-act="link">${ICO.folder} Lier OneDrive</button>`}</div></div>
-      <div class="toolbar">${sampleFn?`<button class="btn" data-act="synth">Synthèse</button>`:""}<button class="btn primary" data-act="newnote">Nouvelle note</button></div></div>
+      <div class="toolbar"><button class="btn primary addnote" data-act="newnote" aria-label="Nouvelle note" title="Nouvelle note">${SV('<path d="M12 5v14M5 12h14"/>')}</button></div></div>
       <div id="synstat"></div>
       <div id="notelist"></div></div></div>`;
   $("#view-subjects").innerHTML=html;

@@ -1142,6 +1142,24 @@ body ul.dl input{flex:none;width:17px;height:17px;margin-top:3px;accent-color:#F
 body ul.dl b{font-weight:600;margin-right:4px;color:#FF6B6B}
 body ul.dl small{display:block;font-size:13px;opacity:.8}
 @media (max-width:700px){body ul.dl{align-self:stretch;padding:12px 14px}}
+/* ===== Retouches design (nov. 2026) ===== */
+/* Largeur moyenne (iPad, petite fenêtre) : calendrier et « À venir » l'un sous l'autre, pour que les cours restent lisibles */
+@media (min-width:701px) and (max-width:1000px){body .dash-grid{grid-template-columns:minmax(0,1fr)}}
+body .month .dow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* À venir : « Devoir · titre » sur la même ligne */
+body .upt{display:block;line-height:1.35}
+body .upt small{display:block;margin-top:2px}
+/* Cases à cocher assorties au verre */
+input[type="checkbox"]{-webkit-appearance:none;appearance:none;flex:none;width:20px!important;height:20px!important;margin:0;border-radius:7px;border:1.5px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);display:inline-grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s}
+input[type="checkbox"]::after{content:"";width:5px;height:10px;border:solid #1B1B1D;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg);opacity:0}
+input[type="checkbox"]:checked{background:#fff;border-color:#fff}
+input[type="checkbox"]:checked::after{opacity:1}
+body ul.dl input{margin-top:1px}
+/* Rappels : même verre que les autres panneaux, seul le mot « En retard » / « J-3 » est en couleur */
+body ul.dl{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-left:3px solid #FF8C9E}
+body ul.dl label{color:var(--ink)}
+body ul.dl b{color:#FF8C9E}
+body ul.dl small{color:var(--muted);opacity:1}
 </style>
 </head>
 <body>

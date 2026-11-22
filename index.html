@@ -189,7 +189,7 @@ dialog.sett::backdrop{background:rgba(10,8,6,.35)}
     dlg.innerHTML=`<h2>Réglages</h2><p class="hint">Ces choix sont gardés sur cet appareil.</p>
       ${CATS.map(([c,l])=>`<h3>Icône ${l}</h3><div class="opts">${Object.keys(ICONS).map(v=>opt(c,v)).join("")}${get(c).startsWith("data:")?opt(c,get(c)):""}<label class="upl">Importer une image<input type="file" accept="image/*" data-up="${c}"></label></div>`).join("")}
       <h3>Fond</h3><div class="opts">${BGS.map(([v,l,css])=>`<button class="opt bgopt" data-cat="bg" data-v="${v}" aria-pressed="${get("bg")===v}" title="${l}" style="background-image:${v==="default"?"linear-gradient(90deg,transparent 50%,rgba(0,0,0,0) 50%),var(--bgpc)":css}"></button>`).join("")}${get("bg").startsWith("data:")?`<button class="opt bgopt" data-cat="bg" data-v="${get("bg")}" aria-pressed="true" title="Ma photo" style="background-image:url('${get("bg")}')"></button>`:""}<label class="upl">Importer une photo<input type="file" accept="image/*" data-up="bg"></label></div>
-      <p class="hint" style="margin-top:8px">« Par défaut » : montagnes sur ordinateur, coucher de soleil sur téléphone.</p>
+      <p class="hint" style="margin-top:8px">« Par défaut » : plage sur ordinateur, coucher de soleil sur téléphone.</p>
       <h3>Flou du fond <span class="hint" id="blurVal" style="display:inline">${st.blur||0} px</span></h3><input type="range" class="rng" min="0" max="30" step="1" value="${st.blur||0}" data-blur aria-label="Flou du fond">
       <p class="hint err" style="color:#FFC2B8;margin-top:8px"></p>
       <div class="foot"><button class="btn" data-reset>Réinitialiser</button><button class="btn dark" data-close>Fermer</button></div>`;

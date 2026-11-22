@@ -2956,7 +2956,7 @@ async function organize(){
   const prompt=`Tu aides une étudiante en BTS NDRC (Négociation et Digitalisation de la Relation Client). Voici ses notes brutes ou la transcription d'un cours de la matière « ${(SUBJ[n.subject].full||SUBJ[n.subject].name)} »${n.title?`, intitulé « ${n.title} »`:""}.
 
 Transforme-les en fiche de révision claire, aérée et agréable à relire, en français, au format Markdown simple :
-- un titre avec « # »,
+- pas de titre général : la note a déjà son titre, commence directement par la première section,
 - des sections avec « ## » qui suivent la logique du cours, et des sous-parties avec « ### » si une section est longue,
 - au début de chaque section, un court paragraphe de 2 ou 3 phrases qui explique l'idée principale, puis des listes à puces « - » courtes (une idée par puce),
 - une ligne « --- » entre les grandes parties,
@@ -2976,7 +2976,7 @@ ${txt.slice(0,60000)}
 """`;
   try{
     const r=await sampleFn(prompt,{cache:false,onText:({text})=>{$("#cState").textContent="Rédaction en cours…";$("#cOut").innerHTML=md(text)}});
-    lastFiche=r.text.trim();
+    lastFiche=r.text.trim().replace(/^#\s+[^\n]*\n+/,"");
     $("#cState").innerHTML=(r.truncated?"Fiche prête (coupée car le texte est très long).":"Fiche prête.")+` <span class="hllg"><span style="background-color:#F9C6D6">définitions</span> <span style="background-color:#CBE8FA">méthodes</span> <span style="background-color:#C8EBC9">exemples</span> <span style="background-color:#FFDDB8">attention</span></span>`;
     $("#cOut").innerHTML=md(lastFiche);
     zone.querySelector(".claude-box").insertAdjacentHTML("beforeend",`<div class="toolbar" style="margin-top:10px"><button class="btn primary" data-act="replace">Remplacer mes notes</button><button class="btn" data-act="append">Ajouter à la suite</button><button class="btn ghost" data-act="discard">Ignorer</button></div>`);

@@ -2538,8 +2538,9 @@ function badges(n){if(!n)return `<span class="bdg empty-b">Pas encore de note</s
   return out.join("")||`<span class="bdg empty-b">Note vide</span>`}
 function renderNoteList(){
   const el=$("#notelist");if(!el)return;const sid=state.subject;
-  const pins=PINS.map(p=>{const id="n-pin-"+sid+"-"+p.k,n=state.notes[id];
-    return `<button data-pin="${p.k}" class="ccard pin">${PIN_SVG}<span class="cc-main"><b>${p.name}</b><span class="cc-b">${n?badges(n):`<span class="bdg empty-b">Épinglé</span>`}</span></span></button>`}).join("");
+  const pins=PINS.filter(p=>!dead.has("n-pin-"+sid+"-"+p.k)).map(p=>{const id="n-pin-"+sid+"-"+p.k,n=state.notes[id];
+    const nt=((n&&n.title)||"").trim(),own=nt&&!["Synthèse","Synthèse de révision","Méthodologie","Annexes"].includes(nt)?nt:"";
+    return `<button data-pin="${p.k}" class="ccard pin">${PIN_SVG}<span class="cc-main"><b>${own?esc(own):p.name}</b>${own?`<span class="cc-sub">${p.name}</span>`:""}<span class="cc-b">${n?badges(n):`<span class="bdg empty-b">Épinglé</span>`}</span></span></button>`}).join("");
   const sess=courseSessions(sid);
   const cours=sess.length?sess.map(c=>{const n=state.notes[c.key];const d=parseISO(c.date);
     const day=(t=>t.charAt(0).toUpperCase()+t.slice(1))(d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}));
@@ -2549,7 +2550,7 @@ function renderNoteList(){
       ${own?`<span class="cc-sub">${day}</span>`:c.title?`<span class="cc-sub">${esc(c.title)}</span>`:""}<span class="cc-b">${badges(n)}</span></span></button>`}).join("")
     :`<p class="hint">Aucun cours dans le calendrier pour cette année.</p>`;
   const free=notesOf(sid);
-  el.innerHTML=`<h3 class="nl-sec">Épinglé</h3><div class="cgrid">${pins}</div>
+  el.innerHTML=`${pins?`<h3 class="nl-sec">Épinglé</h3><div class="cgrid">${pins}</div>`:""}
     <h3 class="nl-sec">Cours (${sess.length})</h3><div class="cgrid">${cours}</div>`+
     (free.length?`<h3 class="nl-sec">Autres notes</h3><div class="cgrid">`+free.map(([id,n])=>`<button data-note="${id}" class="ccard has"><span class="cdot"></span><span class="cc-main"><b>${esc(n.title||"Sans titre")}</b><span class="cc-sub">${n.date?fmtDay(parseISO(n.date)):""}</span><span class="cc-b">${badges(n)}</span></span></button>`).join("")+`</div>`:"");
 }
@@ -2959,7 +2960,8 @@ ${extra}`;
     const src=r.text.trim(),html=cleanHtml(md(src));
     if(prev&&(prev.content||"").trim())pushVersion(id,prev.html||noteHtml(prev),true);
     const content=htmlText(html);
-    state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:"Synthèse de révision",html,content,synMd:src,synBase:{notes:sigs,weak:wsig,edit:hashStr(content)},date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
+    if(dead.has(id)){dead.delete(id);persist("dead",{ids:[...dead].slice(-1000)})}
+    state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:(prev&&prev.title)||"Synthèse de révision",html,content,synMd:src,synBase:{notes:sigs,weak:wsig,edit:hashStr(content)},date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
     persist(id,{...state.notes[id]});st.innerHTML="";busy=false;openNote(id);renderNoteList();return}
   catch(e){st.innerHTML=`<p class="hint">${e&&e.code==="rate_limited"?"Trop de demandes. Réessaie dans une minute.":"La synthèse n'a pas pu être faite. Réessaie dans un instant."}</p>`}busy=false}
 async function organize(){

@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await sb.auth.getUser();
     if (!user || user.email !== Deno.env.get("ALLOWED_EMAIL")) return json({ error: "not_allowed" }, 403);
 
-    const { messages, max_tokens, stream } = await req.json();
+    const { messages, max_tokens, stream, web_fetch } = await req.json();
     if (!Array.isArray(messages) || !messages.length) return json({ error: "bad_request" }, 400);
 
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -27,7 +27,12 @@ Deno.serve(async (req) => {
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
-      body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: Math.min(max_tokens || 2000, 12000), messages, ...(stream ? { stream: true } : {}) }),
+      body: JSON.stringify({
+        model: "claude-sonnet-5", max_tokens: Math.min(max_tokens || 2000, 12000), messages,
+        // web_fetch: true (Study) : Claude peut lire la page d'une formation à partir de son lien
+        ...(web_fetch ? { tools: [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 }] } : {}),
+        ...(stream ? { stream: true } : {}),
+      }),
     });
     // stream: true (Study) : on renvoie la réponse au fur et à mesure, pour que les longues réponses ne soient pas coupées
     if (stream && r.ok && r.body) {

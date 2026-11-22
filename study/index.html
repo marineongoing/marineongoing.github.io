@@ -1183,6 +1183,12 @@ body .prefdlg .pgrid{display:flex!important;flex-wrap:wrap;gap:12px 26px;padding
 body .pbg{position:relative;width:52px!important;height:52px!important;padding:0!important;border-radius:50%!important;background-size:cover!important;background-position:center!important;cursor:pointer}
 body .pbg span{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;font-size:11px;font-weight:300;color:var(--muted);white-space:nowrap;text-shadow:none}
 body .pbg.on span{color:#fff}
+/* TOEFL / GMAT en toggles */
+body .tests{align-items:start}
+body .ttest .tbody{padding:4px 18px 18px;border-top:1px solid var(--line)}
+body .ttest .tbody .toolbar{margin:12px 0 10px}
+@media (max-width:700px){body .ttest .tbody{padding:4px 14px 14px}}
+body .stfill{grid-column:1/-1;margin-top:12px}
 </style>
 </head>
 <body>
@@ -1634,12 +1640,12 @@ const TESTS={toefl:{name:"TOEFL",min:1,max:6,step:0.5,goal:5,ex:"5"},gmat:{name:
 function testHTML(k){const C=TESTS[k],T=state.tests[k],sc=[...T.scores].sort((a,b)=>a.date.localeCompare(b.date));const best=sc.length?Math.max(...sc.map(x=>x.score)):null,last=sc.length?sc[sc.length-1].score:null;
   const pos=v=>Math.max(0,Math.min(100,Math.round((v-C.min)/(C.max-C.min)*100))),pct=best==null?0:pos(best),gp=pos(T.goal),f=v=>String(v).replace(".",","),gap=best==null?0:Math.round((T.goal-best)*10)/10;
   const eq=k==="toefl"?TOEFL_EQ.find(x=>x[0]===(best==null?T.goal:best)):null;
-  return `<div class="panel toeic"><div class="weekbar" style="margin-bottom:6px"><div><h2>Mon ${C.name}</h2></div>
-    <div class="toolbar">${k==="toefl"?`<div class="tsec-in">${TOEFL_SEC.map(([c,l])=>`<input type="number" id="ts-toefl-${c}" min="1" max="6" step="0.5" placeholder="${l}" aria-label="${l}">`).join("")}</div>`:`<input type="number" id="ts-${k}" min="${C.min}" max="${C.max}" step="${C.step}" placeholder="Score" style="width:90px" aria-label="Score ${C.name}">`}<input type="date" id="td-${k}" value="${iso(new Date())}" aria-label="Date du test"><button class="btn" data-addtest="${k}">Ajouter</button><button class="btn ghost" data-testgoal="${k}">Objectif</button></div></div>
+  return `<details class="study ttest" data-sid="test-${k}" ${openStudies.has("test-"+k)?"open":""}><summary><div class="ttl"><h3>Mon ${C.name}</h3><span class="meta">${best==null?"Pas encore de score":`Meilleur score : ${f(best)} sur ${C.max}`}</span></div><span class="chev" aria-hidden="true">›</span></summary><div class="tbody toeic">
+    <div class="toolbar">${k==="toefl"?`<div class="tsec-in">${TOEFL_SEC.map(([c,l])=>`<input type="number" id="ts-toefl-${c}" min="1" max="6" step="0.5" placeholder="${l}" aria-label="${l}">`).join("")}</div>`:`<input type="number" id="ts-${k}" min="${C.min}" max="${C.max}" step="${C.step}" placeholder="Score" style="width:90px" aria-label="Score ${C.name}">`}<input type="date" id="td-${k}" value="${iso(new Date())}" aria-label="Date du test"><button class="btn" data-addtest="${k}">Ajouter</button><button class="btn ghost" data-testgoal="${k}">Objectif</button></div>
     <div class="tbar"><i style="width:${pct}%"></i><span class="tgoal" style="left:${gp}%" title="Objectif : ${f(T.goal)}"></span></div>
     <p class="hint" style="margin-top:6px">${best==null?`Aucun score pour l'instant. Objectif : <b>${f(T.goal)}</b> sur ${C.max}.`:`Meilleur score${k==="toefl"?" global":""} : <b>${f(best)}</b> · dernier : <b>${f(last)}</b> · ${best>=T.goal?"objectif atteint":`encore ${f(gap)} point${gap>1?"s":""} pour l'objectif (${f(T.goal)})`}`}${eq?`<br>${best==null?"Cet objectif":"Ton meilleur score"} correspond au niveau ${eq[1]}, soit ${eq[2]} sur l'ancien barème sur 120.`:""}</p>
     ${k==="toefl"&&sc.length&&sc[sc.length-1].sec?`<div class="tsecs">${TOEFL_SEC.map(([c,l])=>{const v=sc[sc.length-1].sec[c];return `<div class="tsec"><span>${l}</span><div class="bar"><i style="width:${pos(v)}%"></i></div><b>${f(v)}</b></div>`}).join("")}</div>`:""}
-    ${sc.length?`<div class="tlist">${sc.slice(-8).reverse().map(x=>`<span class="tchip"${x.sec?` title="${TOEFL_SEC.map(([c,l])=>l+" "+f(x.sec[c])).join(" · ")}"`:""}>${fmtDay(parseISO(x.date))} : ${f(x.score)} <button class="btn ghost" data-rmtest="${k}|${x.id}" aria-label="Supprimer">×</button></span>`).join("")}</div>`:""}</div>`}
+    ${sc.length?`<div class="tlist">${sc.slice(-8).reverse().map(x=>`<span class="tchip"${x.sec?` title="${TOEFL_SEC.map(([c,l])=>l+" "+f(x.sec[c])).join(" · ")}"`:""}>${fmtDay(parseISO(x.date))} : ${f(x.score)} <button class="btn ghost" data-rmtest="${k}|${x.id}" aria-label="Supprimer">×</button></span>`).join("")}</div>`:""}</div></details>`}
 function toeicHTML(){return `<div class="tests">${testHTML("toefl")}${testHTML("gmat")}</div>`}
 function saveTest(k,T){state.tests={...state.tests,[k]:T};persist(k,{...T})}
 const openSecs=new Set();
@@ -1668,9 +1674,38 @@ async function planStudy(id){const it=state.studies.find(x=>x.id===id);if(!it||s
   }catch(e){toast(e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":e&&e.code==="offline"?"Pas de connexion : réessaie quand tu es en ligne.":e&&e.code==="empty"?"Claude n'a pas proposé d'étapes : réessaie.":"Le rétroplanning n'a pas pu être créé. Réessaie dans un instant.")}
   studyBusy.delete(id);renderDash()}
 function saveStudies(){persist("studies",{items:state.studies})}
+/* Formation : Claude lit la page du lien et remplit le toggle (mêmes sections que le BBA EDHEC) */
+const fillBusy=new Set();
+async function fillStudy(id){const it=state.studies.find(x=>x.id===id);if(!it||!it.link||fillBusy.has(id))return;if(!sampleFn){toast("Claude n'est pas disponible pour l'instant.");return}
+  fillBusy.add(id);openStudies.add(id);renderDash();
+  try{const prompt=`Lis la page officielle de cette formation avec l'outil web_fetch : ${it.link}
+(tu peux aussi ouvrir une ou deux pages liées sur le même site si l'admission, le calendrier ou le coût n'y sont pas).
+École : ${it.school}${it.program?"\nFormation : "+it.program:""}${it.admission?"\nAdmission visée : "+it.admission:""}
+
+Je suis en 1re année de BTS NDRC, en alternance, à l'INSEEC Paris, et je cherche une poursuite d'études après le BTS.
+Résume ce que je dois savoir sur cette formation, en sections courtes, dans cet ordre, en gardant seulement celles pour lesquelles tu as trouvé l'information :
+« En bref » (diplôme, durée, campus, langue), « Admission après le BTS » (entrée possible après un Bac+2 commercial, épreuves, dossier), « Calendrier » (dates de candidature et de rentrée), « Coût et alternance » (frais, alternance possible), « International », et « Points d'attention » (ce qui pourrait me poser problème ; mets warn à true pour cette section seulement).
+Chaque section : 2 à 4 phrases courtes et factuelles, en français, en me tutoyant, sans emoji. N'invente rien : uniquement ce qui est écrit sur les pages lues.
+Réponds en JSON : {"program":"nom exact de la formation","admission":"mode d'admission après un BTS, en une ligne","deadline":"date limite de candidature au format AAAA-MM-JJ, ou vide","sections":[{"t":"En bref","items":["phrase","phrase"],"warn":false}]}`;
+    const r=await sampleFn(prompt+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",{cache:false,maxTokens:8000,webFetch:true});
+    if(!r.fetched)throw {code:"nofetch"};
+    const t=r.text.replace(/```json|```/g,"");const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty"};
+    let j;try{j=JSON.parse(t.slice(a,b+1))}catch(e){throw {code:"empty"}}
+    const secs=(Array.isArray(j.sections)?j.sections:[]).filter(x=>x&&x.t&&Array.isArray(x.items)&&x.items.length).slice(0,8)
+      .map(x=>({t:String(x.t).slice(0,60),items:x.items.map(y=>String(y).slice(0,400)).filter(Boolean).slice(0,6),...(x.warn===true?{warn:true}:{})}));
+    if(!secs.length)throw {code:"empty"};
+    const cur=state.studies.find(x=>x.id===id);if(!cur)throw {};
+    cur.sections=secs;
+    if(!cur.program&&j.program)cur.program=String(j.program).slice(0,120);
+    if(!cur.admission&&j.admission)cur.admission=String(j.admission).slice(0,160);
+    if(!cur.deadline&&/^\d{4}-\d{2}-\d{2}$/.test(j.deadline||""))cur.deadline=j.deadline;
+    saveStudies();
+  }catch(e){toast(e&&e.code==="nofetch"?"Claude n'a pas réussi à ouvrir la page du lien. Vérifie le lien, ou réessaie plus tard.":e&&e.code==="not_granted"?"Claude n'est pas autorisé sur cette page.":e&&e.code==="rate_limited"?"Trop de demandes d'un coup. Réessaie dans une minute.":e&&e.code==="offline"?"Pas de connexion : réessaie quand tu es en ligne.":"Claude n'a pas pu remplir la formation. Réessaie dans un instant.")}
+  fillBusy.delete(id);renderDash()}
 function studiesClick(b){
   if(b.dataset.adddoc){const it=state.studies.find(x=>x.id===b.dataset.adddoc);const v=$("#sd-"+it.id).value.trim();if(!v)return;it.docs=[...(it.docs||DEFAULT_DOCS.map(l=>({label:l,done:false}))),{label:v,done:false}];openStudies.add(it.id);saveStudies();renderDash();return true}
   if(b.dataset.stplan){planStudy(b.dataset.stplan);return true}
+  if(b.dataset.stfill){fillStudy(b.dataset.stfill);return true}
   if(b.dataset.rmstep){const [sid,stid]=b.dataset.rmstep.split("|");const it=state.studies.find(x=>x.id===sid);const st=(it.steps||[]).find(x=>x.id===stid);
     if(st){state.events=state.events.filter(e=>e.id!==st.eventId);saveCalendar();it.steps=it.steps.filter(x=>x!==st);saveStudies();renderDash()}return true}
   if(b.dataset.addtest==="toefl"){const d=$("#td-toefl").value,sec={};let bad=false;
@@ -1698,7 +1733,7 @@ function studiesHTML(){
         <div class="ttl"><h3>${esc(it.school)}</h3>${it.program?`<span>${esc(it.program)}</span>`:""}${dl?`<span class="meta">${dl}</span>`:""}</div>
         <span class="st st-${it.status||"explorer"}">${ST_LABEL[it.status]||ST_LABEL.explorer}</span>
         <span class="st-top">${it.link?`<a class="btn ghost icon" href="${esc(it.link)}" target="_blank" rel="noopener" title="Voir la page officielle" aria-label="Voir la page officielle">${SV('<path d="M14 5h5v5"/><path d="M19 5 10 14"/><path d="M18 14v5H5V6h5"/>')}</a>`:""}${IB(`data-study="${it.id}"`,"edit","Modifier")}</span><span class="chev" aria-hidden="true">›</span></summary>
-      <div class="study-body">${secs}
+      <div class="study-body">${secs}${fillBusy.has(it.id)?`<p class="hint stfill">Claude lit la page de la formation…</p>`:!secs&&it.link?`<div class="stfill"><button class="btn" data-stfill="${it.id}">Remplir avec Claude</button><p class="hint" style="margin-top:6px">Claude lit la page du lien et résume la formation.</p></div>`:""}
         ${studyExtras(it)}
       </div></details>`}).join("")}</div>`;
 }
@@ -2053,8 +2088,9 @@ $("#stCancel").onclick=()=>stDlg.close();
 stForm.addEventListener("submit",ev=>{ev.preventDefault();
   const d={};for(const f of ["school","program","admission","deadline","status","link"])d[f]=stForm[f].value.trim();
   if(!d.school)return;if(d.link&&!/^https:\/\//i.test(d.link)){toast("Le lien doit commencer par https://");return}
-  if(editingSt)Object.assign(editingSt,d);else state.studies.push({id:uid(),...d});
-  stDlg.close();persist("studies",{items:state.studies});renderDash()});
+  let it=editingSt;const newLink=d.link&&(!it||it.link!==d.link||!(it.sections||[]).length);
+  if(it)Object.assign(it,d);else{it={id:uid(),...d};state.studies.push(it)}
+  stDlg.close();persist("studies",{items:state.studies});renderDash();if(newLink)fillStudy(it.id)});
 $("#stDelete").onclick=async()=>{if(!editingSt||!await uiConfirm("Supprimer cette formation ?"))return;
   state.studies=state.studies.filter(x=>x!==editingSt);stDlg.close();persist("studies",{items:state.studies});renderDash()};
 
@@ -2692,27 +2728,28 @@ function flush(){if(tmr){clearTimeout(tmr);tmr=null;rteSave();saveNote()}}
 
 /* ---------- Claude ---------- */
 let sampleFn=null,lastFiche="",busy=false;
-async function callClaude(messages,max,onDelta){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
-  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true})})}catch(e){throw {code:"offline"}}
+async function callClaude(messages,max,onDelta,webFetch){const {data:{session}}=await sb.auth.getSession();if(!session)throw {code:"not_granted"};
+  let r;try{r=await fetch(SUPA_URL+"/functions/v1/claude",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPA_KEY},body:JSON.stringify({messages,max_tokens:max||3000,stream:true,...(webFetch?{web_fetch:true}:{})})})}catch(e){throw {code:"offline"}}
   if(!r.ok){const j=await r.json().catch(()=>({}));throw {code:r.status===429||r.status===529?"rate_limited":r.status===403?"not_granted":"error",message:(j.error&&(j.error.message||j.error))||r.status}}
   if(!r.body||!(r.headers.get("content-type")||"").includes("text/event-stream"))return await r.json().catch(()=>({}));
   /* Réponse en direct : la connexion reste active pendant que Claude écrit, sinon l'iPhone coupe les longues réponses */
-  const rd=r.body.getReader(),dec=new TextDecoder();let buf="",text="",stop=null;
+  const rd=r.body.getReader(),dec=new TextDecoder();let buf="",text="",stop=null,fetched=false;
   try{for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
     while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line.startsWith("data:"))continue;let ev;try{ev=JSON.parse(line.slice(5))}catch(e){continue}
+      if(ev.type==="content_block_start"&&ev.content_block&&ev.content_block.type==="web_fetch_tool_result"&&!(ev.content_block.content&&/error/.test(ev.content_block.content.type||"")))fetched=true;
       if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="text_delta"){text+=ev.delta.text;if(onDelta)onDelta(text)}
       else if(ev.type==="message_delta"&&ev.delta&&ev.delta.stop_reason)stop=ev.delta.stop_reason;
       else if(ev.type==="error")throw {code:ev.error&&ev.error.type==="overloaded_error"?"rate_limited":"error",message:ev.error&&ev.error.message}}}}
   catch(e){if(e&&e.code)throw e;if(!text)throw {code:"offline"};stop="cut"}
-  return {content:[{type:"text",text}],stop_reason:stop}}
+  return {content:[{type:"text",text}],stop_reason:stop,fetched}}
 function salvageQs(t){const out=[],a=t.indexOf("[",Math.max(0,t.indexOf('"questions"')));if(a<0)return out;let d=0,st=-1,inS=false,esc=false;
   for(let i=a+1;i<t.length;i++){const c=t[i];if(inS){if(esc)esc=false;else if(c==="\\")esc=true;else if(c==='"')inS=false;continue}
     if(c==='"')inS=true;else if(c==="{"){if(!d)st=i;d++}else if(c==="}"){d--;if(!d&&st>=0){try{out.push(JSON.parse(t.slice(st,i+1)))}catch(e){}st=-1}}else if(c==="]"&&!d)break}
   return out}
 async function initClaude(){
   sampleFn=async(input,opts={})=>{const messages=typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content}));
-    const j=await callClaude(messages,opts.maxTokens||3500,opts.onText?t=>opts.onText({text:t}):null);const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
-    if(opts.onText)opts.onText({text});return {text,truncated:j.stop_reason==="max_tokens"||j.stop_reason==="cut"}};
+    const j=await callClaude(messages,opts.maxTokens||3500,opts.onText?t=>opts.onText({text:t}):null,opts.webFetch);const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    if(opts.onText)opts.onText({text});return {text,truncated:j.stop_reason==="max_tokens"||j.stop_reason==="cut",fetched:!!j.fetched}};
   sampleFn.json=async(p,o)=>{const r=await sampleFn(p+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",o);
     const t=r.text.replace(/```json|```/g,"").trim();const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw {code:"empty",text:t};try{return JSON.parse(t.slice(a,b+1))}catch(e){throw {code:"bad_json",text:t}}};
   render();if(noteDlg.open)renderEditor()}

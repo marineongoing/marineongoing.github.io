@@ -2929,7 +2929,6 @@ function renderEditor(){
               <div data-ndform="task" hidden><b class="ndm-t">Nouvelle tâche</b><div class="addl col"><input id="tkText" placeholder="Ex. Relire le chapitre 2"><input id="tkDate" type="date"><button class="btn primary" data-act="addtask">Ajouter</button></div></div></div></details>`})()}
           <details class="more"><summary class="btn ghost icon" aria-label="Plus d'actions" title="Plus d'actions">${ICO.more}</summary><div class="menu">
           <button data-act="claude" id="claudeBtn" hidden>Organiser</button>
-          <button data-act="quiz" id="quizBtn" hidden>Me tester${n.quiz&&n.quiz.last?` <small>dernier : ${n.quiz.last.score}/${n.quiz.last.total}</small>`:""}</button>
           ${n.quiz&&n.quiz.missed&&n.quiz.missed.length?`<button data-act="qreview">Revoir mes erreurs <small>${n.quiz.missed.length}</small></button>`:""}
           <button data-act="history">Historique</button>
           <button data-act="exportpdf">Télécharger en PDF</button>
@@ -2957,7 +2956,7 @@ function renderEditor(){
         <div id="rte" class="rte" contenteditable="true" spellcheck="true" aria-label="Mes notes" data-ph="Tape tes notes ici, ou colle la transcription de ton cours ou une image…">${noteHtml(n)}</div>
       </div>
     </div></div>`;
-  if(sampleFn){$("#claudeBtn").hidden=false;$("#quizBtn").hidden=false}
+  if(sampleFn){$("#claudeBtn").hidden=false}
   if(dlFn)$("#expBtn").hidden=false;
   const r=$("#rte");if(r){try{document.execCommand("defaultParagraphSeparator",false,"p")}catch(e){}
     r.addEventListener("beforeinput",e=>{const sel=getSelection();if(!sel.rangeCount||!sel.isCollapsed)return;

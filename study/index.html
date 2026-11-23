@@ -1189,6 +1189,11 @@ dialog.rxdlg{height:auto;min-height:min(560px,92vh)}
 .rx-fi{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1)}.rx-fi:last-child{border:0}.rx-fi b{font-weight:500}.rx-fi p{margin:.2em 0 0;color:var(--muted)}
 .rx-combo{text-align:center;min-height:22px;color:#FFB070;margin:0 0 6px}.rx-vf{min-height:150px;display:flex;flex-direction:column;justify-content:center}
 .rx-pick small{display:block;margin-top:2px}.rx-pick b{font-weight:400}
+.rx-ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:6px}
+.rx-mode b{display:flex;align-items:center}
+.rx-mode.ok,.rx-pick.ok{background:rgba(122,214,168,.2);border-color:rgba(122,214,168,.7)}.rx-mode.ok .rx-ic,.rx-pick.ok .rx-ic,.rx-mode.ok small{color:#B9F0D2}
+.rx-mode.ko,.rx-pick.ko{background:rgba(255,140,158,.2);border-color:rgba(255,140,158,.75)}.rx-mode.ko .rx-ic,.rx-pick.ko .rx-ic,.rx-mode.ko small{color:#FFC2CB}
+.rx-pick{position:relative;padding-left:40px}.rx-pick .rx-ic{position:absolute;left:14px;top:18px;margin:0}
 .rx-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rx-mgrid>div,.rx-pool{display:flex;flex-direction:column;gap:8px}
 .rx-mt{text-align:left;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;min-height:48px;cursor:pointer}
 .rx-mt.l{font-weight:400}.rx-mt.sel{background:#fff;color:#1B1B1D}.rx-mt.done{background:rgba(122,214,168,.25);border-color:rgba(122,214,168,.6);opacity:.7}
@@ -2453,6 +2458,15 @@ function rxPool(sid,types,minLv){const f=rxFilter[sid]||"all";let L=rxBank(sid).
   if(minLv){const hard=L.filter(x=>(x.lv||1)>=minLv);if(hard.length>=8)L=hard}return L}
 function rxPick(sid,pool,n){const p=rxProg(sid);const w=x=>{const r=p.it[x.k];if(!r)return 3;if(r[2]===0)return 4;return 1/(1+r[0])};
   return pool.map(x=>({x,s:Math.random()*w(x)})).sort((a,b)=>b.s-a.s).slice(0,n).map(o=>o.x)}
+/* réussi = dernière réponse juste (depuis le dernier « recommencer ») ; raté = dernière réponse fausse */
+function rxDone(sid,x){const p=rxProg(sid),r=p.it[x.k];if(!r||r[2]!==1)return false;const R=p.reset||{};return r[3]>(R[x.t]||0)&&r[3]>(R[x.t+"|"+x.c]||0)}
+function rxSt(sid,x){if(rxDone(sid,x))return "ok";const r=rxProg(sid).it[x.k];return r&&r[2]===0?"ko":""}
+function rxLeft(sid,types,minLv){return rxPool(sid,types,minLv).filter(x=>!rxDone(sid,x))}
+function rxInfo(sid,types,minLv){const L=rxPool(sid,types,minLv),left=L.filter(x=>!rxDone(sid,x)),ko=left.filter(x=>rxSt(sid,x)==="ko").length;
+  return {n:L.length,left:left.length,ko,st:L.length&&!left.length?"ok":L.length&&ko===left.length?"ko":""}}
+function rxReset(sid,types){const p=rxProg(sid),f=rxFilter[sid]||"all";p.reset=p.reset||{};for(const t of types)p.reset[f==="all"?t:t+"|"+f]=Date.now();rxSave(sid)}
+const RX_OK=`<svg class="rx-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,RX_KO=`<svg class="rx-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>`;
+const RX_MODES={qcm:[["q"],0],vf:[["v"],0],qcm2:[["q"],2],trou:[["t"],0],flash:[["f"],0],match:[["m"],0],ordre:[["o"],0],cas:[["c"],0]};
 function rxStats(sid){const b=rxBank(sid),p=rxProg(sid),f=rxFilter[sid]||"all";let ok=0,ko=0,seen=0;const errs=[];const per={};
   for(const x of b.it){const r=p.it[x.k];const pc=per[x.c]||(per[x.c]={n:0,m:0,ok:0,ko:0});pc.n++;if(r){pc.ok+=r[0];pc.ko+=r[1];if(r[2]===1)pc.m++}
     if(f!=="all"&&x.c!==f)continue;if(r){seen++;ok+=r[0];ko+=r[1];if(r[2]===0&&["q","v","t"].includes(x.t))errs.push(x)}}
@@ -2463,11 +2477,12 @@ function revMeta(sid){const t=iso(new Date());const tr=Object.entries(state.note
 
 /* ---------- page de la matière ---------- */
 function rxLevels(sid){const n=t=>rxPool(sid,t).length;const L=[
-  ["Facile","Pour apprendre : une explication après chaque réponse.",[["qcm","QCM",n(["q"])+" questions"],["vf","Vrai ou faux",n(["v"])+" affirmations"],["flash","Flashcards",n(["f"])+" cartes"],["fiches","Fiches express",n(["f"])+" notions"]]],
-  ["Avancé","Questions plus difficiles, réponses exactes, correction à la fin.",[["qcm2","QCM sans indice","15 questions"],["trou","Mot manquant","réponse exacte"],["match","Associations",n(["m"])+" jeux"],["ordre","Remets dans l'ordre",n(["o"])+" séquences"],["speed","Vrai ou faux chrono","45 s, une erreur coûte 2 points"]]],
-  ["Hardcore","Conditions d'examen, sans aucune aide.",[["exam","Examen blanc /20","20 min, une erreur retire 0,5 point"],["cas","Cas pratiques type BTS",n(["c"])+" cas, notés par Claude"],["sudden","Mort subite","jusqu'à la première erreur"]]]];
+  ["Facile","Pour apprendre : une explication après chaque réponse.",[["qcm","QCM"],["vf","Vrai ou faux"],["flash","Flashcards"],["fiches","Fiches express",n(["f"])+" notions"]]],
+  ["Avancé","Questions plus difficiles, réponses exactes, correction à la fin.",[["qcm2","QCM sans indice"],["trou","Mot manquant"],["match","Associations"],["ordre","Remets dans l'ordre"],["cas","Cas pratiques type BTS"],["speed","Vrai ou faux chrono","45 s, une erreur coûte 2 points"]]],
+  ["Hardcore","Conditions d'examen, sans aucune aide.",[["exam","Examen blanc /20","20 min, une erreur retire 0,5 point"],["sudden","Mort subite","jusqu'à la première erreur"]]]];
   const best=rxProg(sid).best;
-  return `<div class="rx-levels">${L.map(([t,d,ms],i)=>`<div class="rx-lv rx-lv${i}"><h3 class="nl-sec">${t}</h3><p class="hint">${d}</p><div class="rx-modes">${ms.map(([k,l,s])=>`<button class="rx-mode" data-rx="${k}"><b>${l}</b><small>${s}</small></button>`).join("")}</div>
+  return `<div class="rx-levels">${L.map(([t,d,ms],i)=>`<div class="rx-lv rx-lv${i}"><h3 class="nl-sec">${t}</h3><p class="hint">${d}</p><div class="rx-modes">${ms.map(([k,l,s])=>{let c="";if(RX_MODES[k]){const m=rxInfo(sid,...RX_MODES[k]);c=m.st;s=!m.n?"aucun pour l'instant":m.st==="ok"?"tout réussi · recommencer":m.st==="ko"?`${m.ko} à corriger`:`${m.left} à faire sur ${m.n}${m.ko?` · ${m.ko} ratée${m.ko>1?"s":""}`:""}`}
+      return `<button class="rx-mode${c?" "+c:""}" data-rx="${k}"><b>${c==="ok"?RX_OK:c==="ko"?RX_KO:""}${l}</b><small>${s}</small></button>`}).join("")}</div>
     ${i===2&&(best.exam!=null||best.sudden!=null)?`<p class="hint rx-rec">${best.exam!=null?`Meilleur examen blanc : ${String(best.exam).replace(".",",")}/20`:""}${best.exam!=null&&best.sudden!=null?" · ":""}${best.sudden!=null?`Record mort subite : ${best.sudden}`:""}</p>`:""}</div>`).join("")}</div>`}
 function rxSubjectHTML(sid){const b=rxBank(sid),s=rxStats(sid),f=rxFilter[sid]||"all",old=revMeta(sid).old;
   if(!b.it.length)return `<div class="revcard"><p class="hint">Pas encore de questions dans cette matière. Elles arrivent dès que Claude a traité tes notes.</p></div>`;
@@ -2580,21 +2595,24 @@ rxDlg.addEventListener("cancel",e=>{e.preventDefault();rxClose()});
 function rxClose(){if(rx&&rx.timer)clearInterval(rx.timer);rx=null;if(rxDlg.open)rxDlg.close();if(state.view==="revs")renderRevs()}
 function rxStart(kind){const sid=state.rsubject||"rcnv";if(rx&&rx.timer)clearInterval(rx.timer);rx=null;
   const Q=(types,minLv,n)=>rxPick(sid,rxPool(sid,types,minLv),n);
-  if(kind==="qcm")rx={kind:"quiz",title:"QCM",items:Q(["q"],0,15),fb:true};
-  else if(kind==="vf")rx={kind:"quiz",title:"Vrai ou faux",items:Q(["v"],0,15),fb:true};
-  else if(kind==="qcm2")rx={kind:"quiz",title:"QCM sans indice",items:Q(["q"],2,15),fb:false};
+  /* QCM, vrai ou faux, mot manquant, flashcards : seulement ce que tu n'as pas encore réussi ; tout réussi = on recommence */
+  const M=RX_MODES[kind];if(M&&["qcm","vf","qcm2","trou","flash"].includes(kind)){const i=rxInfo(sid,...M);if(i.n&&!i.left){rxReset(sid,M[0]);toast("Tout était réussi : on recommence à zéro.")}}
+  const QL=(types,minLv,n)=>rxPick(sid,rxLeft(sid,types,minLv),n);
+  if(kind==="qcm")rx={kind:"quiz",title:"QCM",items:QL(["q"],0,15),fb:true};
+  else if(kind==="vf")rx={kind:"quiz",title:"Vrai ou faux",items:QL(["v"],0,15),fb:true};
+  else if(kind==="qcm2")rx={kind:"quiz",title:"QCM sans indice",items:QL(["q"],2,15),fb:false};
   else if(kind==="errors"){const s=rxStats(sid);rx={kind:"quiz",title:"Mes erreurs",items:rxShuf(s.errs).slice(0,20),fb:true}}
   else if(kind==="sudden")rx={kind:"quiz",title:"Mort subite",items:rxShuf(rxPool(sid,["q","v"],2)),fb:true,sudden:true};
   else if(kind==="exam"){const q=Q(["q"],2,12),v=Q(["v"],2,4),t=Q(["t"],2,4);let items=rxShuf([...q,...v,...t]);if(items.length<20)items=[...items,...Q(["q","v"],0,20).filter(x=>!items.includes(x))].slice(0,20);
     rx={kind:"quiz",title:"Examen blanc /20",items,fb:false,exam:true,end:Date.now()+20*60000}}
-  else if(kind==="trou")rx={kind:"quiz",title:"Mot manquant",items:Q(["t"],0,10),fb:true};
-  else if(kind==="flash")rx={kind:"flash",title:"Flashcards",items:rxShuf(rxPool(sid,["f"])),know:0,again:[]};
+  else if(kind==="trou")rx={kind:"quiz",title:"Mot manquant",items:QL(["t"],0,10),fb:true};
+  else if(kind==="flash")rx={kind:"flash",title:"Flashcards",items:rxShuf(rxLeft(sid,["f"])),know:0,again:[]};
   else if(kind==="fiches")rx={kind:"fiches",title:"Fiches express"};
   else if(kind==="speed")rx={kind:"speed",title:"Vrai ou faux chrono",items:rxShuf(rxPool(sid,["v"])),score:0,combo:0,maxc:0,miss:[],started:false};
   else if(kind==="match")rx={kind:"pick",type:"m",title:"Associations"};
   else if(kind==="ordre")rx={kind:"pick",type:"o",title:"Remets dans l'ordre"};
   else if(kind==="cas")rx={kind:"pick",type:"c",title:"Cas pratiques type BTS"};
-  if(!rx)return;rx.sid=sid;rx.i=0;rx.score=rx.score||0;rx.miss=rx.miss||[];rx.answers=[];
+  if(!rx)return;rx.sid=sid;rx.mode=kind;rx.i=0;rx.score=rx.score||0;rx.miss=rx.miss||[];rx.answers=[];
   if(rx.items&&!rx.items.length&&rx.kind!=="speed"){rx=null;toast("Pas encore d'exercice de ce type"+((rxFilter[sid]||"all")!=="all"?" pour cette notion":"")+".");return}
   if(rx.exam){rx.timer=setInterval(()=>{const el=$("#rxClock");if(!rx){return}if(Date.now()>=rx.end){rx.i=rx.items.length;rxDraw();return}if(el)el.textContent=rxClockTxt()},1000)}
   rxDraw();if(!rxDlg.open)rxDlg.showModal()}
@@ -2619,7 +2637,7 @@ function rxDraw(){const z=$("#rxZone");if(!rx)return;const sid=rx.sid;
       z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${rx.score}<small> points</small></p><p class="hint">Meilleure série : ${rx.maxc}${rec?" · nouveau record":" · record : "+p.best.speed}</p><button class="btn primary" data-rxa="restart">Rejouer</button></div>${rx.miss.map(it=>`<div class="rx-card"><b>${esc(it.d[0])}</b><p class="rx-good">C'est ${it.d[1]?"vrai":"faux"}.</p><p class="hint">${esc(it.d[2]||"")}</p></div>`).join("")}`;return}
     const it=rx.items[rx.i%rx.items.length];z.innerHTML=rxHead(`<span id="rxClock">${Math.max(0,Math.ceil((rx.end-Date.now())/1000))} s</span> · ${rx.score} points`)+`<div class="rx-prog"><s id="rxBar" style="width:${Math.max(0,100*(rx.end-Date.now())/45000)}%"></s></div><p class="rx-combo">${rx.combo>=3?`Série de ${rx.combo}`:""}</p><div class="rx-card rx-center rx-vf"><span class="rx-tag">${esc(rxChName(sid,it.c))}</span><h3 class="rx-q">${esc(it.d[0])}</h3></div><div class="rx-opts two"><button class="rx-opt" data-rxv="0">Faux</button><button class="rx-opt" data-rxv="1">Vrai</button></div>`;return}
   if(rx.kind==="pick"){const L=rxPool(sid,[rx.type]);const p=rxProg(sid);
-    z.innerHTML=rxHead()+(L.length?`<p class="hint">${rx.type==="m"?"Choisis un jeu, puis relie chaque notion à sa correspondance.":rx.type==="o"?"Choisis une séquence, puis touche les étapes dans le bon ordre.":"Lis le contexte, rédige ta réponse, puis fais-la corriger par Claude."}</p>`+L.map(x=>{const sc=rx.type==="c"?p.cas[x.k]:null,r=p.it[x.k];return `<button class="rx-card rx-pick" data-rxp="${x.k}"><b>${esc(rx.type==="c"?x.d.t:x.d[0])}</b><small class="hint">${esc(rxChName(sid,x.c))}${sc!=null?` · ta note : ${String(sc).replace(".",",")}/20`:r?(r[2]===1?" · réussi":" · à refaire"):""}${(x.lv||1)>=3?" · niveau examen":""}</small></button>`}).join(""):`<p class="hint">Pas encore d'exercice de ce type${(rxFilter[sid]||"all")!=="all"?" pour cette notion":""}.</p>`);return}
+    z.innerHTML=rxHead()+(L.length?`<p class="hint">${rx.type==="m"?"Choisis un jeu, puis relie chaque notion à sa correspondance.":rx.type==="o"?"Choisis une séquence, puis touche les étapes dans le bon ordre.":"Lis le contexte, rédige ta réponse, puis fais-la corriger par Claude."}</p>`+(()=>{const i=rxInfo(sid,[rx.type]);return `<p class="hint rx-cnt">${i.left?`${i.left} à faire sur ${i.n}${i.ko?`, dont ${i.ko} à refaire`:""}`:`Tout est réussi.`}</p>`})()+[...L].sort((a,b)=>({"":0,ko:1,ok:2}[rxSt(sid,a)]-{"":0,ko:1,ok:2}[rxSt(sid,b)])).map(x=>{const sc=rx.type==="c"?p.cas[x.k]:null,st=rxSt(sid,x);return `<button class="rx-card rx-pick${st?" "+st:""}" data-rxp="${x.k}">${st==="ok"?RX_OK:st==="ko"?RX_KO:""}<b>${esc(rx.type==="c"?x.d.t:x.d[0])}</b><small class="hint">${esc(rxChName(sid,x.c))}${sc!=null?` · ta note : ${String(sc).replace(".",",")}/20`:st==="ok"?" · réussi sans faute":st==="ko"?" · à refaire":""}${(x.lv||1)>=3?" · niveau examen":""}</small></button>`}).join(""):`<p class="hint">Pas encore d'exercice de ce type${(rxFilter[sid]||"all")!=="all"?" pour cette notion":""}.</p>`);return}
   if(rx.kind==="match"){const it=rx.item;z.innerHTML=rxHead(`${rx.err} erreur${rx.err>1?"s":""}`)+`<div class="rx-mgrid"><div>${rx.L.map(x=>`<button class="rx-mt l${rx.sel===x.k?" sel":""}${rx.ok.has(x.k)?" done":""}" data-rxl="${x.k}" ${rx.ok.has(x.k)?"disabled":""}>${esc(x.t)}</button>`).join("")}</div><div>${rx.R.map(x=>`<button class="rx-mt r${rx.ok.has(x.k)?" done":""}${rx.shake===x.k?" shake":""}" data-rxr="${x.k}" ${rx.ok.has(x.k)?"disabled":""}>${esc(x.t)}</button>`).join("")}</div></div>
     ${rx.ok.size===it.d[1].length?`<div class="rx-fb ${rx.err?"ko":"ok"}"><b>${rx.err?`Terminé avec ${rx.err} erreur${rx.err>1?"s":""}.`:"Parfait, sans erreur."}</b></div><button class="btn primary" data-rxa="back">Autres jeux</button>`:""}`;return}
   if(rx.kind==="ordre"){const it=rx.item,n=it.d[1].length;z.innerHTML=rxHead()+`<div class="rx-seq">${it.d[1].map((_,j)=>{const s=rx.seq[j];return `<div class="rx-slot${rx.checked?(s&&s.k===j?" good":" bad"):""}">${j+1}. ${s?esc(s.t):"<i class='hint'>…</i>"}</div>`}).join("")}</div>
@@ -2636,7 +2654,7 @@ function rxEnd(){const z=$("#rxZone"),sid=rx.sid,n=rx.answers.length,p=rxProg(si
   let big,sub="";if(rx.exam){const raw=rx.score-0.5*(n-rx.score);const note=Math.max(0,Math.round(20*raw/rx.items.length*2)/2);big=`${String(note).replace(".",",")}<small>/20</small>`;sub=`${rx.score} bonnes réponses sur ${rx.items.length}${n<rx.items.length?` (${rx.items.length-n} sans réponse)`:""} · une erreur retire 0,5 point`;if(!rx.saved&&(p.best.exam==null||note>p.best.exam)){p.best.exam=note;rxSave(sid)}}
   else if(rx.sudden){big=`${rx.score}<small> d'affilée</small>`;if(!rx.saved&&(p.best.sudden==null||rx.score>p.best.sudden)){p.best.sudden=rx.score;rxSave(sid);sub="Nouveau record."}else sub=`Record : ${p.best.sudden}`}
   else big=`${rx.score}<small> / ${n}</small>`;rx.saved=true;
-  z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${big}</p><p class="hint">${sub}</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-rxa="restart">Recommencer</button><button class="btn ghost" data-rxa="close">Terminer</button></div></div>
+  z.innerHTML=rxHead()+`<div class="rx-card rx-center"><p class="rbig">${big}</p><p class="hint">${sub}</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-rxa="restart">${(()=>{const M=["qcm","vf","qcm2","trou"].includes(rx.mode)&&RX_MODES[rx.mode];if(!M)return "Recommencer";const l=rxInfo(sid,...M).left;return l?`Continuer (${l} restante${l>1?"s":""})`:"Tout réussi · recommencer"})()}</button><button class="btn ghost" data-rxa="close">Terminer</button></div></div>
     ${rx.miss.length?`<h3 class="nl-sec">À retenir (${rx.miss.length})</h3>`+rx.miss.map(({it,pickd})=>`<div class="rx-card"><div class="rx-tag">${esc(rxChName(sid,it.c))}</div><b>${esc(it.t==="t"?it.d[0].replace("___","…"):it.d[0])}</b>${pickd!=null?`<p class="rx-bad">Ta réponse : ${esc(pickd||"(vide)")}</p>`:""}<p class="rx-good">Bonne réponse : ${esc(it.t==="q"?it.d[1][0]:it.t==="v"?(it.d[1]?"Vrai":"Faux"):it.d[1][0])}</p>${it.t!=="t"&&it.d[2]?`<p class="hint">${esc(it.d[2])}</p>`:""}</div>`).join(""):""}`}
 async function rxGrade(){const c=rx.item.d,ans=(rx.ans||"").trim();if(ans.length<40){toast("Rédige une réponse plus complète avant de la faire corriger.");return}
   rx.wait=true;rxDraw();
@@ -2664,7 +2682,7 @@ rxDlg.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!rx
     rxAnswer(ok,o);return}
   if((a==="check"||a==="idk")&&rx.kind==="quiz"&&!rx.done){const it=rx.items[rx.i],v=a==="idk"?"":($("#rxIn")||{}).value||"";const ok=!!v.trim()&&it.d[1].some(x=>rxNorm(x)===rxNorm(v));rx.typed=v;rxAnswer(ok,v);return}
   if(a==="next"){if(rx.sudden&&!rx.lastOk){rx.dead=true;rx.score=rx.answers.filter(Boolean).length;return rxDraw()}rx.i++;rx.opts=null;rx.typed="";if(rx.sudden&&rx.i>=rx.items.length)rx.dead=true;return rxDraw()}
-  if(a==="restart"){const k=rx.title;const map={"QCM":"qcm","Vrai ou faux":"vf","QCM sans indice":"qcm2","Mes erreurs":"errors","Mort subite":"sudden","Examen blanc /20":"exam","Mot manquant":"trou","Vrai ou faux chrono":"speed"};return rxStart(map[k]||"qcm")}
+  if(a==="restart")return rxStart(rx.mode||"qcm");
   if(a==="flip"){rx.flip=!rx.flip;return rxDraw()}
   if(a==="fyes"||a==="fno"){const it=rx.items[rx.i];rxMark(sid,it.k,a==="fyes");if(a==="fyes")rx.know++;else rx.again.push(it);rx.i++;rx.flip=false;return rxDraw()}
   if(a==="again"){rx.items=rx.again;rx.again=[];rx.know=0;rx.i=0;return rxDraw()}

@@ -23,13 +23,13 @@ Une page d'accueil relie les trois, et chaque app s'installe sur l'écran d'accu
 
 ### Study
 
-| Aujourd'hui | Semaine |
+| Aujourd'hui | Matières |
 |---|---|
-| ![Study, aujourd'hui](captures/study-aujourdhui.jpg) | ![Study, semaine](captures/study-semaine.jpg) |
-| **Matières** | **Note de cours** |
-| ![Study, matières](captures/study-matieres.jpg) | ![Study, note de cours](captures/study-note.jpg) |
-| **Révisions** | |
-| ![Study, révisions](captures/study-revisions.jpg) | |
+| ![Study, aujourd'hui : cours du jour, notes à rattraper et questions à réviser](captures/study-aujourdhui.jpg) | ![Study, matières : les cours de chaque matière](captures/study-matieres.jpg) |
+| **Note de cours** | **Révisions** |
+| ![Study, note de cours avec mise en forme et surlignage](captures/study-note.jpg) | ![Study, révisions : taux de réussite, notions à retravailler et quiz par niveau](captures/study-revisions.jpg) |
+| **Après le BTS** | |
+| ![Study, après le BTS : scores TOEFL et écoles visées](captures/study-apres-bts.jpg) | |
 
 ### Life (en test)
 

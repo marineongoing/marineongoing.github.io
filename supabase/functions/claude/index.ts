@@ -20,6 +20,8 @@ Deno.serve(async (req) => {
     const { messages, max_tokens, stream, web_fetch, web_search, quick } = await req.json();
     if (!Array.isArray(messages) || !messages.length) return json({ error: "bad_request" }, 400);
 
+    // Économie : Haiku (bien moins cher) pour les petites demandes, Sonnet seulement pour internet et les longs tests
+    const big = !!(web_fetch || web_search) || (max_tokens || 0) > 4000;
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -28,14 +30,14 @@ Deno.serve(async (req) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5", max_tokens: Math.min(max_tokens || 2000, 12000), messages,
+        model: big ? "claude-sonnet-5" : "claude-haiku-5-5", max_tokens: Math.min(max_tokens || 2000, 12000), messages,
         // web_fetch (lire la page d'une formation) et web_search (chercher des annales du BTS pour les révisions)
         ...(web_fetch || web_search ? { tools: [
           ...(web_fetch ? [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 }] : []),
-          ...(web_search ? [quick ? { type: "web_search_20250305", name: "web_search", max_uses: 2 } : { type: "web_search_20260209", name: "web_search", max_uses: 3 }] : []),
+          ...(web_search ? [quick ? { type: "web_search_20250305", name: "web_search", max_uses: 2 } : { type: "web_search_20260209", name: "web_search", max_uses: 2 }] : []),
         ] } : {}),
-        // quick: true (Study, révisions) : sans longue réflexion, pour rester sous la limite de durée de Supabase
-        ...(quick ? { thinking: { type: "disabled" } } : {}),
+        // Réflexion coupée partout : ses tokens sont payés comme la réponse (et ça reste sous la limite de durée de Supabase)
+        thinking: { type: "disabled" },
         ...(stream ? { stream: true } : {}),
       }),
     });

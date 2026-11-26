@@ -1506,6 +1506,41 @@ const fmtDay=d=>d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
 function setStatus(t){$("#status").textContent=t;if(typeof updateNet==="function")setTimeout(updateNet,0)}
 
 /* ---------- Storage: private per-user db, localStorage fallback ---------- */
+/* ---------- Claude par l'abonnement ----------
+   Les demandes longues (banque de révisions, synthèses, fiches, tests de synthèse) ne passent plus par la clé API :
+   Study écrit une ligne « cq-… » dans docs ({kind, prompt, meta, st:"wait"}). Une tâche programmée Claude Code
+   (payée par l'abonnement) répond au prompt et met st:"done" et text (ou st:"error"). Study applique alors le résultat
+   et supprime la ligne. prefs.sub === false remet l'ancien fonctionnement (clé API). */
+const cq={},CQ_JSON="\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.";
+const subOn=()=>!(state.prefs&&state.prefs.sub===false);
+const cqHas=(kind,f)=>Object.values(cq).some(d=>d&&d.kind===kind&&f(d.meta||{}));
+const cqCount=(kind,f)=>Object.values(cq).filter(d=>d&&d.kind===kind&&f(d.meta||{})).length;
+function cqAdd(kind,prompt,meta){const id="cq-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const d={kind,prompt,meta:meta||{},st:"wait",at:iso(new Date())};cq[id]=d;persist(id,{...d});return id}
+const CQ_DO={
+  rx:(m,text)=>{if(text==null)rxFail(m,{code:"abonnement"});else try{rxApply(m,text)}catch(e){rxFail(m,e)}},
+  syn:(m,text)=>{if(text!=null)synApply(m,text)},
+  quiz:(m,text)=>{if(text!=null)quizApply(m,text)},
+  fiche:(m,text)=>{const n=state.notes[m.id];if(!n||text==null)return;n.ficheDraft={text:String(text).trim().replace(/^#\s+[^\n]*\n+/,""),imgs:m.imgs||[],at:iso(new Date())};persist(m.id,{...n})}};
+let cqLock=false;
+function cqApply(){if(cqLock||!store)return;cqLock=true;let any=false;
+  try{for(const [id,d] of Object.entries(cq)){if(!d||(d.st!=="done"&&d.st!=="error"))continue;delete cq[id];any=true;
+    try{const h=CQ_DO[d.kind];if(h)h(d.meta||{},d.st==="done"?String(d.text||""):null)}catch(e){}
+    remove(id)}}finally{cqLock=false}
+  if(any){render(true);if(noteDlg.open)ficheShow(state.noteId)}}
+function synApply(m,text){const {id,sid}=m,prev=state.notes[id],src=String(text||"").trim();if(!src)throw {code:"empty"};const html=cleanHtml(md(src));
+  if(prev&&(prev.content||"").trim())pushVersion(id,prev.html||noteHtml(prev),true);
+  const content=htmlText(html);
+  if(dead.has(id)){dead.delete(id);persist("dead",{ids:[...dead].slice(-1000)})}
+  state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:(prev&&prev.title)||"Synthèse de révision",html,content,synMd:src,synBase:{notes:m.sigs,weak:m.wsig,edit:hashStr(content)},date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
+  persist(id,{...state.notes[id]})}
+const quizClean=(r,max)=>(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,max);
+function quizApply(m,text){const n=state.notes[m.id];if(!n)return;const t=String(text).replace(/```json|```/g,""),a=t.indexOf("{"),z=t.lastIndexOf("}");
+  let r;try{r=JSON.parse(t.slice(a,z+1))}catch(e){r={questions:salvageQs(t)}}
+  const qs=quizClean(r,30);if(!qs.length)return;n.quiz=n.quiz||{};n.quiz.bank={sig:m.sig,qs,date:iso(new Date())};n.updatedAt=Date.now();persist(m.id,{...n})}
+function ficheShow(id){const n=state.notes[id],z=$("#claudeZone");if(!n||!n.ficheDraft||!z||state.noteId!==id||z.innerHTML.trim())return;
+  lastFiche=n.ficheDraft.text;lastImgs=n.ficheDraft.imgs||[];
+  z.innerHTML=`<div class="claude-box"><p class="hint">Ta fiche préparée par Claude est prête.</p><div class="out preview" style="min-height:0;border:0;padding:0;background:none">${ficheHtml(lastFiche)}</div><div class="toolbar" style="margin-top:10px"><button class="btn primary" data-act="replace">Remplacer mes notes</button><button class="btn" data-act="append">Ajouter à la suite</button><button class="btn ghost" data-act="discard">Ignorer</button></div></div>`;showImgs(z)}
 function applyDocs(docs){
   if(docs.dead&&Array.isArray(docs.dead.ids))for(const id of docs.dead.ids)dead.add(id);
   const notes={};let events=state.events,links=state.links;
@@ -1519,6 +1554,7 @@ function applyDocs(docs){
   if(docs.alternance)state.alt={info:docs.alternance.info||state.alt.info,missions:Array.isArray(docs.alternance.missions)?docs.alternance.missions:[]};
   if(docs.grades){state.grades=Array.isArray(docs.grades.items)?docs.grades.items:[];state.goals=docs.grades.goals||{}}
   if(docs.prefs){state.prefs=docs.prefs;applyPrefs()}
+  {const nq={};for(const k in cq)if(skip.has(k)||(revs[k]&&Date.now()-revs[k]<15000&&!(k in docs)))nq[k]=cq[k];for(const k in docs)if(k.startsWith("cq-"))nq[k]=docs[k];for(const k in cq)delete cq[k];Object.assign(cq,nq);setTimeout(cqApply,0)}
   if(docs.bg){state.bgImg=docs.bg.img||"";applyPrefs()}
   if(docs.bilans)state.bilans=Array.isArray(docs.bilans.items)?docs.bilans.items:[];
   if(docs.veille)state.veille=Array.isArray(docs.veille.items)?docs.veille.items:[];
@@ -2494,7 +2530,7 @@ function rxLevels(sid){const n=t=>rxPool(sid,t).length;const L=[
     ${i===2&&(best.exam!=null||best.sudden!=null)?`<p class="hint rx-rec">${best.exam!=null?`Meilleur examen blanc : ${String(best.exam).replace(".",",")}/20`:""}${best.exam!=null&&best.sudden!=null?" · ":""}${best.sudden!=null?`Record mort subite : ${best.sudden}`:""}</p>`:""}</div>`).join("")}</div>`}
 function rxSubjectHTML(sid){const b=rxBank(sid),s=rxStats(sid),f=rxFilter[sid]||"all",old=revMeta(sid).old;
   if(!b.it.length)return `<div class="revcard"><p class="hint">Pas encore de questions dans cette matière. Elles arrivent dès que Claude a traité tes notes.</p></div>`;
-  const job=rxBusy&&rxBusy.sid===sid?rxBusy:null,waiting=rxQueue.filter(j=>j.sid===sid).length;
+  const job=rxBusy&&rxBusy.sid===sid?rxBusy:null,waiting=rxQueue.filter(j=>j.sid===sid).length,cqw=cqCount("rx",m=>m.sid===sid);
   return `<div class="rx-top">
     <div class="revcard rx-err"><h3 class="nl-sec">À revoir</h3><p class="rbig">${s.errs.length}<small> question${s.errs.length>1?"s":""} ratée${s.errs.length>1?"s":""}</small></p>
       ${s.weak.length?`<p class="hint">Notions où tu fais le plus de fautes :</p><div class="rx-weak">${s.weak.map(c=>`<button class="rx-chip" data-rxf="${c.id}">${esc(c.n)} · ${c.rate} %</button>`).join("")}</div>`:`<p class="hint">Aucune erreur pour l'instant${f!=="all"?" dans cette notion":""}.</p>`}
@@ -2504,7 +2540,7 @@ function rxSubjectHTML(sid){const b=rxBank(sid),s=rxStats(sid),f=rxFilter[sid]||
   <div class="rx-filter"><span class="hint">Réviser :</span><button class="rx-chip${f==="all"?" on":""}" data-rxf="all">Toute la matière</button>${b.ch.map(c=>`<button class="rx-chip${f===c.id?" on":""}" data-rxf="${c.id}">${esc(c.n)}</button>`).join("")}</div>
   ${rxLevels(sid)}
   <h3 class="nl-sec" style="margin-top:18px">Ma maîtrise par notion</h3><div class="rx-bars">${b.ch.map(c=>{const pc=s.per[c.id]||{n:0,m:0};const v=pc.n?Math.round(100*pc.m/pc.n):0;return `<button class="rx-bar" data-rxf="${c.id}"><span>${esc(c.n)}</span><i><s style="width:${v}%"></s></i><b>${v} %</b></button>`}).join("")}</div>
-  <p class="hint rx-gen">${job?`Claude ajoute des questions${job.kind==="hard"?" plus difficiles et des sujets d'annales":` à partir de « ${esc(job.title||"ta note")} »`}…`:waiting?`${waiting} mise${waiting>1?"s":""} à jour en attente.`:`${b.it.length} questions et exercices. Mis à jour automatiquement à chaque nouvelle note, avec des exercices tirés des annales du BTS NDRC.`}</p>`}
+  <p class="hint rx-gen">${job?`Claude ajoute des questions${job.kind==="hard"?" plus difficiles et des sujets d'annales":` à partir de « ${esc(job.title||"ta note")} »`}…`:cqw?`${cqw} mise${cqw>1?"s":""} à jour en préparation par Claude (abonnement) : les questions arrivent dans quelques heures.`:waiting?`${waiting} mise${waiting>1?"s":""} à jour en attente.`:`${b.it.length} questions et exercices. Mis à jour automatiquement à chaque nouvelle note, avec des exercices tirés des annales du BTS NDRC.`}</p>`}
 function renderRevs(){
   if(isMobile()&&!state.revOpen){$("#view-revs").innerHTML=tileHead()+`<div class="sgrid">${orderedSubjects().map(x=>{const m=revMeta(x.id);
     const inner=`${m.due?`<span class="st-dot" title="Questions à revoir"></span>`:""}<span class="st-name">${esc(x.short||x.name)}</span><span class="st-next">${rxBank(x.id).it.length} questions</span><span class="st-count"><b>${m.due}</b> à revoir</span>`;
@@ -2518,7 +2554,7 @@ function renderRevs(){
   $("#view-revs").innerHTML=html;const ol=$("#oralLog");if(ol)ol.scrollTop=ol.scrollHeight}
 
 /* ---------- Claude complète la banque ---------- */
-function rxAutoQueue(sid){if(!sampleFn||!state.rbank[sid])return;const b=rxBank(sid),from=b.from||0;
+function rxAutoQueue(sid){if((!sampleFn&&!subOn())||!state.rbank[sid])return;const b=rxBank(sid),from=b.from||0;
   if(!b.gen._hard&&!rxQueue.some(j=>j.sid===sid&&j.kind==="hard")&&!(rxBusy&&rxBusy.sid===sid&&rxBusy.kind==="hard"))rxQueue.push({kind:"hard",sid,part:(b.gen._hardPart||0)+1});
   let n=0;for(const [id,nt] of Object.entries(state.notes)){if(n>=3)break;if(nt.subject!==sid||nt.pin==="syn"||(nt.updatedAt||0)<from)continue;if(rxNeedsGen(sid,id)){rxQueueNote(id,true);n++}}
   rxRun()}
@@ -2545,20 +2581,16 @@ function rxPromptBase(sid){const b=rxBank(sid),sj=SUBJ[sid];
 Elle trouve les exercices actuels trop faciles : sois rigoureux, niveau examen du BTS, avec des pièges réalistes, des calculs, des mises en situation et des questions de justification. Tout en français (sauf en anglais pour les phrases à travailler en anglais), sans emoji, en tutoyant.
 Notions de la matière (id : nom) : ${b.ch.map(c=>c.id+" : "+c.n).join(" ; ")}. Utilise ces id dans "c" ; si une notion manque vraiment, ajoute-la dans "chapters" avec un id court en minuscules.
 ${RX_FORMAT}`}
-async function rxRun(){if(rxBusy||!rxQueue.length||!sampleFn)return;const job=rxQueue.shift();
-  if(job.kind==="hard"){const g=rxBank(job.sid).gen;if(g._hard||(g._hardPart||0)>=job.part)return rxRun()} /* déjà fait (par exemple sur un autre appareil) */
-  if(job.kind==="note"&&!rxNeedsGen(job.sid,job.id))return rxRun();
-  rxBusy=job;if(state.view==="revs")renderRevs();
-  try{const b=rxBank(job.sid);let prompt;
-    if(job.kind==="hard"){const known=b.it.filter(x=>x.t==="f").map(x=>x.d[0]).slice(0,80).join(" ; ");
-      prompt=`${rxPromptBase(job.sid)}
+function rxPrompt(job){const b=rxBank(job.sid);
+  if(job.kind==="hard"){const known=b.it.filter(x=>x.t==="f").map(x=>x.d[0]).slice(0,80).join(" ; ");
+    return `${rxPromptBase(job.sid)}
 
 Notions déjà travaillées : ${known}.
 1) Cherche sur internet (outil web_search) des sujets d'annales du BTS NDRC de cette matière (sujets officiels, corrigés, sessions récentes) et inspire-toi de leurs vraies questions.
 2) Crée des exercices nouveaux et plus difficiles que des questions de cours, répartis sur toutes les notions : ${job.part===1?"12 QCM (lv 2 ou 3) et 4 vrai ou faux pièges":job.part===2?"6 mots manquants exigeant le terme exact, 2 associations et 2 remises en ordre":"2 cas pratiques type annales (lv 3) avec contexte chiffré, annexes, questions numérotées et corrigé détaillé"}.
-Réponds en JSON : {"chapters":[],"items":[…]}`}
-    else{const n=state.notes[job.id];if(!n)throw {code:"gone"};const txt=htmlText(n.html||noteHtml(n)).slice(0,14000);
-      prompt=`${rxPromptBase(job.sid)}
+Réponds en JSON : {"chapters":[],"items":[…]}`+CQ_JSON}
+  const n=state.notes[job.id];if(!n)throw {code:"gone"};const txt=htmlText(n.html||noteHtml(n)).slice(0,14000);
+  return `${rxPromptBase(job.sid)}
 
 Voici une note de cours de l'étudiante${n.title?` (« ${n.title} »)`:""} :
 """
@@ -2567,20 +2599,36 @@ ${txt}
 1) Crée des exercices sur les notions de cette note : 6 QCM, 3 vrai ou faux, 3 flashcards, 3 mots manquants, 1 association ou remise en ordre si la note s'y prête. Majorité de lv 2 et 3. Corrigés et explications courts.
 2) Cherche sur internet (outil web_search) des exercices d'annales du BTS NDRC portant sur ces notions et ajoute 1 cas pratique type annale (lv 3) inspiré d'un vrai sujet, avec corrigé.
 N'invente aucune information absente de la note ou des sources officielles.
-Réponds en JSON : {"chapters":[],"items":[…]}`}
-    const r=await sampleFn(prompt+"\n\nRéponds uniquement avec du JSON valide, sans texte autour ni balises de code.",{cache:false,maxTokens:9000,webSearch:true,quick:true});
-    const t=r.text.replace(/```json|```/g,"");const a=t.indexOf("{"),z=t.lastIndexOf("}");if(a<0||z<a)throw {code:"empty"};
-    let j;try{j=JSON.parse(t.slice(a,z+1))}catch(e){j={chapters:[],items:rxSalvage(t)}}
-    const cur=state.rbank[job.sid];if(!cur)throw {};
-    for(const c of (Array.isArray(j.chapters)?j.chapters:[])){const id=String(c&&c.id||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(id&&c.n&&!cur.ch.some(x=>x.id===id))cur.ch.push({id,n:String(c.n).slice(0,60)})}
-    const ids=new Set(cur.ch.map(c=>c.id)),src=job.kind==="hard"?"hard":"n:"+job.id,stamp=Date.now().toString(36);
-    const items=(Array.isArray(j.items)?j.items:[]).map(x=>rxValid(x,ids)).filter(Boolean).map((x,i)=>({...x,k:"g"+stamp+"-"+i,src}));
-    if(!items.length)throw {code:"empty"};
-    cur.it=[...cur.it.filter(x=>x.src!==src||job.kind==="hard"),...items];
-    if(job.kind==="hard"){cur.gen._hardPart=job.part;cur.gen._hardTry=0;if(job.part>=3)cur.gen._hard=iso(new Date());else rxQueue.unshift({kind:"hard",sid:job.sid,part:job.part+1})}else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();cur.gen[job.id]={h:hashStr(txt),len:txt.length,at:iso(new Date())}}
-    rxSaveBank(job.sid);
-  }catch(e){if(e&&e.code==="not_granted")rxQueue.length=0;else if(!(e&&e.code==="gone")){const cur=state.rbank[job.sid];
-      if(cur){cur.gen._err=iso(new Date())+" "+(job.kind==="hard"?"partie "+job.part:"note")+" : "+String((e&&(e.code||e.message))||"erreur").slice(0,120);if(job.kind==="hard"){cur.gen._hardTry=(cur.gen._hardTry||0)+1;if(cur.gen._hardTry>=3)cur.gen._hard="échec"}else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();const pf=(cur.gen[job.id]&&cur.gen[job.id].fail)||0;cur.gen[job.id]={h:hashStr(txt),len:txt.length,fail:pf+1}}rxSaveBank(job.sid)}}}
+Réponds en JSON : {"chapters":[],"items":[…]}`+CQ_JSON}
+/* réponse de Claude (clé API ou abonnement) : on ajoute les exercices valides à la banque */
+function rxApply(job,text){const g0=rxBank(job.sid).gen;if(job.kind==="hard"&&(g0._hard||(g0._hardPart||0)>=job.part))return;
+  const t=String(text||"").replace(/```json|```/g,"");const a=t.indexOf("{"),z=t.lastIndexOf("}");if(a<0||z<a)throw {code:"empty"};
+  let j;try{j=JSON.parse(t.slice(a,z+1))}catch(e){j={chapters:[],items:rxSalvage(t)}}
+  const cur=state.rbank[job.sid];if(!cur)throw {};
+  for(const c of (Array.isArray(j.chapters)?j.chapters:[])){const id=String(c&&c.id||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,8);if(id&&c.n&&!cur.ch.some(x=>x.id===id))cur.ch.push({id,n:String(c.n).slice(0,60)})}
+  const ids=new Set(cur.ch.map(c=>c.id)),src=job.kind==="hard"?"hard":"n:"+job.id,stamp=Date.now().toString(36);
+  const items=(Array.isArray(j.items)?j.items:[]).map(x=>rxValid(x,ids)).filter(Boolean).map((x,i)=>({...x,k:"g"+stamp+"-"+i,src}));
+  if(!items.length)throw {code:"empty"};
+  cur.it=[...cur.it.filter(x=>x.src!==src||job.kind==="hard"),...items];
+  if(job.kind==="hard"){cur.gen._hardPart=job.part;cur.gen._hardTry=0;if(job.part>=3)cur.gen._hard=iso(new Date());else if(!subOn())rxQueue.unshift({kind:"hard",sid:job.sid,part:job.part+1})}
+  else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();cur.gen[job.id]=job.h?{h:job.h,len:job.len,at:iso(new Date())}:{h:hashStr(txt),len:txt.length,at:iso(new Date())}}
+  rxSaveBank(job.sid)}
+function rxFail(job,e){if(e&&e.code==="gone")return;const cur=state.rbank[job.sid];if(!cur)return;
+  cur.gen._err=iso(new Date())+" "+(job.kind==="hard"?"partie "+job.part:"note")+" : "+String((e&&(e.code||e.message))||"erreur").slice(0,120);
+  if(job.kind==="hard"){cur.gen._hardTry=(cur.gen._hardTry||0)+1;if(cur.gen._hardTry>=3)cur.gen._hard="échec"}
+  else{const n=state.notes[job.id];const txt=((n&&n.content)||"").trim();const pf=(cur.gen[job.id]&&cur.gen[job.id].fail)||0;cur.gen[job.id]={h:hashStr(txt),len:txt.length,fail:pf+1}}
+  rxSaveBank(job.sid)}
+async function rxRun(){if(rxBusy||!rxQueue.length)return;const job=rxQueue.shift();
+  if(job.kind==="hard"){const g=rxBank(job.sid).gen;if(g._hard||(g._hardPart||0)>=job.part)return rxRun()} /* déjà fait (par exemple sur un autre appareil) */
+  if(job.kind==="note"&&!rxNeedsGen(job.sid,job.id))return rxRun();
+  /* abonnement : la demande part dans la file, une tâche Claude Code la traite */
+  if(subOn()){try{if(job.kind==="hard"){for(let p=job.part;p<=3;p++)if(!cqHas("rx",m=>m.kind==="hard"&&m.sid===job.sid&&m.part===p))cqAdd("rx",rxPrompt({...job,part:p}),{...job,part:p})}
+      else if(!cqHas("rx",m=>m.id===job.id)){const txt=((state.notes[job.id]||{}).content||"").trim();cqAdd("rx",rxPrompt(job),{...job,h:hashStr(txt),len:txt.length})}}catch(e){}
+    if(state.view==="revs")renderRevs();return rxRun()}
+  if(!sampleFn)return;
+  rxBusy=job;if(state.view==="revs")renderRevs();
+  try{const r=await sampleFn(rxPrompt(job),{cache:false,maxTokens:9000,webSearch:true,quick:true});rxApply(job,r.text)}
+  catch(e){if(e&&e.code==="not_granted")rxQueue.length=0;else rxFail(job,e)}
   rxBusy=null;if(state.view==="revs")renderRevs();setTimeout(rxRun,1500)}
 /* réponse mal formée ou coupée : on récupère un à un les exercices complets de la liste "items" */
 function rxSalvage(t){const out=[],a=t.indexOf("[",Math.max(0,t.indexOf('"items"')));if(a<0)return out;let d=0,st=-1,inS=false,es=false;
@@ -2893,7 +2941,7 @@ function renderNoteList(){
     (free.length?`<h3 class="nl-sec">Autres notes</h3><div class="cgrid">`+free.map(([id,n])=>`<button data-note="${id}" class="ccard has"><span class="cdot"></span><span class="cc-main"><b>${esc(n.title||"Sans titre")}</b><span class="cc-sub">${n.date?fmtDay(parseISO(n.date)):""}</span><span class="cc-b">${badges(n)}</span></span></button>`).join("")+`</div>`:"");
 }
 const noteDlg=$("#noteDlg");
-function openNote(id){const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal()}
+function openNote(id){const on=state.notes[id];if(on)pushVersion(id,on.html||noteHtml(on),false);state.noteId=id;state.preview=false;renderEditor();if(!noteDlg.open)noteDlg.showModal();ficheShow(id)}
 function closeNote(){flush();state.noteId=null;if(noteDlg.open)noteDlg.close()}
 noteDlg.addEventListener("close",()=>{const cid=state.noteId;flush();state.noteId=null;if(state.view==="subjects")renderNoteList();if(cid)setTimeout(()=>rxQueueNote(cid),800)});
 const HL={"rgb(249, 198, 214)":"#F9C6D6","#f9c6d6":"#F9C6D6","rgb(200, 235, 201)":"#C8EBC9","#c8ebc9":"#C8EBC9","rgb(203, 232, 250)":"#CBE8FA","#cbe8fa":"#CBE8FA","rgb(255, 221, 184)":"#FFDDB8","#ffddb8":"#FFDDB8"};
@@ -3094,10 +3142,10 @@ async function onSubjClick(e){const md0=e.target.closest&&e.target.closest("deta
   else if(b.dataset.act==="replace"||b.dataset.act==="append"){
     const n=state.notes[state.noteId];if(!n||!lastFiche)return;
     rteSave();const fh=cleanHtml(ficheHtml(lastFiche));
-    n.html=b.dataset.act==="replace"?fh:(n.html||"")+"<hr>"+fh;n.content=htmlText(n.html);
+    n.html=b.dataset.act==="replace"?fh:(n.html||"")+"<hr>"+fh;n.content=htmlText(n.html);delete n.ficheDraft;
     lastFiche="";saveNote();renderEditor();renderNoteList();
   }
-  else if(b.dataset.act==="discard"){lastFiche="";$("#claudeZone").innerHTML=""}
+  else if(b.dataset.act==="discard"){lastFiche="";$("#claudeZone").innerHTML="";const dn=state.notes[state.noteId];if(dn&&dn.ficheDraft){delete dn.ficheDraft;saveNote()}}
 }
 $("#view-subjects").addEventListener("click",onSubjClick);
 noteDlg.addEventListener("click",onSubjClick);
@@ -3151,8 +3199,9 @@ ${isSyn?"Synthèse":"Notes"} :
 ${txt.slice(0,40000)}
 """`;
   const prog=({text})=>{const k=(text.match(/"question"\s*:/g)||[]).length,h=$("#qprog");if(h&&k)h.textContent=k+(k>1?" questions prêtes…":" question prête…")};
+  if(isSyn&&subOn()){if(!cqHas("quiz",m=>m.id===state.noteId))cqAdd("quiz",prompt+CQ_JSON,{id:state.noteId,sig});zone.innerHTML=`<p class="hint">C'est noté : Claude prépare ton test de synthèse avec ton abonnement. Il sera prêt dans quelques heures : reviens alors cliquer sur le test.</p>`;busy=false;return}
   try{let r;try{r=await sampleFn.json(prompt,{cache:false,maxTokens:isSyn?12000:3500,onText:prog})}catch(e){if(e&&e.code==="bad_json")r={questions:salvageQs(e.text||"")};else throw e}
-    const qs=(r&&Array.isArray(r.questions)?r.questions:[]).filter(q=>q&&q.question&&Array.isArray(q.choices)&&q.choices.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length).slice(0,isSyn?30:8);
+    const qs=quizClean(r,isSyn?30:8);
     if(!qs.length)throw {code:"empty"};
     if(isSyn){n.quiz=n.quiz||{};n.quiz.bank={sig,qs,date:iso(new Date())};n.updatedAt=Date.now();persist(state.noteId,{...n})}
     runQuiz(qs,false)}
@@ -3295,13 +3344,8 @@ Rédige une synthèse de révision ${fmt}. N'ajoute aucune notion absente des no
 
 ${all}
 ${extra}`;
-  try{const r=await sampleFn(prompt,{cache:false});
-    const src=r.text.trim(),html=cleanHtml(md(src));
-    if(prev&&(prev.content||"").trim())pushVersion(id,prev.html||noteHtml(prev),true);
-    const content=htmlText(html);
-    if(dead.has(id)){dead.delete(id);persist("dead",{ids:[...dead].slice(-1000)})}
-    state.notes[id]={...(prev||{}),subject:sid,pin:"syn",title:(prev&&prev.title)||"Synthèse de révision",html,content,synMd:src,synBase:{notes:sigs,weak:wsig,edit:hashStr(content)},date:"",links:(prev&&prev.links)||[],recording:(prev&&prev.recording)||"",updatedAt:Date.now()};
-    persist(id,{...state.notes[id]});st.innerHTML="";busy=false;openNote(id);renderNoteList();return}
+  if(subOn()){st.innerHTML=`<p class="hint">${cqHas("syn",m=>m.sid===sid)?"Ta synthèse est déjà en préparation":"C'est noté : Claude prépare ta synthèse avec ton abonnement"}. Elle apparaîtra dans tes notes dans quelques heures.</p>`;if(!cqHas("syn",m=>m.sid===sid))cqAdd("syn",prompt,{id,sid,sigs,wsig});busy=false;return}
+  try{const r=await sampleFn(prompt,{cache:false});synApply({id,sid,sigs,wsig},r.text);st.innerHTML="";busy=false;openNote(id);renderNoteList();return}
   catch(e){st.innerHTML=`<p class="hint">${e&&e.code==="rate_limited"?"Trop de demandes. Réessaie dans une minute.":"La synthèse n'a pas pu être faite. Réessaie dans un instant."}</p>`}busy=false}
 async function organize(){
   const n=state.notes[state.noteId];if(!n||busy)return;flush();
@@ -3334,6 +3378,7 @@ Texte :
 """
 ${txt.slice(0,60000)}
 """`;
+  if(subOn()){if(!cqHas("fiche",m=>m.id===state.noteId))cqAdd("fiche",prompt,{id:state.noteId,imgs});zone.innerHTML=`<p class="hint">C'est noté : Claude prépare ta fiche avec ton abonnement. Elle apparaîtra ici dans quelques heures, et tu pourras alors remplacer tes notes ou l'ajouter à la suite.</p>`;busy=false;$("#claudeBtn").disabled=false;return}
   try{
     const r=await sampleFn(prompt,{cache:false,onText:({text})=>{$("#cState").textContent="Rédaction en cours…";$("#cOut").innerHTML=ficheHtml(text,true);showImgs($("#cOut"))}});
     lastFiche=r.text.trim().replace(/^#\s+[^\n]*\n+/,"");

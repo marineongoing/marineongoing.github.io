@@ -1614,11 +1614,18 @@ async function loadImgs(ids){ids=ids.filter(id=>!imgSrc[id]&&!imgWait[id]);if(!i
   if(miss.length&&store&&store.loadImgs){try{for(const r of await store.loadImgs(miss))if(r.data&&r.data.src){imgSrc[r.id]=r.data.src;imgDB.put(r.id,r.data.src)}}catch(e){}}
   ids.forEach(id=>delete imgWait[id]);showImgs(document)}
 function showImgs(root){if(!root)return;const miss=[];root.querySelectorAll("img[data-img]").forEach(im=>{const s=imgSrc[im.dataset.img];if(!s)miss.push(im.dataset.img);else if(im.getAttribute("src")!==s)im.src=s});if(miss.length)loadImgs(miss)}
-async function shrinkImg(file){const bmp=await createImageBitmap(file);let w=bmp.width,h=bmp.height,m=1600;if(Math.max(w,h)>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
+/* photos d'iPhone (HEIC) : Chrome ne sait pas les lire, on les convertit en JPEG (outil chargé seulement si besoin) */
+const isHeic=f=>/^image\/hei[cf]/i.test(f.type||"")||/\.hei[cf]$/i.test(f.name||"");
+const isImgFile=f=>!!f&&(/^image\//.test(f.type||"")||isHeic(f));
+let heicLib=null;
+const loadHeic=()=>heicLib||(heicLib=new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";s.onload=()=>window.heic2any?ok(window.heic2any):ko();s.onerror=()=>{heicLib=null;ko()};document.head.appendChild(s)}));
+async function decodeImg(file){try{return await createImageBitmap(file)}catch(e){if(!isHeic(file))throw e}
+  toast("Conversion de la photo iPhone…");const h2a=await loadHeic();let b=await h2a({blob:file,toType:"image/jpeg",quality:.9});if(Array.isArray(b))b=b[0];return createImageBitmap(b)}
+async function shrinkImg(file){const bmp=await decodeImg(file);let w=bmp.width,h=bmp.height,m=1600;if(Math.max(w,h)>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
   const cv=document.createElement("canvas");let q=0.85,url="";for(let i=0;i<6;i++){cv.width=w;cv.height=h;const g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);url=cv.toDataURL("image/jpeg",q);if(url.length<450000)break;q-=0.1;w=Math.round(w*.85);h=Math.round(h*.85)}
   return url}
 async function addImgs(files,range){const el=$("#rte"),nid=state.noteId;if(!el||!state.notes[nid])return;let h="";
-  for(const f of files){try{const src=await shrinkImg(f),id="img-"+uid();imgSrc[id]=src;imgDB.put(id,src);persist(id,{src,note:nid});h+=`<img data-img="${id}" src="${src}" alt="">`}catch(e){toast("Cette image n'a pas pu être ajoutée.")}}
+  for(const f of files){try{const src=await shrinkImg(f),id="img-"+uid();imgSrc[id]=src;imgDB.put(id,src);persist(id,{src,note:nid});h+=`<img data-img="${id}" src="${src}" alt="">`}catch(e){toast(isHeic(f)?"Cette photo iPhone n'a pas pu être convertie. Vérifie ta connexion et réessaie.":"Cette image n'a pas pu être ajoutée.")}}
   if(!h||state.noteId!==nid||!$("#rte"))return;el.focus();if(range&&el.contains(range.startContainer)){const sel=getSelection();sel.removeAllRanges();sel.addRange(range)}
   document.execCommand("insertHTML",false,h);onNoteInput({target:el})}
 /* taille d'une image : un clic dessus ouvre une petite barre (25 %, 50 %, 75 %, 100 %) */
@@ -2995,11 +3002,12 @@ function renderEditor(){
         const nr=document.createRange();nr.setStart(tn,tn.nodeValue.length);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr);onNoteInput({target:r})}
       else if(e.inputType==="insertParagraph"){const nr=document.createRange();nr.setStartAfter(sp);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr)}});
     r.addEventListener("paste",e=>{e.preventDefault();const cd=e.clipboardData||window.clipboardData,t=cd.getData("text/plain");
-      const fs=[...(cd.items||[])].filter(i=>i.kind==="file"&&/^image\//.test(i.type)).map(i=>i.getAsFile()).filter(Boolean);
+      const fs=[...(cd.items||[])].filter(i=>i.kind==="file").map(i=>i.getAsFile()).filter(isImgFile);
+      if(!fs.length)fs.push(...[...(cd.files||[])].filter(isImgFile));
       const hm=cd.getData("text/html")||"";
       if(fs.length&&(!t.trim()||!hm||/<img/i.test(hm))){const sel=getSelection();addImgs(fs,sel.rangeCount?sel.getRangeAt(0).cloneRange():null);return}
       document.execCommand("insertText",false,t)});
-    r.addEventListener("drop",e=>{const fs=[...((e.dataTransfer&&e.dataTransfer.files)||[])].filter(f=>/^image\//.test(f.type));if(!fs.length)return;e.preventDefault();
+    r.addEventListener("drop",e=>{const fs=[...((e.dataTransfer&&e.dataTransfer.files)||[])].filter(isImgFile);if(!fs.length)return;e.preventDefault();
       addImgs(fs,document.caretRangeFromPoint?document.caretRangeFromPoint(e.clientX,e.clientY):null)});
     showImgs(r)}
 }

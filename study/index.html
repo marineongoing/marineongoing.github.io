@@ -1618,9 +1618,9 @@ function showImgs(root){if(!root)return;const miss=[];root.querySelectorAll("img
 const isHeic=f=>/^image\/hei[cf]/i.test(f.type||"")||/\.hei[cf]$/i.test(f.name||"");
 const isImgFile=f=>!!f&&(/^image\//.test(f.type||"")||isHeic(f));
 let heicLib=null;
-const loadHeic=()=>heicLib||(heicLib=new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";s.onload=()=>window.heic2any?ok(window.heic2any):ko();s.onerror=()=>{heicLib=null;ko()};document.head.appendChild(s)}));
+const loadHeic=()=>heicLib||(heicLib=new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/heic-to@1.6.6/dist/iife/heic-to.js";s.onload=()=>window.HeicTo?ok(window.HeicTo):ko();s.onerror=()=>{heicLib=null;ko()};document.head.appendChild(s)}));
 async function decodeImg(file){try{return await createImageBitmap(file)}catch(e){if(!isHeic(file))throw e}
-  toast("Conversion de la photo iPhone…");const h2a=await loadHeic();let b=await h2a({blob:file,toType:"image/jpeg",quality:.9});if(Array.isArray(b))b=b[0];return createImageBitmap(b)}
+  toast("Conversion de la photo iPhone…");const conv=await loadHeic();return createImageBitmap(await conv({blob:file,type:"image/jpeg",quality:.9}))}
 async function shrinkImg(file){const bmp=await decodeImg(file);let w=bmp.width,h=bmp.height,m=1600;if(Math.max(w,h)>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
   const cv=document.createElement("canvas");let q=0.85,url="";for(let i=0;i<6;i++){cv.width=w;cv.height=h;const g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);url=cv.toDataURL("image/jpeg",q);if(url.length<450000)break;q-=0.1;w=Math.round(w*.85);h=Math.round(h*.85)}
   return url}
@@ -3002,8 +3002,9 @@ function renderEditor(){
         const nr=document.createRange();nr.setStart(tn,tn.nodeValue.length);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr);onNoteInput({target:r})}
       else if(e.inputType==="insertParagraph"){const nr=document.createRange();nr.setStartAfter(sp);nr.collapse(true);sel.removeAllRanges();sel.addRange(nr)}});
     r.addEventListener("paste",e=>{e.preventDefault();const cd=e.clipboardData||window.clipboardData,t=cd.getData("text/plain");
-      const fs=[...(cd.items||[])].filter(i=>i.kind==="file").map(i=>i.getAsFile()).filter(isImgFile);
-      if(!fs.length)fs.push(...[...(cd.files||[])].filter(isImgFile));
+      const all=[...(cd.items||[])].filter(i=>i.kind==="file").map(i=>i.getAsFile()).filter(Boolean);
+      if(!all.length)all.push(...(cd.files||[]));
+      const hc=all.filter(isHeic),fs=hc.length?hc:all.filter(isImgFile);
       const hm=cd.getData("text/html")||"";
       if(fs.length&&(!t.trim()||!hm||/<img/i.test(hm))){const sel=getSelection();addImgs(fs,sel.rangeCount?sel.getRangeAt(0).cloneRange():null);return}
       document.execCommand("insertText",false,t)});
